@@ -87,3 +87,46 @@ test('automatic_dirty_and_unmapped_observations_do_not_hash_secret_names_or_alia
   const snap = await readSnapshot(p);
   await expect(confirmReferences(p, [{ path: '.env', hash: hash('LOCAL_TEST_ONLY=fixture') }], { networkRevision: snap.revision, outcome: 'no_semantic_change', reason: 'Unsafe source' })).rejects.toMatchObject({ code: 'sensitive_reference' });
 });
+
+test('tracked_unmapped_deletion_can_be_acknowledged_without_hash_and_recreation_reopens', async () => {
+  const { commit } = await import('./fixture.js'); const { checkNetwork } = await import('../../src/freshness/check.js');
+  const p = await fixture(roots); await writeFile(join(p.root, 'notes.md'), 'notes'); await commit(p.root); await rm(join(p.root, 'notes.md'));
+  const snapshot = await readSnapshot(p); const before = await readRuntime(p, 'baselines'); const yaml = await readFile(join(p.networkDir, 'alpha.yaml'));
+  await confirmReferences(p, [{ path: 'notes.md', state: 'missing' }], { networkRevision: snapshot.revision, outcome: 'no_semantic_change', reason: 'Reviewed deletion of notes; no product behavior changed' });
+  const decisions = await readRuntime<any>(p, 'freshness/decisions');
+  expect(decisions.references['notes.md']).toMatchObject({ state: 'missing', featureFingerprints: {} });
+  expect(Object.hasOwn(decisions.references['notes.md'], 'hash')).toBe(false);
+  for (let run = 0; run < 2; run++) {
+    const result = await checkNetwork(p, 'full'); expect(result.unknownChanges).toEqual(['notes.md']);
+    expect(result.unknownChangeDecisions).toEqual([{ path: 'notes.md', state: 'missing_no_semantic_change' }]);
+    expect(result.openDecisions.some(d => d.path === 'notes.md')).toBe(false);
+  }
+  expect(await readRuntime(p, 'baselines')).toEqual(before); expect(await readFile(join(p.networkDir, 'alpha.yaml'))).toEqual(yaml);
+  expect(await readRuntime(p, 'freshness/decisions')).toEqual(decisions);
+  await writeFile(join(p.root, 'notes.md'), 'restored differently');
+  const reopened = await checkNetwork(p, 'full'); expect(reopened.unknownChangeDecisions).toEqual([{ path: 'notes.md', state: 'open' }]);
+  expect(reopened.openDecisions).toContainEqual(expect.objectContaining({ path: 'notes.md', reason: 'unmapped' }));
+  await writeFile(join(p.root, 'notes.md'), 'notes'); // Original tracked bytes: Git is clean again.
+  const cleanGitRestore = await checkNetwork(p, 'full');
+  expect(cleanGitRestore.unknownChanges).toEqual(['notes.md']);
+  expect(cleanGitRestore.unknownChangeDecisions).toEqual([{ path: 'notes.md', state: 'open' }]);
+  await rm(join(p.root, 'notes.md')); await symlink('still-missing.md', join(p.root, 'notes.md'));
+  expect((await checkNetwork(p, 'full')).unknownChangeDecisions).toEqual([{ path: 'notes.md', state: 'open' }]);
+});
+test('missing_acknowledgement_rejects_recreation_before_confirmation_without_writes', async () => {
+  const p = await fixture(roots); const snapshot = await readSnapshot(p); const baseline = await readRuntime(p, 'baselines');
+  await writeFile(join(p.root, 'notes.md'), 'recreated before confirm');
+  await expect(confirmReferences(p, [{ path: 'notes.md', state: 'missing' }], { networkRevision: snapshot.revision, outcome: 'no_semantic_change', reason: 'Read absence earlier' })).rejects.toMatchObject({ code: 'conflict' });
+  expect(await readRuntime(p, 'baselines')).toEqual(baseline); expect(await readRuntime(p, 'freshness/decisions')).toBeNull();
+});
+test('missing_acknowledgements_reject_mapped_secrets_install_aliases_and_dangling_links', async () => {
+  const p = await fixture(roots); const snapshot = await readSnapshot(p); const decision = { networkRevision: snapshot.revision, outcome: 'no_semantic_change' as const, reason: 'Checked absent path' };
+  await mkdir(join(p.root, 'plugin')); await symlink('plugin', join(p.root, 'plugin-alias')); await symlink('missing.ts', join(p.root, 'dangling.ts'));
+  for (const path of ['.env', '../outside.ts', '.git/no-file', 'network-spec/no-file', '.feature-network/no-file', 'dist/no-file', 'plugin-alias/no-file', 'dangling.ts']) {
+    await expect(confirmReferences(p, [{ path, state: 'missing' }], decision, { excludedReferenceRoots: [join(p.root, 'plugin')] })).rejects.toBeDefined();
+  }
+  await expect(confirmReferences(p, [{ path: 'notes.md', state: 'missing' }], { ...decision, outcome: 'updated' })).rejects.toMatchObject({ code: 'invalid_decision' });
+  await rm(join(p.root, 'source.ts'));
+  await expect(confirmReferences(p, [{ path: 'source.ts', state: 'missing' }], decision)).rejects.toBeDefined();
+  expect(await readRuntime(p, 'freshness/decisions')).toBeNull();
+});

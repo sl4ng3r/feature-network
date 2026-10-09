@@ -112,3 +112,13 @@ test('oversized_transaction_never_publishes_an_unreadable_journal', async () => 
   expect((await readdir(p.runtimeDir)).some(name => name.startsWith('journal.json'))).toBe(false);
   expect((await readdir(p.networkDir)).sort()).toEqual(['_meta.yaml', 'alpha.yaml', 'beta.yaml']);
 }, 30_000);
+
+test('missing_guard_rechecks_after_capture_under_lock_and_prevents_any_update_on_recreation', async () => {
+  const p = await setup(); const snap = await readSnapshot(p); const before = await readRuntime(p, 'baselines');
+  const alpha = await readFile(join(p.networkDir, 'alpha.yaml'));
+  const w = worker(p.root, 'update', { expected: snap.fingerprints, expectedRevision: snap.revision, expectedMissingReferences: ['notes.md'], upserts: [feature('alpha', 'Must not be published')], deletes: [], verifiedReferences: refs }, 'external-once'); workers.push(w);
+  expect(await w.next()).toEqual({ stage: 'captured' });
+  await writeFile(join(p.root, 'notes.md'), 'recreated while updater holds lock'); w.child.send('continue');
+  expect((await w.next()).error?.code).toBe('conflict');
+  expect(await readFile(join(p.networkDir, 'alpha.yaml'))).toEqual(alpha); expect(await readRuntime(p, 'baselines')).toEqual(before);
+});

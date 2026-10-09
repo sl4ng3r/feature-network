@@ -26,7 +26,7 @@ export interface CheckResult {
   networkRevision: string;
   references: ReferenceState[];
   unknownChanges: string[];
-  unknownChangeDecisions: Array<{ path: string; state: 'open' | 'no_semantic_change' }>;
+  unknownChangeDecisions: Array<{ path: string; state: 'open' | 'no_semantic_change' | 'missing_no_semantic_change' }>;
   preexistingChanges: string[];
   turnChanges: string[];
   turnAssumptions: 'valid' | 'invalidated' | 'not_recorded';
@@ -115,16 +115,24 @@ export async function checkNetwork(project: Project, mode: 'summary' | 'full', s
       if (observation.hash !== turn.observed[path] || observation.state === 'unknown') result.turnChanges.push(path);
     }
   }
-  const allChanged = [...new Set([...changed, ...result.turnChanges])].sort();
-  result.unknownChanges = allChanged.filter(path => !ids.has(path));
+  const allChanged = new Set([...changed, ...result.turnChanges]);
+  const priorObservations = new Map<string, Awaited<ReturnType<typeof inspectChange>>>();
+  // Only explicitly reviewed unmapped paths are additionally inspected, including
+  // a restored tracked file whose original bytes make Git look clean again.
+  for (const path of await relevantChanges(project, Object.keys(decisions?.references ?? {}), options)) {
+    if (ids.has(path)) continue;
+    const observed = await inspectChange(project, path, options); priorObservations.set(path, observed);
+    if (!matchingUnmappedDecision(decisions, snapshot, path, observed)) allChanged.add(path);
+  }
+  result.unknownChanges = [...allChanged].sort().filter(path => !ids.has(path));
   for (const path of result.unknownChanges) {
-    let reviewed = false;
+    let reviewed = false; let missing = false;
     if (decisions && Object.hasOwn(decisions.references, path)) {
-      const observation = await inspectChange(project, path, options);
-      if (observation.diagnostic) result.diagnostics.push(observation.diagnostic);
-      reviewed = observation.hash !== null && matchingUnmappedDecision(decisions, snapshot, path, observation.hash);
+      const observation = priorObservations.get(path) ?? await inspectChange(project, path, options);
+      reviewed = matchingUnmappedDecision(decisions, snapshot, path, observation); missing = observation.state === 'missing';
+      if (observation.diagnostic && !reviewed) result.diagnostics.push(observation.diagnostic);
     }
-    result.unknownChangeDecisions.push({ path, state: reviewed ? 'no_semantic_change' : 'open' });
+    result.unknownChangeDecisions.push({ path, state: reviewed ? missing ? 'missing_no_semantic_change' : 'no_semantic_change' : 'open' });
     if (!reviewed) result.openDecisions.push({ path, featureIds: [], reason: 'unmapped' });
   }
   // Git's disabled-filter warning is a real coverage boundary, never clean proof.

@@ -5,7 +5,7 @@ import { stringify } from 'yaml';
 import { NetworkError } from '../model/errors.js';
 import { parseFeature, parseMeta } from '../model/schema.js';
 import type { Diagnostic, Feature, Fingerprint, Reference, VerifiedReference } from '../model/types.js';
-import { resolveProjectPath } from '../project/paths.js';
+import { isAutomaticGeneratedPath, isSensitivePath, resolveProjectPath } from '../project/paths.js';
 import { readGitState } from '../project/git.js';
 import type { Project } from '../project/root.js';
 import { withProjectLock, isMissing, storagePath } from './lock.js';
@@ -22,6 +22,7 @@ export interface Snapshot {
 export interface UpdateRequest {
   expected: Record<string, Fingerprint | null>;
   expectedRevision?: Fingerprint;
+  expectedMissingReferences?: string[];
   upserts: Feature[];
   deletes: string[];
   verifiedReferences: VerifiedReference[];
@@ -41,7 +42,7 @@ function inside(root: string, path: string): boolean {
   const suffix = relative(root, path); return suffix === '' || (!suffix.startsWith(`..${sep}`) && suffix !== '..' && !suffix.startsWith(sep));
 }
 /** Canonical exclusions are checked before opening source bytes, including aliases. */
-export async function readReferenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
+async function referencePath(project: Project, path: string, options: StorageOptions): Promise<string> {
   const absolute = await resolveProjectPath(project, path);
   const excluded = [resolve(project.root, '.git'), project.networkDir, project.runtimeDir];
   for (const root of options.excludedReferenceRoots ?? []) {
@@ -52,11 +53,28 @@ export async function readReferenceHash(project: Project, path: string, options:
     || components.some(p => ['.git', '.feature-network', 'network-spec'].includes(p)) || excluded.some(root => inside(root, absolute))) {
     throw new NetworkError('unsafe_reference', 'Reference points into excluded metadata or plugin storage', [path]);
   }
+  return absolute;
+}
+/** Same confinement and exclusions for existing bytes and absent observations. */
+export async function readReferenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
+  const absolute = await referencePath(project, path, options);
   const file = await open(absolute, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     if (!(await file.stat()).isFile()) throw new NetworkError('unsafe_reference', 'Reference is not a regular file', [path]);
     return digest(await file.readFile());
   } finally { await file.close(); }
+}
+/** Absence is not a hash. Existing dangling symlinks/directories are never absence evidence. */
+export async function assertMissingReference(project: Project, path: string, options: StorageOptions = {}): Promise<void> {
+  const absolute = await referencePath(project, path, options);
+  const canonical = relative(project.root, absolute).split(sep).join('/');
+  if (isSensitivePath(path) || isSensitivePath(canonical)) throw new NetworkError('sensitive_reference', 'Automatic observation excludes a potentially sensitive source', [path]);
+  if (isAutomaticGeneratedPath(path) || isAutomaticGeneratedPath(canonical)) throw new NetworkError('unsafe_reference', 'Automatic observation excludes generated sources', [path]);
+  for (const candidate of new Set([resolve(project.root, path), absolute])) {
+    try { await lstat(candidate); }
+    catch (error) { if (isMissing(error)) continue; throw error; }
+    throw new NetworkError('conflict', 'Expected missing source exists', [path]);
+  }
 }
 function diagnostic(error: unknown, path: string): Diagnostic {
   return { code: error instanceof NetworkError ? error.code : isMissing(error) ? 'missing_reference' : 'unreadable_reference',
@@ -158,12 +176,17 @@ async function carryReferences(project: Project, beforeRevision: string, feature
   return carried;
 }
 export async function applyUpdate(project: Project, request: UpdateRequest, options: StorageOptions = {}): Promise<UpdateResult> {
+  const missing = request.expectedMissingReferences ?? [];
+  if (!Array.isArray(missing) || missing.some(path => typeof path !== 'string') || new Set(missing).size !== missing.length
+    || (missing.length && request.expectedRevision === undefined)) throw new NetworkError('invalid_update', 'Absence guards require unique paths and the complete expected network revision');
+  const verifyMissing = async () => { for (const path of missing) await assertMissingReference(project, path, options); };
   const result = await withProjectLock(project, async () => {
     const recovered = await recoverNetworkUnderLock(project, options);
     const before = await stableCapture(project); const expected = fingerprints(before); const after = { ...before };
     if (request.expectedRevision !== undefined && request.expectedRevision !== revision(before)) {
       throw new NetworkError('conflict', 'Complete network revision changed since it was read');
     }
+    await verifyMissing(); // Under the same writer lock as complete revision validation.
     const changes: Record<string, string | null> = {};
     for (const [path, hash] of Object.entries(request.expected)) {
       if (path !== marker && !/^network-spec\/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.yaml$/.test(path)) throw new NetworkError('invalid_update', 'Expected fingerprint path is invalid', [path]);
@@ -190,12 +213,16 @@ export async function applyUpdate(project: Project, request: UpdateRequest, opti
     }
     const validation = await validate(project, after, options);
     if (validation.diagnostics.length) throw new NetworkError('invalid_network', 'The complete resulting network is invalid', validation.diagnostics.flatMap(d => d.path ? [d.path] : []));
+    if (validation.features.some(feature => featureReferences(feature).some(ref => missing.includes(ref.path)))) {
+      throw new NetworkError('invalid_update', 'Missing acknowledgements require network repair/removal of mapped references');
+    }
     const hashes = await verifiedHashes(project, request.verifiedReferences, options);
     for (const feature of request.upserts) for (const reference of featureReferences(feature)) {
       if (!Object.hasOwn(hashes, reference.path)) throw new NetworkError('unverified_reference', 'Updated features require hashes of every inspected reference', [reference.path]);
     }
     if (revision(await stableCapture(project)) !== revision(before)) throw new NetworkError('conflict', 'Network changed during validation');
     for (const path of Object.keys(changes)) if ((expected[path] ?? null) === (changes[path] === null ? null : digest(changes[path]!))) delete changes[path];
+    await verifyMissing(); // Before any network or baseline publication.
     if (Object.keys(changes).length) {
       const journal = { version: 1 as const, before: expected, changes };
       await saveJournal(project, journal); await finishJournal(project, journal);
@@ -206,10 +233,12 @@ export async function applyUpdate(project: Project, request: UpdateRequest, opti
       const carried = await carryReferences(project, revision(before), validation.features, options);
       const baseline: Baselines = { networkRevision: revision(after), references: { ...carried, ...hashes } };
       await atomicStorageWrite(project, '.feature-network/baselines.json', JSON.stringify(baseline), async () => {
+        await verifyMissing();
         if (revision(await stableCapture(project)) !== revision(after)) throw new NetworkError('conflict', 'Network changed before baseline confirmation');
         await verifiedHashes(project, Object.entries(baseline.references).map(([path, hash]) => ({ path, hash })), options);
       });
     }
+    await verifyMissing();
     return { revision: revision(after), fingerprints: fingerprints(after), recovered };
   });
   return { ...result, diagnostics: await gitDiagnostics(project) };

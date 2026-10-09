@@ -103,3 +103,13 @@ export async function resolveProjectPath(project: Project, path: string): Promis
   if (!contained(project.root, result)) unsafe(path, 'Resolved path escapes the project');
   return resolve(result);
 }
+
+export function isSensitivePath(path: string): boolean {
+  const parts = path.split('/'); const name = parts.at(-1) ?? '';
+  return parts.some(part => ['.aws', '.ssh'].includes(part))
+    || ['.npmrc', '.netrc', 'id_rsa', 'id_ed25519', 'credentials.json'].includes(name)
+    || /\.(pem|key|p12|pfx)$/i.test(name)
+    || ((name === '.env' || name.startsWith('.env.')) && !/\.(example|sample|template)$/.test(name));
+}
+const ignoredParts = new Set(['.git', 'network-spec', '.feature-network', 'node_modules', 'dist', 'build', 'coverage', '.next', '.nuxt', '.cache', '.turbo']);
+export const isAutomaticGeneratedPath = (path: string): boolean => path.split('/').some(part => ignoredParts.has(part));
