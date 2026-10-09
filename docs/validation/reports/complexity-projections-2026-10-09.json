@@ -1,0 +1,228 @@
+{
+  "format": 1,
+  "scope": "Observed CLI events and independently supplied process/base-test status plus checked oracle JSON. Tool counts are observed invocations; missing token metrics remain unknown. Single runs do not establish a complexity threshold.",
+  "runs": [
+    {
+      "level": "small",
+      "arm": "baseline",
+      "seed": 11,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 52065,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 17,
+        "failed": 0,
+        "total": 17
+      },
+      "usage": {
+        "inputTokens": 354775,
+        "cachedInputTokens": 331776,
+        "outputTokens": 3005,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 10,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 10,
+        "commandsByProgram": {
+          "zsh": 10
+        }
+      },
+      "diagnostics": []
+    },
+    {
+      "level": "small",
+      "arm": "feature-network",
+      "seed": 11,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 65671,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 17,
+        "failed": 0,
+        "total": 17
+      },
+      "usage": {
+        "inputTokens": 453464,
+        "cachedInputTokens": 427136,
+        "outputTokens": 3479,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 12,
+        "mcpToolInvocations": 6,
+        "commandExecutions": 6,
+        "commandsByProgram": {
+          "zsh": 6
+        }
+      },
+      "diagnostics": []
+    },
+    {
+      "level": "medium",
+      "arm": "baseline",
+      "seed": 22,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 49570,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 53,
+        "failed": 0,
+        "total": 53
+      },
+      "usage": {
+        "inputTokens": 302367,
+        "cachedInputTokens": 284416,
+        "outputTokens": 3252,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 10,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 10,
+        "commandsByProgram": {
+          "zsh": 10
+        }
+      },
+      "diagnostics": []
+    },
+    {
+      "level": "medium",
+      "arm": "feature-network",
+      "seed": 22,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 140358,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 53,
+        "failed": 0,
+        "total": 53
+      },
+      "usage": {
+        "inputTokens": 792026,
+        "cachedInputTokens": 756608,
+        "outputTokens": 4645,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 21,
+        "mcpToolInvocations": 5,
+        "commandExecutions": 16,
+        "commandsByProgram": {
+          "zsh": 16
+        }
+      },
+      "diagnostics": []
+    },
+    {
+      "level": "large",
+      "arm": "baseline",
+      "seed": 33,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 50172,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 197,
+        "failed": 0,
+        "total": 197
+      },
+      "usage": {
+        "inputTokens": 442314,
+        "cachedInputTokens": 418304,
+        "outputTokens": 3446,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 10,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 10,
+        "commandsByProgram": {
+          "zsh": 10
+        }
+      },
+      "diagnostics": []
+    },
+    {
+      "level": "large",
+      "arm": "feature-network",
+      "seed": 33,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 53529,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 197,
+        "failed": 0,
+        "total": 197
+      },
+      "usage": {
+        "inputTokens": 332769,
+        "cachedInputTokens": 307584,
+        "outputTokens": 3231,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 17,
+        "mcpToolInvocations": 4,
+        "commandExecutions": 13,
+        "commandsByProgram": {
+          "zsh": 13
+        }
+      },
+      "diagnostics": []
+    }
+  ],
+  "totals": {
+    "status": {
+      "passed": 6,
+      "failed": 0,
+      "incomplete": 0
+    },
+    "usage": {
+      "inputTokens": 2677715,
+      "cachedInputTokens": 2525824,
+      "outputTokens": 21058
+    },
+    "observed": {
+      "toolInvocations": 80,
+      "mcpToolInvocations": 15,
+      "commandExecutions": 65
+    },
+    "wallMs": 411365
+  }
+}

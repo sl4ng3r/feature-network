@@ -1,0 +1,327 @@
+{
+  "format": 1,
+  "scope": "Observed CLI events and independently supplied process/base-test status plus checked oracle JSON. Tool counts are observed invocations; missing token metrics remain unknown. Single runs do not establish a complexity threshold.",
+  "runs": [
+    {
+      "level": "small",
+      "arm": "baseline",
+      "seed": 44,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 34982,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 29,
+        "failed": 0,
+        "total": 29
+      },
+      "usage": {
+        "inputTokens": 227832,
+        "cachedInputTokens": 208000,
+        "outputTokens": 2110,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 4,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 4,
+        "commandsByProgram": {
+          "zsh": 4
+        },
+        "mcpToolNames": []
+      },
+      "diagnostics": [],
+      "eventLogSha256": "10492bdf7a0473f4633535b883a146c935a0c2c0549ccf4fff9fafbb65aaf408",
+      "changedFiles": {
+        "total": 15,
+        "networkYaml": 0
+      }
+    },
+    {
+      "level": "small",
+      "arm": "feature-network",
+      "seed": 44,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 50804,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 29,
+        "failed": 0,
+        "total": 29
+      },
+      "usage": {
+        "inputTokens": 314853,
+        "cachedInputTokens": 294016,
+        "outputTokens": 3466,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 12,
+        "mcpToolInvocations": 4,
+        "commandExecutions": 8,
+        "commandsByProgram": {
+          "zsh": 8
+        },
+        "mcpToolNames": [
+          "network_impact",
+          "network_context",
+          "network_impact",
+          "network_impact"
+        ]
+      },
+      "diagnostics": [],
+      "eventLogSha256": "cb3222aa090182bf714ce3a1a6bf0f9b1d725275e4083ff3764d3ce0296185ab",
+      "changedFiles": {
+        "total": 15,
+        "networkYaml": 0
+      }
+    },
+    {
+      "level": "medium",
+      "arm": "baseline",
+      "seed": 55,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 94661,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 69,
+        "failed": 0,
+        "total": 69
+      },
+      "usage": {
+        "inputTokens": 244191,
+        "cachedInputTokens": 219904,
+        "outputTokens": 4135,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 8,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 8,
+        "commandsByProgram": {
+          "zsh": 8
+        },
+        "mcpToolNames": []
+      },
+      "diagnostics": [],
+      "eventLogSha256": "3fab2fcd91c39f5a002f78984cf91c2f8c1eebe1ceb37498f5f5b7bb48fa632f",
+      "changedFiles": {
+        "total": 43,
+        "networkYaml": 0
+      }
+    },
+    {
+      "level": "medium",
+      "arm": "feature-network",
+      "seed": 55,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 66924,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 69,
+        "failed": 0,
+        "total": 69
+      },
+      "usage": {
+        "inputTokens": 507308,
+        "cachedInputTokens": 479616,
+        "outputTokens": 4221,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 36,
+        "mcpToolInvocations": 26,
+        "commandExecutions": 10,
+        "commandsByProgram": {
+          "zsh": 10
+        },
+        "mcpToolNames": [
+          "network_context",
+          "network_impact",
+          "network_impact",
+          "network_context",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact",
+          "network_impact"
+        ]
+      },
+      "diagnostics": [],
+      "eventLogSha256": "d10c0e49c1b2a60367c37cc5808847a7f77e0fa19f8b1afec9924a04d5ebd0a7",
+      "changedFiles": {
+        "total": 43,
+        "networkYaml": 0
+      }
+    },
+    {
+      "level": "large",
+      "arm": "baseline",
+      "seed": 66,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 49895,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 133,
+        "failed": 0,
+        "total": 133
+      },
+      "usage": {
+        "inputTokens": 340711,
+        "cachedInputTokens": 313600,
+        "outputTokens": 3808,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 10,
+        "mcpToolInvocations": 0,
+        "commandExecutions": 10,
+        "commandsByProgram": {
+          "zsh": 10
+        },
+        "mcpToolNames": []
+      },
+      "diagnostics": [],
+      "eventLogSha256": "31a6e4101aab57348e98be80572596e57dc276acf1ce014d503f62e06e184485",
+      "changedFiles": {
+        "total": 99,
+        "networkYaml": 0
+      }
+    },
+    {
+      "level": "large",
+      "arm": "feature-network",
+      "seed": 66,
+      "status": "passed",
+      "execution": {
+        "cliExitCode": 0,
+        "wallMs": 61949,
+        "turn": "completed",
+        "eventLog": "complete"
+      },
+      "baseTestStatus": "passed",
+      "oracle": {
+        "status": "passed",
+        "passed": 133,
+        "failed": 0,
+        "total": 133
+      },
+      "usage": {
+        "inputTokens": 442768,
+        "cachedInputTokens": 413696,
+        "outputTokens": 4286,
+        "source": "codex_cli_turn_completed"
+      },
+      "observed": {
+        "toolInvocations": 17,
+        "mcpToolInvocations": 4,
+        "commandExecutions": 13,
+        "commandsByProgram": {
+          "zsh": 13
+        },
+        "mcpToolNames": [
+          "network_impact",
+          "network_bootstrap",
+          "network_context",
+          "network_impact"
+        ]
+      },
+      "diagnostics": [],
+      "eventLogSha256": "3ced7c72e00c3a31aea41e64600bd2e21353841679b3fb4d37cc4fec76226c81",
+      "changedFiles": {
+        "total": 99,
+        "networkYaml": 0
+      }
+    }
+  ],
+  "totals": {
+    "status": {
+      "passed": 6,
+      "failed": 0,
+      "incomplete": 0
+    },
+    "usage": {
+      "inputTokens": 2077663,
+      "cachedInputTokens": 1928832,
+      "outputTokens": 22026
+    },
+    "observed": {
+      "toolInvocations": 87,
+      "mcpToolInvocations": 34,
+      "commandExecutions": 53
+    },
+    "wallMs": 359215
+  },
+  "study": "synthetic-cross-contract-fanout",
+  "protocol": "docs/validation/fanout-study.md",
+  "fixtureLevels": {
+    "small": {
+      "contracts": 24,
+      "affected": 12,
+      "seed": 44
+    },
+    "medium": {
+      "contracts": 64,
+      "affected": 40,
+      "seed": 55
+    },
+    "large": {
+      "contracts": 128,
+      "affected": 96,
+      "seed": 66
+    }
+  },
+  "sha256": {
+    "generator": "b14ec388132088b57758786403998a340b98c2dbd70edfa46ddbd56ae65f455c",
+    "oracle": "b4dd136e230c928175204dc5085ab0a67ce373d3601b3e94e5faea07031f144f",
+    "knownGood": "aab7a3ec66f748964fb0176e5198599cd222aba59f194c84ec330213c0e96151",
+    "prompt": "865540c7a440a3991e8aa5b10d90449f5e540849b704603fa4ae60ca80e5a6e6",
+    "pluginBundle": "ff2648e8f9f6a558452cd53d258f1e850088c3e3aa5c4ea1e25f28d7c74b0977"
+  }
+}
