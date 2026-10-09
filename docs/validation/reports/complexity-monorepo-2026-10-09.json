@@ -1,0 +1,484 @@
+{
+  "format": 1,
+  "family": "synthetic-cross-package-locale",
+  "date": "2026-10-09",
+  "modelIdentity": "requested only; effective provider revision not independently observed",
+  "pilotProtocol": {
+    "format": 1,
+    "family": "monorepo-cross-package",
+    "seed": 244,
+    "flows": 2,
+    "distractors": 24,
+    "promptSha256": "ef2ebcc8b93741d9faaf2525de49c4f547590cb39c6ec67577ba514d1596badc",
+    "generatorSha256": "f3d40835be2d1aafb2517e881a1b33e995dd72cdc8749ba46bdec048e19fc311",
+    "oracleSha256": "b59be4f7266b996f9f4f7acd827fc115641e0bd2dc7ed6c82cb6d1cdeaba2dde",
+    "order": [
+      [
+        "gpt-6-luna",
+        "feature-network"
+      ],
+      [
+        "gpt-6-luna",
+        "baseline"
+      ],
+      [
+        "gpt-6-sol",
+        "baseline"
+      ],
+      [
+        "gpt-6-sol",
+        "feature-network"
+      ]
+    ],
+    "reasoningEffort": "low",
+    "wallLimitSeconds": 300,
+    "passCriteria": "CLI completed exit0, base tests passed, held-out oracle passed with complete check count"
+  },
+  "scaleProtocol": {
+    "format": 1,
+    "family": "cross-package-scale",
+    "purpose": "increase breadth at constant 5-edge depth after one 2-flow pilot",
+    "levels": [
+      [
+        "medium",
+        4,
+        96,
+        344
+      ],
+      [
+        "large",
+        8,
+        256,
+        444
+      ]
+    ],
+    "order": [
+      [
+        "medium",
+        "baseline"
+      ],
+      [
+        "medium",
+        "feature-network"
+      ],
+      [
+        "large",
+        "feature-network"
+      ],
+      [
+        "large",
+        "baseline"
+      ]
+    ],
+    "modelRequested": "gpt-6-luna",
+    "reasoningEffort": "low",
+    "promptSha256": "ef2ebcc8b93741d9faaf2525de49c4f547590cb39c6ec67577ba514d1596badc",
+    "generatorSha256": "f3d40835be2d1aafb2517e881a1b33e995dd72cdc8749ba46bdec048e19fc311",
+    "oracleSha256": "b59be4f7266b996f9f4f7acd827fc115641e0bd2dc7ed6c82cb6d1cdeaba2dde",
+    "wallLimitSeconds": 300,
+    "qualityGate": "external oracle complete/pass, current npm test, frozen original base test on post-run copy",
+    "logs": "outside checkout"
+  },
+  "runs": [
+    {
+      "level": "pilot",
+      "flows": 2,
+      "distractors": 24,
+      "modelRequested": "gpt-6-luna",
+      "arm": "feature-network",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 46152,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 68,
+        "failed": 0,
+        "expectedChecks": 68,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 377046,
+        "cachedInputTokens": 348160,
+        "outputTokens": 3969
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 10,
+      "observedNetworkFileCommand": true,
+      "changed": {
+        "relatedContractModules": 16,
+        "availableRelatedContractModules": 18,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": true,
+        "deletedBaseTest": false,
+        "otherTestFiles": []
+      },
+      "sha256": {
+        "events": "d044dd1303cfa0a4f6e64e2ed33ba2fd2463969f4db4299609f8a8a2fcf5cf3a",
+        "oracle": "f59738b5de6040d1e239e577333318ef43a2131b5bd9553112899d7989b2b72c"
+      },
+      "strictPass": true
+    },
+    {
+      "level": "pilot",
+      "flows": 2,
+      "distractors": 24,
+      "modelRequested": "gpt-6-luna",
+      "arm": "baseline",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 50061,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 1,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 68,
+        "failed": 0,
+        "expectedChecks": 68,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 264755,
+        "cachedInputTokens": 238336,
+        "outputTokens": 5410
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 7,
+      "observedNetworkFileCommand": false,
+      "changed": {
+        "relatedContractModules": 16,
+        "availableRelatedContractModules": 18,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": true,
+        "deletedBaseTest": true,
+        "otherTestFiles": [
+          "test/contracts.test.mjs"
+        ]
+      },
+      "sha256": {
+        "events": "9ae49a3e02a09b0ec304d1cfa36ab0d6919c5f9abe14848ce62ce17ca8f8889b",
+        "oracle": "f59738b5de6040d1e239e577333318ef43a2131b5bd9553112899d7989b2b72c"
+      },
+      "strictPass": false
+    },
+    {
+      "level": "pilot",
+      "flows": 2,
+      "distractors": 24,
+      "modelRequested": "gpt-6-sol",
+      "arm": "baseline",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 50809,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 68,
+        "failed": 0,
+        "expectedChecks": 68,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 271202,
+        "cachedInputTokens": 249344,
+        "outputTokens": 3898
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 11,
+      "observedNetworkFileCommand": false,
+      "changed": {
+        "relatedContractModules": 16,
+        "availableRelatedContractModules": 18,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": false,
+        "deletedBaseTest": false,
+        "otherTestFiles": [
+          "test/locale.test.mjs"
+        ]
+      },
+      "sha256": {
+        "events": "27c3117637fcd6495ebb63820791cd4cb399e99a70e5bc762e74cb0f04f5f55f",
+        "oracle": "f59738b5de6040d1e239e577333318ef43a2131b5bd9553112899d7989b2b72c"
+      },
+      "strictPass": true
+    },
+    {
+      "level": "pilot",
+      "flows": 2,
+      "distractors": 24,
+      "modelRequested": "gpt-6-sol",
+      "arm": "feature-network",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 85444,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 68,
+        "failed": 0,
+        "expectedChecks": 68,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 317278,
+        "cachedInputTokens": 290688,
+        "outputTokens": 3745
+      },
+      "observedMcpTools": [
+        "network_impact",
+        "network_impact"
+      ],
+      "observedCommandCount": 8,
+      "observedNetworkFileCommand": false,
+      "changed": {
+        "relatedContractModules": 16,
+        "availableRelatedContractModules": 18,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": false,
+        "deletedBaseTest": false,
+        "otherTestFiles": [
+          "test/locale.test.mjs"
+        ]
+      },
+      "sha256": {
+        "events": "93e1a698bf8fc1b36c46cea00e3308f245c35da1be3f13f002c678c99b5ed8b8",
+        "oracle": "f59738b5de6040d1e239e577333318ef43a2131b5bd9553112899d7989b2b72c"
+      },
+      "strictPass": true
+    },
+    {
+      "level": "medium",
+      "flows": 4,
+      "distractors": 96,
+      "modelRequested": "gpt-6-luna",
+      "arm": "baseline",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 55808,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 180,
+        "failed": 0,
+        "expectedChecks": 180,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 544822,
+        "cachedInputTokens": 506112,
+        "outputTokens": 5820
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 9,
+      "observedNetworkFileCommand": false,
+      "changed": {
+        "relatedContractModules": 32,
+        "availableRelatedContractModules": 36,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": true,
+        "deletedBaseTest": false,
+        "otherTestFiles": []
+      },
+      "sha256": {
+        "events": "0cfecc967f5364a3783e1f1a16c8187cdb470c45855911fc476b45f9a9f1cb0b",
+        "oracle": "bb738dd5ad86332e18cf31b7d7b0c5f0b68d31bf9188748791fc2e820bd9e224"
+      },
+      "strictPass": true
+    },
+    {
+      "level": "medium",
+      "flows": 4,
+      "distractors": 96,
+      "modelRequested": "gpt-6-luna",
+      "arm": "feature-network",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 188438,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 180,
+        "failed": 0,
+        "expectedChecks": 180,
+        "complete": true,
+        "failedByKind": {},
+        "failedIds": []
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 905618,
+        "cachedInputTokens": 843264,
+        "outputTokens": 8259
+      },
+      "observedMcpTools": [
+        "network_impact",
+        "network_context"
+      ],
+      "observedCommandCount": 14,
+      "observedNetworkFileCommand": true,
+      "changed": {
+        "relatedContractModules": 32,
+        "availableRelatedContractModules": 36,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": false,
+        "deletedBaseTest": false,
+        "otherTestFiles": [
+          "test/locale.test.mjs"
+        ]
+      },
+      "sha256": {
+        "events": "345834ea78f5ffcf34273cc44e59b4c61f67906a3e15856cd99c4b13ac86fea0",
+        "oracle": "bb738dd5ad86332e18cf31b7d7b0c5f0b68d31bf9188748791fc2e820bd9e224"
+      },
+      "strictPass": true
+    },
+    {
+      "level": "large",
+      "flows": 8,
+      "distractors": 256,
+      "modelRequested": "gpt-6-luna",
+      "arm": "feature-network",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 68453,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 419,
+        "failed": 1,
+        "expectedChecks": 420,
+        "complete": true,
+        "failedByKind": {
+          "csv": 1
+        },
+        "failedIds": [
+          "flow6:csv:unit-258"
+        ]
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 1094210,
+        "cachedInputTokens": 1035264,
+        "outputTokens": 6531
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 21,
+      "observedNetworkFileCommand": true,
+      "changed": {
+        "relatedContractModules": 63,
+        "availableRelatedContractModules": 72,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": true,
+        "deletedBaseTest": false,
+        "otherTestFiles": []
+      },
+      "sha256": {
+        "events": "6b173a962410d96e330db5c8e4eb0cc7c10df16b4c0ef77fb4875a5c9d5b78fb",
+        "oracle": "00e03665a3df0076e0236bd46bdc543ff3b6e5761e15d4fbf64428ed794e100b"
+      },
+      "strictPass": false
+    },
+    {
+      "level": "large",
+      "flows": 8,
+      "distractors": 256,
+      "modelRequested": "gpt-6-luna",
+      "arm": "baseline",
+      "cliExitCode": 0,
+      "timedOut": false,
+      "wallMs": 127268,
+      "terminalTurnCompleted": true,
+      "currentOriginalBaseExit": 0,
+      "currentNpmTestExit": 0,
+      "frozenOriginalBaseExit": 0,
+      "oracle": {
+        "passed": 347,
+        "failed": 73,
+        "expectedChecks": 420,
+        "complete": true,
+        "failedByKind": {
+          "api": 7,
+          "audit": 7,
+          "backup": 7,
+          "cache": 7,
+          "cache-encoding": 7,
+          "csv": 7,
+          "delivery": 7,
+          "gate": 5,
+          "identity": 5,
+          "message": 7,
+          "restore": 7
+        },
+        "failedIds": null
+      },
+      "completed": true,
+      "usage": {
+        "inputTokens": 706913,
+        "cachedInputTokens": 655616,
+        "outputTokens": 5478
+      },
+      "observedMcpTools": [],
+      "observedCommandCount": 16,
+      "observedNetworkFileCommand": false,
+      "changed": {
+        "relatedContractModules": 10,
+        "availableRelatedContractModules": 72,
+        "unrelatedContractModules": 0,
+        "profileModule": true,
+        "baseTest": true,
+        "deletedBaseTest": false,
+        "otherTestFiles": []
+      },
+      "sha256": {
+        "events": "ece391131ab7c9ca177ebf53fa54769b0cc9cc62b1df4bef18e726e05a343772",
+        "oracle": "2cd61d0247c394ac8c6e860e20f26fb24be048197a7fa5327483738c5339349d"
+      },
+      "strictPass": false
+    }
+  ],
+  "interpretationLimits": [
+    "one seed pair per model and level",
+    "one Git repository with seven npm workspaces, not multiple Git repositories",
+    "breadth increased; maximum path depth remains five edges",
+    "YAML and MCP combined in configured arm; shell YAML access does not prove MCP benefit",
+    "positive control shares generator templates",
+    "network setup and maintenance omitted",
+    "input token counts include cached tokens; not Codex billing"
+  ],
+  "strictGateInterpretation": "The unified strictPass field additionally requires the original fixed-path base test and frozen original base test. The pilot protocol required passing base tests but did not explicitly preregister this preservation rule; pilot strictPass is a posthoc common-gate classification."
+}

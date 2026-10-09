@@ -1,0 +1,836 @@
+{
+  "format": 1,
+  "date": "2026-10-09",
+  "study": "synthetic-cross-contract-fanout-followup",
+  "scope": "Three same-seed single-pair screenings. Configured-arm results; no universal complexity threshold, failure rate, billing-cost or MCP-only effect is established.",
+  "fixtureLevels": [
+    {
+      "level": "small",
+      "contracts": 24,
+      "affected": 12,
+      "seed": 144,
+      "oracleChecks": 29
+    },
+    {
+      "level": "medium",
+      "contracts": 64,
+      "affected": 40,
+      "seed": 155,
+      "oracleChecks": 69
+    },
+    {
+      "level": "large",
+      "contracts": 128,
+      "affected": 96,
+      "seed": 166,
+      "oracleChecks": 133
+    }
+  ],
+  "sharedSha256": {
+    "generator": "b14ec388132088b57758786403998a340b98c2dbd70edfa46ddbd56ae65f455c",
+    "oracle": "b4dd136e230c928175204dc5085ab0a67ce373d3601b3e94e5faea07031f144f",
+    "prompt": "865540c7a440a3991e8aa5b10d90449f5e540849b704603fa4ae60ca80e5a6e6"
+  },
+  "studies": [
+    {
+      "id": "luna6-corrected",
+      "modelRequested": "gpt-6-luna",
+      "reasoningEffortRequested": "low",
+      "effectiveModelRevision": "not_independently_verified",
+      "freshPairedRuns": true,
+      "protocolSha256": "b48eb0fa8d91ddefc39766756f2e4002d0486d4a0531e78fd5b615c10612bbd7",
+      "runs": [
+        {
+          "level": "small",
+          "arm": "baseline",
+          "seed": 144,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 75177,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "failed",
+          "oracle": {
+            "status": "unavailable",
+            "passed": null,
+            "failed": null,
+            "total": null
+          },
+          "usage": {
+            "inputTokens": 972218,
+            "cachedInputTokens": 924416,
+            "outputTokens": 6403,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 16,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 16,
+            "commandsByProgram": {
+              "zsh": 16
+            }
+          },
+          "diagnostics": [
+            "oracle_unavailable"
+          ],
+          "evidenceSha256": {
+            "events": "9f53819374d6660959d6c1bf463750036ed6785ff90f61f97b4c6bf910af9493",
+            "oracle": null
+          }
+        },
+        {
+          "level": "small",
+          "arm": "feature-network",
+          "seed": 144,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 56316,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 29,
+            "failed": 0,
+            "total": 29
+          },
+          "usage": {
+            "inputTokens": 556140,
+            "cachedInputTokens": 518656,
+            "outputTokens": 5322,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 10,
+            "mcpToolInvocations": 1,
+            "commandExecutions": 9,
+            "commandsByProgram": {
+              "zsh": 9
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "7f8521bc6403acc4051481f262cbb28882d584e606135d529f8ebe4c9c483e70",
+            "oracle": "52123581d8b9dda48f066ff011c176a78f5381caa47ef6303a562b6c4bad4eb9"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "feature-network",
+          "seed": 155,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 41753,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 63,
+            "failed": 6,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 364175,
+            "cachedInputTokens": 327936,
+            "outputTokens": 4626,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 8,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 8,
+            "commandsByProgram": {
+              "zsh": 8
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "195337282728ede881d9d229cad6aaeb392e8136e1edeffcf7d2520d81c90e60",
+            "oracle": "4b6fbdb1a09a4faecd4a560234c3157f389c5e5ff3bf603df16f4f128678e17e"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "baseline",
+          "seed": 155,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 51793,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 67,
+            "failed": 2,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 514960,
+            "cachedInputTokens": 477440,
+            "outputTokens": 4483,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 13,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 13,
+            "commandsByProgram": {
+              "zsh": 13
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "10437532859aaa21f751018f6b97175027fd9d96dc9ddc826c5bff9afb15aeef",
+            "oracle": "0e8f1377813a3cb501e8bae744077958f6aecf080b81eb260bb6feddbbcf74f0"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "baseline",
+          "seed": 166,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 149469,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 94,
+            "failed": 39,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 2479761,
+            "cachedInputTokens": 2367232,
+            "outputTokens": 15744,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 41,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 41,
+            "commandsByProgram": {
+              "zsh": 41
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "ae10835b63a7ba2122c12b9605cfc00008999e17867fdb4d5eca4802387eeb23",
+            "oracle": "1780a53e287a9642e9bbb9d109468bfb6ecf47863221e828afd3f6a67847bcdc"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "feature-network",
+          "seed": 166,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 96873,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 133,
+            "failed": 0,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 790684,
+            "cachedInputTokens": 732160,
+            "outputTokens": 10669,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 14,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 14,
+            "commandsByProgram": {
+              "zsh": 14
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "7e5e88074d76f60cc9c548d48e2f02d66c7f0d378f2d8c8f5fa115a099abbeec",
+            "oracle": "0431496c29d93436ac9ec14fed82824c84372ab4b269a80029b1d811fc03a9a9"
+          }
+        }
+      ],
+      "totals": {
+        "status": {
+          "passed": 2,
+          "failed": 4,
+          "incomplete": 0
+        },
+        "usage": {
+          "inputTokens": 5677938,
+          "cachedInputTokens": 5347840,
+          "outputTokens": 47247
+        },
+        "observed": {
+          "toolInvocations": 102,
+          "mcpToolInvocations": 1,
+          "commandExecutions": 101
+        },
+        "wallMs": 471381
+      }
+    },
+    {
+      "id": "luna56",
+      "modelRequested": "gpt-5.6-luna",
+      "reasoningEffortRequested": "low",
+      "effectiveModelRevision": "not_independently_verified",
+      "freshPairedRuns": true,
+      "protocolSha256": "7db2642e4ae71b7f9e9c9ab6ca962f6ad7e45e8f2540f9314336161d3d909f9b",
+      "runs": [
+        {
+          "level": "small",
+          "arm": "baseline",
+          "seed": 144,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 48176,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 16,
+            "failed": 13,
+            "total": 29
+          },
+          "usage": {
+            "inputTokens": 224010,
+            "cachedInputTokens": 195584,
+            "outputTokens": 5625,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 7,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 7,
+            "commandsByProgram": {
+              "zsh": 7
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "e24679a90b51d2dab39cd7841d539d88ad7f0ef02eca66d22901a8d9bc47f9ba",
+            "oracle": "5c9642ba78c07c1ad8a6a7f3567b76def0859f5e0c192e22269f3d067e080391"
+          }
+        },
+        {
+          "level": "small",
+          "arm": "feature-network",
+          "seed": 144,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 45015,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 29,
+            "failed": 0,
+            "total": 29
+          },
+          "usage": {
+            "inputTokens": 288720,
+            "cachedInputTokens": 259072,
+            "outputTokens": 6957,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 6,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 6,
+            "commandsByProgram": {
+              "zsh": 6
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "3f11d601aa5d423441ad37e2a1a6eb405339a57bc76fd300a823f2ddd6d7bb86",
+            "oracle": "52123581d8b9dda48f066ff011c176a78f5381caa47ef6303a562b6c4bad4eb9"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "feature-network",
+          "seed": 155,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 90537,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 68,
+            "failed": 1,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 191609,
+            "cachedInputTokens": 169984,
+            "outputTokens": 4235,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 4,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 4,
+            "commandsByProgram": {
+              "zsh": 4
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "07c2ed399bfa3adb9924e23b664efd02ff33ad37e1472bfd8506a5c43fdf970f",
+            "oracle": "16b63af643a34d64e1788616a4d2f9172e0263bfbd6d77c939d340e60bb9aec6"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "baseline",
+          "seed": 155,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 59427,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 62,
+            "failed": 7,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 329777,
+            "cachedInputTokens": 302336,
+            "outputTokens": 7268,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 7,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 7,
+            "commandsByProgram": {
+              "zsh": 7
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "1de1617ae16f552c235486793a76c50497d22eefb7749b23722048da8463cf09",
+            "oracle": "8dd587c888d6a0d3e112e67f1486949ad4ebad60cad014ec8f8a6988466a31f7"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "baseline",
+          "seed": 166,
+          "status": "failed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 170969,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "failed",
+            "passed": 132,
+            "failed": 1,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 720286,
+            "cachedInputTokens": 668672,
+            "outputTokens": 7707,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 13,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 13,
+            "commandsByProgram": {
+              "zsh": 13
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "3e100f9764e66615764bb9a81db01e96d02a1d33b0cce460114bf249b8bc9f7d",
+            "oracle": "2a09fdbbfefb8d9cd0e5355c6db2ba7b0be1707e129c8383907c7272b4aa533f"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "feature-network",
+          "seed": 166,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 84399,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 133,
+            "failed": 0,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 787303,
+            "cachedInputTokens": 738048,
+            "outputTokens": 9759,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 15,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 15,
+            "commandsByProgram": {
+              "zsh": 15
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "420c4c84d4b3e6ee414fb00e8d09e0498971ef721660b8280dd4b2ba76bc20e2",
+            "oracle": "0431496c29d93436ac9ec14fed82824c84372ab4b269a80029b1d811fc03a9a9"
+          }
+        }
+      ],
+      "totals": {
+        "status": {
+          "passed": 2,
+          "failed": 4,
+          "incomplete": 0
+        },
+        "usage": {
+          "inputTokens": 2541705,
+          "cachedInputTokens": 2333696,
+          "outputTokens": 41551
+        },
+        "observed": {
+          "toolInvocations": 52,
+          "mcpToolInvocations": 0,
+          "commandExecutions": 52
+        },
+        "wallMs": 498523
+      }
+    },
+    {
+      "id": "sol6-same-seed",
+      "modelRequested": "gpt-6-sol",
+      "reasoningEffortRequested": "low",
+      "effectiveModelRevision": "not_independently_verified",
+      "freshPairedRuns": true,
+      "protocolSha256": "88550d4e59682e7e57a035ecb74df0ac4bd9874a5b0de69ef4838697f402b6f8",
+      "runs": [
+        {
+          "level": "small",
+          "arm": "baseline",
+          "seed": 144,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 105039,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 29,
+            "failed": 0,
+            "total": 29
+          },
+          "usage": {
+            "inputTokens": 354623,
+            "cachedInputTokens": 332928,
+            "outputTokens": 4398,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 10,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 10,
+            "commandsByProgram": {
+              "zsh": 10
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "40aad41e7e4632058bf563c3e654adb6c4dd9bb732b44419c10d920e8c4a095c",
+            "oracle": "52123581d8b9dda48f066ff011c176a78f5381caa47ef6303a562b6c4bad4eb9"
+          }
+        },
+        {
+          "level": "small",
+          "arm": "feature-network",
+          "seed": 144,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 51292,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 29,
+            "failed": 0,
+            "total": 29
+          },
+          "usage": {
+            "inputTokens": 369998,
+            "cachedInputTokens": 348160,
+            "outputTokens": 3446,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 11,
+            "mcpToolInvocations": 4,
+            "commandExecutions": 7,
+            "commandsByProgram": {
+              "zsh": 7
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "f5c80f3135a434db2d0a310e29815a8ab1f412d04823d95f223778a7206810a8",
+            "oracle": "52123581d8b9dda48f066ff011c176a78f5381caa47ef6303a562b6c4bad4eb9"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "baseline",
+          "seed": 155,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 70490,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 69,
+            "failed": 0,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 549113,
+            "cachedInputTokens": 519680,
+            "outputTokens": 4327,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 13,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 13,
+            "commandsByProgram": {
+              "zsh": 13
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "be0d4c0b9c31c5693dd78910559b1b13aec76431360d2f02ac83829f6189baa9",
+            "oracle": "ecaca1ac2a2ba2be61552bd4eab5f70536d723456e6ac36a61703c01307cd771"
+          }
+        },
+        {
+          "level": "medium",
+          "arm": "feature-network",
+          "seed": 155,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 92038,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 69,
+            "failed": 0,
+            "total": 69
+          },
+          "usage": {
+            "inputTokens": 379854,
+            "cachedInputTokens": 351360,
+            "outputTokens": 3838,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 11,
+            "mcpToolInvocations": 2,
+            "commandExecutions": 9,
+            "commandsByProgram": {
+              "zsh": 9
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "3e3474785f5610025f1f46d8295e69340206d20cff0b1a8cc8cb6edfd415721f",
+            "oracle": "ecaca1ac2a2ba2be61552bd4eab5f70536d723456e6ac36a61703c01307cd771"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "baseline",
+          "seed": 166,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 61472,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 133,
+            "failed": 0,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 291647,
+            "cachedInputTokens": 264192,
+            "outputTokens": 5117,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 13,
+            "mcpToolInvocations": 0,
+            "commandExecutions": 13,
+            "commandsByProgram": {
+              "zsh": 13
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "79e9c768ce5b3c4f6393517003e8898aff028ad3aa8c4740f92a5b9179344a0f",
+            "oracle": "0431496c29d93436ac9ec14fed82824c84372ab4b269a80029b1d811fc03a9a9"
+          }
+        },
+        {
+          "level": "large",
+          "arm": "feature-network",
+          "seed": 166,
+          "status": "passed",
+          "execution": {
+            "cliExitCode": 0,
+            "wallMs": 67051,
+            "turn": "completed",
+            "eventLog": "complete"
+          },
+          "baseTestStatus": "passed",
+          "oracle": {
+            "status": "passed",
+            "passed": 133,
+            "failed": 0,
+            "total": 133
+          },
+          "usage": {
+            "inputTokens": 586743,
+            "cachedInputTokens": 551296,
+            "outputTokens": 4774,
+            "source": "codex_cli_turn_completed"
+          },
+          "observed": {
+            "toolInvocations": 23,
+            "mcpToolInvocations": 9,
+            "commandExecutions": 14,
+            "commandsByProgram": {
+              "zsh": 14
+            }
+          },
+          "diagnostics": [],
+          "evidenceSha256": {
+            "events": "49b886a082b36e0b0fdbbe5d59c5bebca3464c48cd23d960243ff9e24e63bfe0",
+            "oracle": "0431496c29d93436ac9ec14fed82824c84372ab4b269a80029b1d811fc03a9a9"
+          }
+        }
+      ],
+      "totals": {
+        "status": {
+          "passed": 6,
+          "failed": 0,
+          "incomplete": 0
+        },
+        "usage": {
+          "inputTokens": 2531978,
+          "cachedInputTokens": 2367616,
+          "outputTokens": 25900
+        },
+        "observed": {
+          "toolInvocations": 81,
+          "mcpToolInvocations": 15,
+          "commandExecutions": 66
+        },
+        "wallMs": 447382
+      }
+    }
+  ],
+  "excludedPilot": {
+    "modelRequested": "gpt-6-luna",
+    "causalComparisonValid": false,
+    "pooledWithCorrectedRuns": false,
+    "reason": "Live Codex event logs and stderr were placed inside agent checkouts. The small baseline agent read both during its own run; other runs still had visible measurement files.",
+    "smallBaseline": {
+      "oracle": {
+        "status": "failed",
+        "passed": 28,
+        "failed": 1,
+        "total": 29
+      },
+      "usage": {
+        "inputTokens": 791005,
+        "cachedInputTokens": 742656,
+        "outputTokens": 10312,
+        "source": "codex_cli_turn_completed"
+      },
+      "wallMs": 225169
+    },
+    "pilotProtocolSha256": "6c6172db26ce8f53d326786ed8ebca39a2aea48faa00f3881f4b3fa0548d35d3"
+  },
+  "attributionLimits": [
+    "FeatureNetwork arms include generated YAML and a configured MCP server; YAML access and MCP effects are not separated.",
+    "Corrected Luna 6 made 1 MCP call at Small and none at Medium/Large. Luna 5.6 made none in all six runs. Sol made 4/2/9 MCP calls at Small/Medium/Large.",
+    "The medium Luna 5.6 FeatureNetwork run changed the central registry and no affected contract modules; the oracle checks the published registry path, not direct module calls.",
+    "The source registry exposes a dependency graph in both arms.",
+    "One paired seed per level and requested, not independently confirmed, model identities.",
+    "Network creation, upkeep, retries, provider prices and independent real-application validation were not measured."
+  ]
+}

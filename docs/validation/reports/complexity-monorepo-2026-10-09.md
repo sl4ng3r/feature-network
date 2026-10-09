@@ -1,0 +1,28 @@
+# Synthetic cross-package locale study — 2026-10-09
+
+[Machine-readable results](complexity-monorepo-2026-10-09.json) · [Preregistered fixture and task](../monorepo-study.md) · [Luna fanout follow-up](complexity-luna-followup-2026-10-09.md)
+
+This screening added persisted locale behavior to a generated Node 24/SQLite application with seven npm workspaces. Profile data flows through identity, access, API, backup, CSV, notification, delivery, audit and cache modules. The longest profile-to-audit dependency path has five edges. Independent lookalike modules should remain unchanged. The arms began from matching source and ordinary tests; the FeatureNetwork arm additionally received generated `network-spec/` YAML and a configured project-bound MCP server. The held-out oracle and manifest stayed outside both checkouts. The initial fixtures failed that oracle; the generator-based positive control passed. That control shares source templates with the generator and is therefore not independent evidence about the oracle's correctness.
+
+Each row is **one run**, with a fresh checkout, low reasoning effort, a 300-second cap and logs outside the checkout. The model name is the requested CLI setting; the event stream did not independently identify the effective provider revision. Arm order was fixed before each stage. The pilot used seed 244; the medium and large levels used seeds 344 and 444.
+
+| Requested model | Flows / independent modules | Arm | Held-out checks | Input tokens (cached) | Output | Wall s | MCP calls |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| GPT-6-Luna | 2 / 24 | Code only | 68/68¹ | 264,755 (238,336) | 5,410 | 50.1 | 0 |
+| GPT-6-Luna | 2 / 24 | FeatureNetwork | 68/68 | 377,046 (348,160) | 3,969 | 46.2 | 0 |
+| GPT-6-Sol | 2 / 24 | Code only | 68/68 | 271,202 (249,344) | 3,898 | 50.8 | 0 |
+| GPT-6-Sol | 2 / 24 | FeatureNetwork | 68/68 | 317,278 (290,688) | 3,745 | 85.4 | 2 |
+| GPT-6-Luna | 4 / 96 | Code only | 180/180 | 544,822 (506,112) | 5,820 | 55.8 | 0 |
+| GPT-6-Luna | 4 / 96 | FeatureNetwork | 180/180 | 905,618 (843,264) | 8,259 | 188.4 | 2 |
+| GPT-6-Luna | 8 / 256 | Code only | 347/420 | 706,913 (655,616) | 5,478 | 127.3 | 0 |
+| GPT-6-Luna | 8 / 256 | FeatureNetwork | 419/420 | 1,094,210 (1,035,264) | 6,531 | 68.5 | 0 |
+
+¹ The pilot's Luna code-only agent deleted `test/base.test.mjs` and replaced it with `test/contracts.test.mjs`. The fixed-path base-test command therefore failed. The pilot protocol required passing base tests but did not explicitly define preservation of that file; under the later unified preservation gate this row fails despite its 68/68 oracle result. A subsequent `npm test` passed, and a copy of the post-run project with the frozen original base test restored also passed. The other seven rows passed their current and frozen original base tests. All eight CLI turns completed without timeout. For the large pair, both arms fail the later unified gate because the oracle is not perfect.
+
+At two flows both variants of both requested models reached every held-out check. At four flows GPT-6-Luna again reached every check in both arms, while FeatureNetwork used 66.2% more input tokens and took 3.4 times as long. It called `network_impact` and `network_context`, so this is an actual MCP-use observation without an accompanying efficiency gain. At eight flows the FeatureNetwork arm missed one CSV output; code only missed 73 checks across all eight flows. The FeatureNetwork agent changed 63 of 72 related contract modules, whereas code only changed 10. Neither changed an independent lookalike module. The large FeatureNetwork agent used 54.8% more input tokens and no MCP call. Its shell commands did inspect `network-spec/` YAML, so the screening suggests that the readable network may help discover a broad edit scope. It cannot assign that difference to MCP, and neither large arm finished the task.
+
+The 2-flow Luna FeatureNetwork run also read YAML via shell without calling MCP. Sol called `network_impact` twice. At 4 flows Luna used MCP twice; at 8 flows it returned to shell YAML inspection. Thus the configured server was available but optional tool selection was inconsistent. A separate controlled diagnostic with an explicit `network_impact` request succeeded in three MCP calls; that shows the server can be used, while the reason for the model's natural tool choice remains unobserved.
+
+This fixture varies breadth while keeping the maximum dependency depth and business rule set fixed. Its seven packages belong to **one Git repository**. FeatureNetwork currently binds one project root and its relation targets are local feature IDs, so this is not evidence about cross-repository dependencies. Source imports also expose relationships to an agent willing to inspect them. There is one seed pair at each level, no independent real application, and no measurement of network initialization, upkeep or repair. The data provide no reliable failure threshold, token-saving rate or sales-page claim. A threshold study needs repeated fresh paired seeds around an apparent crossover, stronger variation in conditional business rules and a third arm with readable YAML but no MCP. Host-reported cached input is included in the token totals; those totals are not a Codex bill.
+
+The JSON report retains each run's exact oracle score and failed categories, process and test status, token fields, MCP tool names, observed network-file command flag, changed-module counts, and hashes of the raw event and oracle files. It contains no local checkout paths or transcript text. Raw logs remain in temporary local scratch.
