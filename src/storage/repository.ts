@@ -1,5 +1,7 @@
-import { constants } from 'node:fs';
-import { lstat, open, realpath } from 'node:fs/promises';
+import { readCache, parsedFeature, publishReadCache, type ReadCache } from './read-cache.js';
+import { regularSignature } from './regular.js';
+import { openRegular } from './regular.js';
+import { lstat, realpath } from 'node:fs/promises';
 import { relative, resolve, sep } from 'node:path';
 import { stringify } from 'yaml';
 import { NetworkError } from '../model/errors.js';
@@ -58,7 +60,7 @@ async function referencePath(project: Project, path: string, options: StorageOpt
 /** Same confinement and exclusions for existing bytes and absent observations. */
 export async function readReferenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
   const absolute = await referencePath(project, path, options);
-  const file = await open(absolute, constants.O_RDONLY | constants.O_NOFOLLOW);
+  const file = await openRegular(absolute, 'unsafe_reference');
   try {
     if (!(await file.stat()).isFile()) throw new NetworkError('unsafe_reference', 'Reference is not a regular file', [path]);
     return digest(await file.readFile());
@@ -84,13 +86,13 @@ function yamlText(bytes: Buffer): string {
   try { return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes); }
   catch { throw new NetworkError('invalid_schema', 'YAML is not valid UTF-8'); }
 }
-async function validate(project: Project, contents: Contents, options: StorageOptions): Promise<{ features: Feature[]; diagnostics: Diagnostic[] }> {
+async function validate(project: Project, contents: Contents, options: StorageOptions, cache?: ReadCache): Promise<{ features: Feature[]; diagnostics: Diagnostic[] }> {
   const features: Feature[] = []; const diagnostics: Diagnostic[] = [];
   try { if (contents[marker] === undefined) throw new NetworkError('not_initialized', 'Network marker is missing'); parseMeta(yamlText(contents[marker])); }
   catch (error) { diagnostics.push(diagnostic(error, marker)); }
   for (const path of Object.keys(contents).sort()) {
     if (path === marker) continue;
-    try { features.push(parseFeature(yamlText(contents[path]!), path)); }
+    try { features.push(parsedFeature(cache, path, contents[path]!)); }
     catch (error) { diagnostics.push(diagnostic(error, path)); }
   }
   const ids = new Set(features.map(feature => feature.id)); const checked = new Set<string>();
@@ -100,7 +102,14 @@ async function validate(project: Project, contents: Contents, options: StorageOp
     }
     for (const reference of featureReferences(feature)) {
       if (checked.has(reference.path)) continue; checked.add(reference.path);
-      try { await readReferenceHash(project, reference.path, options); } catch (error) { diagnostics.push(diagnostic(error, reference.path)); }
+      try {
+        const absolute = await referencePath(project, reference.path, options);
+        const signature = cache ? await regularSignature(absolute, 'unsafe_reference') : undefined;
+        if (!cache || cache.references.get(absolute)?.signature !== signature) {
+          const hash = await readReferenceHash(project, reference.path, options);
+          if (cache && signature && await regularSignature(absolute, 'unsafe_reference') === signature) cache.references.set(absolute, { signature, hash });
+        }
+      } catch (error) { diagnostics.push(diagnostic(error, reference.path)); }
     }
   }
   return { features, diagnostics };
@@ -123,20 +132,21 @@ async function gitDiagnostics(project: Project): Promise<Diagnostic[]> {
 function emptySnapshot(integrity: Snapshot['integrity'], code: string): Snapshot {
   return { revision: revision({}), features: [], diagnostics: [{ code, severity: 'error', message: code === 'pending_recovery' ? 'An interrupted transaction needs a write to recover' : 'Network is not initialized' }], fingerprints: {}, integrity };
 }
-export async function readSnapshot(project: Project, options: StorageOptions = {}): Promise<Snapshot> {
+export async function readSnapshot(project: Project, options: StorageOptions = {}, fresh = false): Promise<Snapshot> {
   // This read-only preflight does not create runtime directories for an uninitialized project.
   if (!(await hasJournal(project))) {
     try { await lstat(await storagePath(project, marker)); }
     catch (error) { if (isMissing(error)) return emptySnapshot('not_initialized', 'not_initialized'); throw error; }
   }
+  const cache = fresh ? undefined : await readCache(project, options);
   const snapshot = await withProjectLock(project, async () => {
     if (await hasJournal(project)) return emptySnapshot('pending_recovery', 'pending_recovery');
-    const contents = await stableCapture(project);
+    const contents = await stableCapture(project, cache?.bytes);
     return { ...emptySnapshot('valid', ''), revision: revision(contents), fingerprints: fingerprints(contents), contents };
   });
   // Expensive Git/reference work is outside the short snapshot lock.
   if (!('contents' in snapshot)) return snapshot;
-  const validation = await validate(project, snapshot.contents, options);
+  const validation = await validate(project, snapshot.contents, options, cache);
   return { revision: snapshot.revision, fingerprints: snapshot.fingerprints, features: validation.features,
     diagnostics: [...validation.diagnostics, ...await gitDiagnostics(project)], integrity: validation.diagnostics.length ? 'invalid' : 'valid' };
 }
@@ -239,6 +249,7 @@ export async function applyUpdate(project: Project, request: UpdateRequest, opti
       });
     }
     await verifyMissing();
+    await publishReadCache(project, after, options);
     return { revision: revision(after), fingerprints: fingerprints(after), recovered };
   });
   return { ...result, diagnostics: await gitDiagnostics(project) };

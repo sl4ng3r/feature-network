@@ -10,11 +10,11 @@ const hash = (value: string) => createHash('sha256').update(value).digest('hex')
 const id = (i: number) => `feature-${String(i).padStart(5, '0')}`;
 function positive(value: number): number { if (!Number.isInteger(value) || value < 1) throw new Error('positive_integer_required'); return value; }
 /** Pure synthetic valid-shape graph. No filesystem, private source or semantic oracle. */
-export function syntheticSnapshot(size: number): Snapshot {
-  positive(size); if (size < 4) throw new Error('at_least_four_features_required');
+export function syntheticSnapshot(size: number, degree = 3): Snapshot {
+  positive(size); positive(degree); if (degree >= size) throw new Error('degree_must_be_less_than_size'); if (size < 4) throw new Error('at_least_four_features_required');
   const features = Array.from({ length: size }, (_, i) => ({ schema: 1 as const, id: id(i), summary: `Synthetic profile group ${i % 10} feature ${i}`,
     key_points: ['Synthetic benchmark only.'], code: [{ path: `src/${id(i)}.ts` }], evidence: [], hypotheses: [],
-    relations: [1, 2, 3].map(offset => ({ to: id((i + offset) % size), type: 'reads' as const, status: 'evidenced' as const, evidence: [{ path: `src/${id(i)}.ts` }] })),
+    relations: Array.from({ length: degree }, (_, i) => i + 1).map(offset => ({ to: id((i + offset) % size), type: 'reads' as const, status: 'evidenced' as const, evidence: [{ path: `src/${id(i)}.ts` }] })),
   }));
   const fingerprints = Object.fromEntries([['network-spec/_meta.yaml', hash('schema: 1\ncoverage: partial\n')], ...features.map(f => [`network-spec/${f.id}.yaml`, hash(JSON.stringify(f))])]);
   return { features, revision: hash(JSON.stringify(fingerprints)), fingerprints, integrity: 'valid', diagnostics: [] };
@@ -35,9 +35,10 @@ const scope = {
   refresh: 'loaded old index + preconstructed changed Snapshot -> incremental index refresh only',
   excluded: ['filesystem/YAML loading', 'Git/reference hashing', 'storage write/journaling', 'process/plugin startup', 'MCP transport/envelope', 'hooks', 'agent/model latency'],
 };
-export function runCoreCase(size: number, options: { coldIterations?: number; warmupIterations?: number; warmIterations?: number; updateIterations?: number } = {}) {
+export function runCoreCase(size: number, options: { degree?: number; coldIterations?: number; warmupIterations?: number; warmIterations?: number; updateIterations?: number } = {}) {
   const counts = { cold: positive(options.coldIterations ?? 5), warmup: positive(options.warmupIterations ?? 10), warm: positive(options.warmIterations ?? 30), refresh: positive(options.updateIterations ?? 5) };
-  const snapshot = syntheticSnapshot(size); const changed = structuredClone(snapshot);
+  const degree = options.degree ?? 3;
+  const snapshot = syntheticSnapshot(size, degree); const changed = structuredClone(snapshot);
   changed.features[0]!.summary = 'Changed synthetic profile benchmark';
   changed.fingerprints['network-spec/' + id(0) + '.yaml'] = hash(JSON.stringify(changed.features[0])); changed.revision = hash(JSON.stringify(changed.fingerprints));
   // Snapshot construction and hashes intentionally precede measurement. Observe a retained index separately.
@@ -57,7 +58,7 @@ export function runCoreCase(size: number, options: { coldIterations?: number; wa
   if (refreshed.entries.get(id(0))!.feature.summary !== changed.features[0]!.summary || index.entries.get(id(0))!.feature.summary === changed.features[0]!.summary) throw new Error('refresh_semantics_failed');
   if (!contextItems || !impactItems || context.length > 12000 || impact.length > 12000) throw new Error('query_budget_failed');
   const afterWork = process.memoryUsage();
-  return { graph: { features: size, edges: size * 3, edgesPerFeature: 3, directedDensity: 3 / (size - 1), topology: 'directed cyclic ring with +1,+2,+3 edges; no self edges', references: 'one distinct synthetic source path per feature; its three relation evidence references reuse that path; no files read' }, scope, workload,
+  return { graph: { features: size, edges: size * degree, edgesPerFeature: degree, directedDensity: degree / (size - 1), topology: `directed cyclic ring with +1 through +${degree} edges; no self edges`, references: 'one distinct synthetic source path per feature; relation evidence references reuse that path; no files read' }, scope, workload,
     iterations: counts, cold: summarize(cold), warm: summarize(warm), refresh: summarize(refresh),
     memory: { scope: 'whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak', gcAvailable: gc, gcPolicy: gc ? 'explicit GC before/after retaining one index; natural GC during timed loops' : 'no forced GC; before/after may include garbage',
       beforeIndex: before, retainedIndex: retained, retainedDelta: { heapUsed: retained.heapUsed - before.heapUsed, rss: retained.rss - before.rss }, afterWork },
@@ -70,6 +71,6 @@ export function runCoreBenchmark() {
   return { format: 1, kind: 'synthetic-core-benchmark', measuredAt: new Date().toISOString(),
     machine: { platform: platform(), release: release(), arch: arch(), cpu: cpus()[0]?.model ?? 'unavailable', logicalCpus: cpus().length, totalMemoryBytes: totalmem(), node: process.version },
     limitations: ['Local machine snapshot only; no cross-host or agent/token benefit claim.', 'Cold means fresh index in an already running process, not cold filesystem/plugin startup.', 'Retained memory deltas may be negative/noisy; no peak sampler or per-feature allocation claim.'],
-    cases: [100, 1000, 10000].map(size => runCoreCase(size)),
+    cases: [100, 1000, 10000].flatMap(size => [2, 12].map(degree => runCoreCase(size, { degree }))),
   };
 }

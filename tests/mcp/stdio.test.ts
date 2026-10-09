@@ -82,8 +82,8 @@ test('complete_tool_result_budget_and_unicode_continuation', async () => {
   const saved = await call(client, 'network_update', { expected: snap.fingerprints, upserts: [{ ...snap.features[0], summary: '😀'.repeat(3000) }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'updated', reason: 'Reviewed long feature summary' } }); expect(saved.isError).not.toBe(true);
   let cursor: unknown; let text = ''; let pages = 0;
   do {
-    const result = await call(client, 'network_context', cursor ? { cursor } : { ids: ['alpha'], detail: 'full', budget: 900 });
-    expect(result.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(result))).toBeLessThanOrEqual(900);
+    const result = await call(client, 'network_context', cursor ? { cursor } : { ids: ['alpha'], detail: 'full', budget: 1100 });
+    expect(result.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(result))).toBeLessThanOrEqual(1100);
     const row = data(result).items[0]; expect(row.fragment.offset).toBe(text.length); text += row.fragment.text; cursor = data(result).nextCursor;
     expect(pages++).toBeLessThan(200);
   } while (cursor);
@@ -148,7 +148,7 @@ test('bounded_bootstrap_package_can_be_replanned_without_feature_loss', async ()
   const small = await call(client, 'network_bootstrap', { action: 'start', budget: 1100 }); expect(Buffer.byteLength(JSON.stringify(small))).toBeLessThanOrEqual(1100);
   expect(data(small)).toMatchObject({ status: 'pending', package: null, packageOmitted: true }); expect(data(small).nextAction).toContain('smaller maxFiles'); expect(readable(small)).toContain('Package omitted'); expect(readable(small)).toContain('smaller maxFiles');
   const large = data(await call(client, 'network_bootstrap', { action: 'next', budget: 64000 })); expect(large.package.slices).toHaveLength(16); expect(large.progress.packages).toBe(0);
-  const replanned = data(await call(client, 'network_bootstrap', { action: 'start', maxFiles: 1, budget: 1100 })); expect(replanned.package.slices).toHaveLength(1);
+  const replanned = data(await call(client, 'network_bootstrap', { action: 'start', maxFiles: 1, budget: 1800 })); expect(replanned.package.slices).toHaveLength(1);
   expect(await readFile(join(p.networkDir, 'alpha.yaml'))).toEqual(original);
 });
 test('bounded_check_prioritizes_late_open_reference_over_confirmed_prefix', async () => {
@@ -201,4 +201,71 @@ test('minimum_budgets_include_actual_check_bootstrap_update_text', async () => {
   const status = await call(client, 'network_bootstrap', { action: 'status', budget: 512 }); expect(status.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(status))).toBeLessThanOrEqual(512); expect(readable(status)).toContain('not_started');
   const saved = await call(client, 'network_update', { expected: {}, expectedRevision: current.revision, upserts: [], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'no_semantic_change', reason: 'Source remains semantically unchanged' }, budget: 512 });
   expect(saved.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(saved))).toBeLessThanOrEqual(512); expect(readable(saved)).toContain(data(saved).revision.slice(0, 12)); expect(readable(saved)).toContain('recorded'); if (data(saved).truncated) expect(readable(saved)).toContain('omitted');
+});
+
+test('query_freshness_tracks_review_changed_source_and_cache_loss_on_real_tools', async () => {
+  const p = await fixture(roots); const { client } = await connect(p.root);
+  const snap = await readSnapshot(p);
+  expect((await call(client, 'network_update', { expected: {}, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: [{path:'source.ts',hash:hash('source')}], decision:{outcome:'no_semantic_change',reason:'Inspected source'} })).isError).not.toBe(true);
+  for (const tool of ['network_context', 'network_impact']) {
+    const fresh = data(await call(client, tool, { ids:['alpha'] }));
+    expect(fresh.freshness.alpha).toEqual({state:'current',review:'recorded'});
+  }
+  await writeFile(join(p.root,'source.ts'),'edited');
+  for (const tool of ['network_context','network_impact']) {
+    const changed = await call(client,tool,{ids:['alpha']});
+    expect(data(changed).freshness.alpha).toEqual({state:'changed',review:'open'});
+    expect(readable(changed)).toContain('changed');
+  }
+  await rm(p.runtimeDir,{recursive:true,force:true});
+  const unknown = data(await call(client,'network_context',{ids:['alpha']}));
+  expect(unknown.freshness.alpha).toEqual({state:'unknown',review:'open'});
+  await expect(readFile(join(p.runtimeDir,'values/read-cache.json'))).rejects.toMatchObject({code:'ENOENT'});
+});
+test('bootstrap_exposes_package_free_blockers_scope_and_revision_bound_record_pages', async () => {
+  const root = await tree(); roots.push(root); await repo(root);
+  await writeFile(join(root,'broken.txt'),Buffer.from([0xff])); await writeFile(join(root,'.env'),'secret');
+  for(let i=0;i<18;i++)await writeFile(join(root,`excluded-${i}.txt`),'not emitted');
+  const {client}=await connect(root);
+  const first = data(await call(client,'network_bootstrap',{action:'start',exclusions:Array.from({length:18},(_,i)=>`excluded-${i}.txt`),budget:64000}));
+  expect(first.status).toBe('needs_review'); expect(first.package).toBeNull();
+  expect(first.records).toContainEqual({path:'broken.txt',status:'needs_review',reason:'unreadable_or_non_utf8'});
+  expect(first.records).toContainEqual({path:'.env',status:'excluded',reason:'sensitive'});
+  expect(first.selectedScope.exclusions).toHaveLength(18);
+  const seen:string[]=[]; let recordCursor:unknown;
+  do {
+    const response=await call(client,'network_bootstrap',{action:'status',recordFilter:'excluded',...(recordCursor?{recordCursor}:{}),budget:1600});
+    expect(response.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(response))).toBeLessThanOrEqual(1600);
+    const page=data(response); seen.push(...page.records.map((r:any)=>r.path)); recordCursor=page.nextRecordCursor;
+    expect(page.recordsOmitted).toBe(19-seen.length);
+  }while(recordCursor);
+  expect(new Set(seen).size).toBe(19); expect(JSON.stringify(first)).not.toContain('secret');
+});
+
+test('bootstrap_nested_exclusions_scope_continuation_and_small_budget_are_explicit',async()=>{
+ const root=await tree();roots.push(root);await repo(root);await mkdir(join(root,'nested'));await repo(join(root,'nested'));
+ await writeFile(join(root,'nested','source.ts'),'never read nested source');await writeFile(join(root,'source.ts'),'source');
+ const {client}=await connect(root);
+ const start=data(await call(client,'network_bootstrap',{action:'start',scope:['source.ts'],budget:64000}));
+ expect(start.records.some((record:any)=>record.path==='nested'&&record.status==='excluded')).toBe(true);
+ expect(start.selectedScope.scope).toEqual(['source.ts']);
+ const scope=data(await call(client,'network_bootstrap',{action:'status',recordFilter:'scope',budget:1400}));
+ expect(scope.records).toEqual([{path:'source.ts',status:'scope',reason:'selected_scope'}]);
+ const small=await call(client,'network_bootstrap',{action:'status',recordFilter:'excluded',budget:512});
+ expect(Buffer.byteLength(JSON.stringify(small))).toBeLessThanOrEqual(512);
+ expect(data(small).error.code).toBe('response_too_large');
+ const stale=await call(client,'network_bootstrap',{action:'status',recordCursor:{revision:'0'.repeat(64),filter:'excluded',offset:0}});
+ expect(data(stale).error.code).toBe('stale_cursor');
+});
+
+test('bootstrap_long_blocker_keeps_successful_write_receipt_and_reachable_reason',async()=>{
+ const root=await tree();roots.push(root);await repo(root);
+ const folder=Array.from({length:4},(_,i)=>`${i}-${'a'.repeat(180)}`).join('/');
+ await mkdir(join(root,folder),{recursive:true});await writeFile(join(root,folder,'.env'),'private synthetic content');
+ const {client}=await connect(root);
+ const response=await call(client,'network_bootstrap',{action:'start',budget:1100});
+ expect(response.isError).not.toBe(true);expect(Buffer.byteLength(JSON.stringify(response))).toBeLessThanOrEqual(1100);
+ const receipt=data(response);expect(receipt.recordsOmitted).toBe(1);expect(receipt.nextRecordCursor).toBeDefined();
+ const full=data(await call(client,'network_bootstrap',{action:'status',recordCursor:receipt.nextRecordCursor,budget:64000}));
+ expect(full.records).toEqual([{path:`${folder}/.env`,status:'excluded',reason:'sensitive'}]);
 });

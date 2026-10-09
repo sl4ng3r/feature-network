@@ -1,5 +1,5 @@
-import { constants } from 'node:fs';
 import { lstat, mkdir, open, readdir, rename, unlink } from 'node:fs/promises';
+import { openRegular, regularSignature, type ByteCache } from './regular.js';
 import { dirname } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -22,10 +22,18 @@ export function fingerprints(contents: Contents): Fingerprints { return Object.f
 export const revision = (contents: Contents): string => digest(JSON.stringify(fingerprints(contents)));
 
 /** Read only regular files, no symlink following at the open boundary. */
-async function readStorageBytes(project: Project, path: string, limit = storageByteLimit): Promise<Buffer | null> {
+async function readStorageBytes(project: Project, path: string, limit = storageByteLimit, cache?: ByteCache): Promise<Buffer | null> {
   const absolute = await storagePath(project, path);
   let file;
-  try { file = await open(absolute, constants.O_RDONLY | constants.O_NOFOLLOW); }
+  let signature: string | undefined;
+  try {
+    if (cache) {
+      signature = await regularSignature(absolute);
+      const previous = cache.get(path);
+      if (previous?.signature === signature && previous.bytes.length <= limit) return previous.bytes;
+    }
+    file = await openRegular(absolute);
+  }
   catch (error) { if (isMissing(error)) return null; throw error; }
   try {
     const info = await file.stat();
@@ -33,6 +41,7 @@ async function readStorageBytes(project: Project, path: string, limit = storageB
     if (info.size > limit) throw new NetworkError('invalid_schema', 'Storage entry exceeds its size limit', [path]);
     const bytes = await file.readFile();
     if (bytes.byteLength > limit) throw new NetworkError('invalid_schema', 'Storage entry exceeds its size limit', [path]);
+    if (cache && signature && await regularSignature(absolute) === signature) cache.set(path, { signature, bytes });
     return bytes;
   } finally { await file.close(); }
 }
@@ -43,6 +52,10 @@ export async function readStorage(project: Project, path: string, limit = storag
 }
 
 async function syncParent(project: Project, path: string): Promise<void> {
+  // Node/libuv read-only Windows directory handles cannot FlushFileBuffers.
+  // File flush + rename is supported; directory durability is weaker there.
+  // POSIX errors are never suppressed.
+  if (process.platform === 'win32') return;
   const directory = await open(dirname(await storagePath(project, path)), 'r');
   try { await directory.sync(); } finally { await directory.close(); }
 }
@@ -63,7 +76,7 @@ export async function atomicStorageWrite(project: Project, path: string, text: s
 }
 
 /** Only YAML is network data; transaction temp files and unrelated documentation are ignored. */
-export async function captureNetwork(project: Project): Promise<Contents> {
+export async function captureNetwork(project: Project, cache?: ByteCache): Promise<Contents> {
   await storagePath(project, 'network-spec/_meta.yaml');
   let names: string[];
   try { names = (await readdir(project.networkDir)).filter(name => /\.ya?ml$/i.test(name)).sort(); }
@@ -71,7 +84,7 @@ export async function captureNetwork(project: Project): Promise<Contents> {
   const contents: Contents = {};
   for (const name of names) {
     const path = `network-spec/${name}`;
-    const text = await readStorageBytes(project, path);
+    const text = await readStorageBytes(project, path, storageByteLimit, cache);
     if (text === null) throw new NetworkError('conflict', 'Network changed during capture', [path]);
     contents[path] = text;
   }
@@ -79,10 +92,10 @@ export async function captureNetwork(project: Project): Promise<Contents> {
 }
 
 /** One initial attempt and at most two retries for non-cooperating external editors. */
-export async function stableCapture(project: Project): Promise<Contents> {
+export async function stableCapture(project: Project, cache?: ByteCache): Promise<Contents> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const first = await captureNetwork(project); const second = await captureNetwork(project);
+      const first = await captureNetwork(project, cache); const second = await captureNetwork(project, cache);
       if (revision(first) === revision(second)) return second;
     } catch (error) { if (!(error instanceof NetworkError) || error.code !== 'conflict') throw error; }
   }

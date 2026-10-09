@@ -111,7 +111,7 @@ export function matchingUnmappedDecision(store: DecisionStore | null, snapshot: 
 export async function confirmReferences(project: Project, refs: ReviewObservation[], decision: ReviewDecision, options: StorageOptions = {}): Promise<void> {
   const parsed = reviewDecisionSchema.safeParse(decision); const observations = z.array(reviewObservationSchema).min(1).safeParse(refs);
   if (!parsed.success || !observations.success) throw new NetworkError('invalid_decision', 'Confirmation requires a revision-bound reason and explicit source observations');
-  const snapshot = await readSnapshot(project, options);
+  const snapshot = await readSnapshot(project, options, true);
   if (snapshot.integrity !== 'valid') throw new NetworkError(snapshot.integrity, 'Network must be valid before reference confirmation');
   if (snapshot.revision !== parsed.data.networkRevision) throw new NetworkError('conflict', 'Agent reviewed a different network revision');
   const paths = new Set(snapshot.features.flatMap(featureReferences).map(ref => ref.path));

@@ -5,11 +5,11 @@ import { z } from 'zod';
 import { NetworkError } from '../model/errors.js';
 import type { Project } from '../project/root.js';
 import { applyUpdate, readSnapshot, type StorageOptions, type UpdateRequest, featureReferences, readReferenceHash } from '../storage/repository.js';
-import { buildIndex } from '../query/index.js';
+import { buildIndex, refreshIndex, type NetworkIndex } from '../query/index.js';
 import type { ContextRequest, ImpactRequest } from '../query/pagination.js';
 import { queryContext } from '../query/search.js';
 import { queryImpact } from '../query/impact.js';
-import { checkNetwork } from '../freshness/check.js';
+import { checkNetwork, queryFreshness } from '../freshness/check.js';
 import { confirmReferences, inspectChange, isIgnoredChange, type ReviewObservation } from '../freshness/references.js';
 import { bootstrap, type BootstrapResult, type BootstrapRequest } from '../bootstrap/state.js';
 import { toolSchemas, type ToolName } from './tools.js';
@@ -31,6 +31,11 @@ function readable(value: Record<string, unknown>): string {
     text = `${value.depth !== undefined ? 'Impact' : 'Context'}: ${value.items.length} shown${first.id ? `; ${preview(first.id)}${detail ? `: ${detail}` : ''}${first.status ? ` (${preview(first.status)})` : ''}` : ''}.`;
     text += value.nextCursor ? ` Continue with nextCursor; ${value.omitted} omitted.` : ' Complete.';
     if (value.incomplete) text += ' Integrity incomplete.';
+    if (value.freshness) {
+      const states = Object.values(object(value.freshness)).map(entry => object(entry));
+      const warnings = [...new Set(states.filter(entry => entry.state !== 'current' || entry.review !== 'recorded').map(entry => entry.state === 'current' ? 'review open' : entry.state))];
+      if (warnings.length) text += ` Freshness: ${warnings.join(', ')}.`;
+    }
     if (value.depthLimited) text += ' Depth limit reached.';
     if (typeof value.diagnosticsOmitted === 'number' && value.diagnosticsOmitted > 0) text += ` ${value.diagnosticsOmitted} diagnostics omitted.`;
   } else if (value.mode !== undefined) {
@@ -42,6 +47,10 @@ function readable(value: Record<string, unknown>): string {
     text += typeof progress.analyzed === 'number' && typeof progress.files === 'number' ? `${progress.analyzed}/${progress.files} files analyzed.` : 'Progress unavailable in this projection.';
     text += value.packageOmitted ? ' Package omitted; retry larger budget or smaller maxFiles/maxBytes.'
       : slices.length ? ` Package: ${slices.length} slices (${preview(object(slices[0]).path)}).` : ' No active package.';
+    const records = Array.isArray(value.records) ? value.records : [];
+    const first = object(records[0]);
+    if (first.path) text += ` ${preview(first.path)}: ${preview(first.reason)}.`;
+    if (value.nextRecordCursor) text += ` Continue records with nextRecordCursor; ${value.recordsOmitted} omitted.`;
   } else if (value.semanticReview !== undefined) {
     text = `Update: revision ${preview(value.revision, 12)}; semantic review ${value.semanticReview}; ${value.recovered ? 'recovered transaction' : 'no recovery'}.`;
   } else text = 'FeatureNetwork result.';
@@ -98,10 +107,81 @@ function bootstrapProjection(value: BootstrapResult): Record<string, unknown> {
       needsReview: value.state.files.filter(f => f.status === 'needs_review').length, relationalReviewComplete: value.state.relationalReviewComplete, ...value.state.counters } : null,
     diagnostics: value.diagnostics };
 }
+type RecordFilter = 'all' | 'needs_review' | 'excluded' | 'scope';
+interface RecordCursor { revision: string; filter: RecordFilter; offset: number }
+/** Record continuation is independent of analysis packages. Even files with no
+ * readable slices and large configured scope lists remain reachable via status. */
+function bootstrapResponse(value: BootstrapResult, budget: number, filter: RecordFilter = 'all', cursor?: RecordCursor): CallToolResult {
+  if (cursor && (cursor.revision !== value.runRevision || cursor.filter !== filter)) throw new NetworkError('stale_cursor', 'Bootstrap inventory changed; restart record listing');
+  const configured = value.state?.options;
+  const records = filter === 'scope'
+    ? [...(configured?.scope ?? []).map(path => ({ path, status: 'scope', reason: 'selected_scope' })), ...(configured?.exclusions ?? []).map(path => ({ path, status: 'excluded', reason: 'configured_exclusion' }))]
+    : (value.state?.files ?? []).filter(file => (filter === 'all' ? ['needs_review', 'excluded'].includes(file.status) : file.status === filter))
+      .sort((a, b) => Number(b.status === 'needs_review') - Number(a.status === 'needs_review') || a.path.localeCompare(b.path))
+      .map(({ path, status, reason }) => ({ path, status, reason }));
+  const offset = cursor?.offset ?? 0;
+  if (offset > records.length) throw new NetworkError('invalid_cursor', 'Record offset is outside inventory');
+  const projection = bootstrapProjection(value);
+  projection.records = [];
+  projection.recordsOmitted = records.length - offset;
+  projection.selectedScope = { scope: configured?.scope ?? [], exclusions: configured?.exclusions ?? [], detailsFilter: 'scope' };
+  const finalize = (next: number) => {
+    projection.recordsOmitted = records.length - next;
+    if (next < records.length) projection.nextRecordCursor = { revision: value.runRevision, filter, offset: next };
+    else delete projection.nextRecordCursor;
+  };
+  finalize(offset);
+  const fits = () => bytes(result(projection)) <= budget;
+  // Package output remains primary when it fits; the records have their own
+  // reachable status continuation, so neither output silently removes the other.
+  if (!fits() && value.package !== null) {
+    projection.package = null; projection.packageOmitted = true; projection.nextAction = packageAdvice;
+  }
+  if (!fits()) projection.selectedScope = { scopeCount: configured?.scope.length ?? 0, exclusionCount: configured?.exclusions.length ?? 0, detailsFilter: 'scope' };
+  if (!fits()) {
+    const reduced = bounded(projection, budget).structuredContent!;
+    Object.assign(projection, reduced);
+  }
+  const returned = projection.records as unknown[];
+  for (let i = offset; i < records.length; i++) {
+    returned.push(records[i]); finalize(i + 1);
+    if (!fits()) { returned.pop(); finalize(i); break; }
+  }
+  if (offset < records.length && !returned.length) {
+    // Retry just the bounded record listing, without a package/progress payload.
+    if (value.package !== null) { projection.package = null; projection.packageOmitted = true; }
+    projection.progress = null;
+    projection.selectedScope = { scopeCount: configured?.scope.length ?? 0, exclusionCount: configured?.exclusions.length ?? 0, detailsFilter: 'scope' };
+    returned.push(records[offset]); finalize(offset + 1);
+    if (!fits()) throw new NetworkError('response_too_large', 'Budget cannot fit one bootstrap record; retry a larger budget');
+  }
+  return result(projection);
+}
+/** A successful write always has a preflighted receipt even if one path/reason
+ * cannot fit. Read-only status can then require a larger budget for that record. */
+function bootstrapReceipt(value: BootstrapResult | null, budget: number): CallToolResult {
+  const count = value ? value.state?.files.filter(file => ['needs_review', 'excluded'].includes(file.status)).length ?? 0 : Number.MAX_SAFE_INTEGER;
+  const revision = value ? value.runRevision : '0'.repeat(64);
+  const receipt = {
+    status: value?.status ?? 'awaiting_relational_review', coverage: 'partial', basis: 'last_known',
+    runRevision: revision, networkRevision: value ? value.state?.networkRevision ?? null : '0'.repeat(64),
+    package: null, packageOmitted: value ? value.package !== null : true,
+    progress: null, diagnostics: [], records: [], recordsOmitted: count,
+    selectedScope: { scopeCount: value ? value.state?.options.scope.length ?? 0 : Number.MAX_SAFE_INTEGER,
+      exclusionCount: value ? value.state?.options.exclusions.length ?? 0 : Number.MAX_SAFE_INTEGER, detailsFilter: 'scope' },
+    ...(count ? { nextRecordCursor: { revision, filter: 'all', offset: 0 } } : {}),
+    recordsRequireLargerBudget: true, truncated: true,
+    omitted: { progress: value?.state || value === null ? 6 : 0, diagnostics: value ? value.diagnostics.length : Number.MAX_SAFE_INTEGER },
+  };
+  const response = result(receipt);
+  if (bytes(response) > budget) throw new NetworkError('response_too_large', 'Budget cannot fit minimum bootstrap receipt');
+  return response;
+}
 /** One immutable project binding per process; no root is accepted in tool arguments. */
 export function createServer(project: Project, installedRoot = dirname(dirname(fileURLToPath(import.meta.url)))): Server {
   const bound = Object.freeze({ ...project });
   const options: StorageOptions = { excludedReferenceRoots: [installedRoot] };
+  let previousIndex: NetworkIndex | undefined;
   const server = new Server({ name: 'feature-network', version: '0.1.0' }, { capabilities: { tools: {} } });
   server.onerror = () => { process.stderr.write('FeatureNetwork: protocol_error.\n'); };
   server.setRequestHandler('tools/list', () => ({ tools: Object.entries(toolSchemas).map(([name, schema]) => ({ name,
@@ -120,13 +200,21 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
       switch (name as ToolName) {
         case 'network_context': {
           const input = toolSchemas.network_context.parse(parsed.data); budget = input.cursor?.parameters.budget ?? input.budget ?? 12000;
-          const index = buildIndex(await readSnapshot(bound, options));
-          response = renderedQuery(reserveBytes => queryContext(index, clean<ContextRequest>(input), { responseReserveBytes: reserveBytes, includeFingerprints: true }), budget); break;
+          const snapshot = await readSnapshot(bound, options);
+          const index = previousIndex ? refreshIndex(previousIndex, snapshot) : buildIndex(snapshot);
+          previousIndex = index;
+          const preliminary = queryContext(index, clean<ContextRequest>(input));
+          const freshness = await queryFreshness(bound, snapshot, preliminary.items.map(item => item.id), options);
+          response = renderedQuery(reserveBytes => queryContext(index, clean<ContextRequest>(input), { responseReserveBytes: reserveBytes, includeFingerprints: true, freshness }), budget); break;
         }
         case 'network_impact': {
           const input = toolSchemas.network_impact.parse(parsed.data); budget = input.cursor?.parameters.budget ?? input.budget ?? 12000;
-          const index = buildIndex(await readSnapshot(bound, options));
-          response = renderedQuery(reserveBytes => queryImpact(index, clean<ImpactRequest>(input), { responseReserveBytes: reserveBytes }), budget); break;
+          const snapshot = await readSnapshot(bound, options);
+          const index = previousIndex ? refreshIndex(previousIndex, snapshot) : buildIndex(snapshot);
+          previousIndex = index;
+          const preliminary = queryImpact(index, clean<ImpactRequest>(input));
+          const freshness = await queryFreshness(bound, snapshot, preliminary.items.map(item => item.id), options);
+          response = renderedQuery(reserveBytes => queryImpact(index, clean<ImpactRequest>(input), { responseReserveBytes: reserveBytes, freshness }), budget); break;
         }
         case 'network_check': {
           const input = toolSchemas.network_check.parse(parsed.data); budget = input.budget ?? 12000;
@@ -146,7 +234,7 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
           const missing = reviewed.filter((r): r is { path: string; state: 'missing' } => 'state' in r).map(r => r.path);
           if (missing.length && input.expectedRevision === undefined) throw new NetworkError('invalid_update', 'Missing observations require expectedRevision');
           bounded({ revision: '0'.repeat(64), fingerprints: {}, diagnostics: [], recovered: false, semanticReview: 'recorded' }, budget);
-          const before = await readSnapshot(bound, options);
+          const before = await readSnapshot(bound, options, true);
           const changedIds = new Set([...input.upserts.map(f => f.id), ...input.deletes]);
           const afterFeatures = [...before.features.filter(f => !changedIds.has(f.id)), ...input.upserts];
           const mapped = new Set(afterFeatures.flatMap(featureReferences).map(r => r.path));
@@ -167,14 +255,16 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
         }
         case 'network_bootstrap': {
           const { budget: requestedBudget, ...input } = toolSchemas.network_bootstrap.parse(parsed.data); budget = requestedBudget ?? 12000;
-          if (input.action !== 'status' && bytes(result({ status: 'awaiting_relational_review', coverage: 'partial', basis: 'last_known', runRevision: '0'.repeat(64), networkRevision: '0'.repeat(64), package: null, packageOmitted: true, nextAction: packageAdvice, progress: {}, diagnostics: [], truncated: true, omitted: { progress: Number.MAX_SAFE_INTEGER, diagnostics: Number.MAX_SAFE_INTEGER } })) > budget) throw new NetworkError('response_too_large', 'Budget cannot fit minimum bootstrap receipt');
+          if (input.action !== 'status') bootstrapReceipt(null, budget);
           const value = await bootstrap(bound, clean<BootstrapRequest>(input), options);
-          const projection = bootstrapProjection(value);
-          if (bytes(result(projection)) > budget && value.package !== null) {
-            projection.package = null; projection.packageOmitted = true;
-            projection.nextAction = packageAdvice;
+          const listing = input.action === 'status' ? input : undefined;
+          try {
+            response = bootstrapResponse(value, budget, listing?.recordFilter ?? listing?.recordCursor?.filter ?? 'all', listing?.recordCursor);
+          } catch (error) {
+            if (input.action === 'status' || !(error instanceof NetworkError) || error.code !== 'response_too_large') throw error;
+            response = bootstrapReceipt(value, budget);
           }
-          response = bounded(projection, budget); break;
+          break;
         }
       }
       const projected = server.projectCallToolResult(response!, undefined);

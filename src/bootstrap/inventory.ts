@@ -1,5 +1,5 @@
-import { constants } from 'node:fs';
-import { lstat, open, realpath, stat } from 'node:fs/promises';
+import { openRegular } from '../storage/regular.js';
+import { lstat, realpath, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import type { Project } from '../project/root.js';
 import { isAutomaticGeneratedPath, isSensitivePath, resolveProjectPath } from '../project/paths.js';
@@ -47,7 +47,7 @@ export async function inventory(project: Project, options: InventoryOptions = {}
     if (!reason && (example(path) || example(canonical)) && !options.sanitizedExamples?.some(e => e.path === path)) { reason = 'example_requires_attestation'; }
     if (reason) { files.push({ path, hash: null, slices: [], status, reason }); continue; }
     try {
-      const handle = await open(absolute, constants.O_RDONLY | constants.O_NOFOLLOW);
+      const handle = await openRegular(absolute);
       let bytes: Buffer;
       try { if (!(await handle.stat()).isFile()) throw new Error('not regular'); bytes = await handle.readFile(); } finally { await handle.close(); }
       if (bytes.includes(0)) { files.push({ path, hash: null, slices: [], status: 'excluded', reason: 'binary' }); continue; }

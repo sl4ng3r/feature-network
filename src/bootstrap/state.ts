@@ -52,7 +52,8 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
     if (raw === null) state = null;
     else { runSchema.parse(raw); state = raw as BootstrapState; } // Preserve raw JSON key order for runtime CAS.
   } catch (error) { if (error instanceof NetworkError && error.code === 'unsafe_path') throw error; return result(null, 'invalid_checkpoint'); }
-  const expected = state === null ? null : runtimeRevision(state); const projectId = digest(project.root);
+  const expected = state === null ? null : runtimeRevision(state);
+  const projectId = digest(project.root);
   if (state && state.projectId !== projectId && !(request.action === 'start' && request.reconcile)) return result(state, 'reconciliation_required');
   if (request.action === 'status') return result(state, snapshot.integrity === 'invalid' ? 'invalid_network' : undefined);
   if (request.action === 'checkpoint') {
@@ -73,7 +74,10 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
     if (next.networkRevision !== snapshot.revision) next.relationalReviewComplete = false;
     const supplied = new Map(request.sources.map(s => [s.path, s.hash]));
     const expectedSources = new Map(batch?.slices.map(s => [s.path, s.fileHash]) ?? []);
-    if (supplied.size !== request.sources.length || supplied.size !== expectedSources.size || [...expectedSources].some(([p, h]) => supplied.get(p) !== h)) conflict('Checkpoint source hashes do not match active package');
+    const exactSources = supplied.size === request.sources.length
+      && supplied.size === expectedSources.size
+      && [...expectedSources].every(([path, hash]) => supplied.get(path) === hash);
+    if (!exactSources) conflict('Checkpoint source hashes do not match active package');
     for (const [id, fingerprint] of Object.entries(request.featureFingerprints)) {
       if (snapshot.fingerprints[`network-spec/${id}.yaml`] !== fingerprint || !snapshot.features.some(f => f.id === id)) conflict('Feature fingerprint was not saved');
     }
@@ -82,7 +86,9 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
     for (const slice of batch?.slices ?? []) {
       const receipt = receipts.get(sliceKey(slice));
       if (!receipt || !receipt.reason.trim() || !['analyzed', 'needs_review'].includes(receipt.outcome)) throw new NetworkError('invalid_checkpoint', 'Every slice requires an explicit analysis outcome and reason');
-      if (snapshot.features.filter(f => featureReferences(f).some(r => r.path === slice.path)).some(f => !receipt.featureIds.includes(f.id))) conflict('Mapped source requires its saved feature associations');
+      const mappedFeatures = snapshot.features.filter(feature => featureReferences(feature).some(ref => ref.path === slice.path));
+      const associationsComplete = mappedFeatures.every(feature => receipt.featureIds.includes(feature.id));
+      if (!associationsComplete) conflict('Mapped source requires its saved feature associations');
       const current = observed.files.find(f => f.path === slice.path);
       if (!current || current.status !== 'pending' || current.hash !== slice.fileHash) conflict('Package source changed or became excluded');
       const file = next.files.find(f => f.path === slice.path)!;
@@ -91,18 +97,35 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
         file.featureFingerprints[id] = request.featureFingerprints[id]!;
       }
       file.sliceReviews[sliceKey(slice)] = { outcome: receipt.outcome, reason: receipt.reason, featureIds: receipt.featureIds };
-      if (receipt.outcome === 'needs_review') { file.status = 'needs_review'; file.reason = receipt.reason; }
+      if (receipt.outcome === 'needs_review') {
+        file.status = 'needs_review';
+        file.reason = receipt.reason;
+      }
     }
-    for (const file of next.files) if (['pending', 'needs_review'].includes(file.status) && file.slices.length && file.slices.every(s => file.sliceReviews[sliceKey({ ...s, path: file.path })]?.outcome === 'analyzed')) { file.status = 'analyzed'; file.reason = null; }
+    for (const file of next.files) {
+      const hasReviewableSlices = ['pending', 'needs_review'].includes(file.status) && file.slices.length > 0;
+      const allSlicesAnalyzed = file.slices.every(slice => file.sliceReviews[sliceKey({ ...slice, path: file.path })]?.outcome === 'analyzed');
+      if (hasReviewableSlices && allSlicesAnalyzed) {
+        file.status = 'analyzed';
+        file.reason = null;
+      }
+    }
     if (request.relationalReviewComplete) {
       if (!request.reason?.trim() || next.files.some(f => !['analyzed', 'excluded'].includes(f.status))) throw new NetworkError('invalid_checkpoint', 'Cross-area completion requires all files resolved and a reason');
       if (snapshot.features.some(f => request.featureFingerprints[f.id] !== snapshot.fingerprints[`network-spec/${f.id}.yaml`])) conflict('Cross-area review must identify every saved feature');
       // A final inventory change is never hidden by acknowledgement of the last old package.
-      if (observed.files.some(f => !next.files.some(old => old.path === f.path && old.hash === f.hash && (f.status !== 'pending' || old.status === 'analyzed')))) conflict('Inventory changed before relational completion');
+      const inventoryStillReviewed = observed.files.every(file => next.files.some(old =>
+        old.path === file.path && old.hash === file.hash && (file.status !== 'pending' || old.status === 'analyzed')));
+      if (!inventoryStillReviewed) conflict('Inventory changed before relational completion');
       next.relationalReviewComplete = true;
     }
-    next.activePackage = null; next.networkRevision = snapshot.revision; next.revision++;
-    if (batch) { next.counters.packages++; next.counters.bytes += batch.plannedBytes; }
+    next.activePackage = null;
+    next.networkRevision = snapshot.revision;
+    next.revision++;
+    if (batch) {
+      next.counters.packages++;
+      next.counters.bytes += batch.plannedBytes;
+    }
     const guardedSources = request.relationalReviewComplete ? next.files.filter(f => f.status === 'analyzed' && f.hash !== null).map(f => ({ path: f.path, hash: f.hash! })) : request.sources;
     await writeRuntime(project, key, expected, next, storageOptions, () => guard(project, snapshot, guardedSources, storageOptions));
     return result(next);
@@ -122,7 +145,11 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
   const files: BootstrapState['files'] = observed.files.map(file => {
     const old = !identityChanged && state?.files.find(f => f.path === file.path && f.hash === file.hash && f.hash !== null);
     const mapped = snapshot.features.filter(f => featureReferences(f).some(r => r.path === file.path));
-    const valid = old && old.slices.length === file.slices.length && old.slices.every((s, i) => s.hash === file.slices[i]?.hash) && mapped.every(f => old.featureFingerprints[f.id] === snapshot.fingerprints[`network-spec/${f.id}.yaml`]) && Object.entries(old.featureFingerprints).every(([id, fingerprint]) => snapshot.fingerprints[`network-spec/${id}.yaml`] === fingerprint);
+    const slicesUnchanged = old && old.slices.length === file.slices.length
+      && old.slices.every((slice, i) => slice.hash === file.slices[i]?.hash);
+    const currentAssociationsReviewed = old && mapped.every(feature => old.featureFingerprints[feature.id] === snapshot.fingerprints[`network-spec/${feature.id}.yaml`]);
+    const savedAssociationsUnchanged = old && Object.entries(old.featureFingerprints).every(([id, fingerprint]) => snapshot.fingerprints[`network-spec/${id}.yaml`] === fingerprint);
+    const valid = slicesUnchanged && currentAssociationsReviewed && savedAssociationsUnchanged;
     if (file.reason === 'deleted' && !references.has(file.path)) file.status = 'excluded';
     return valid && file.status === 'pending' ? { ...old } : { ...file, sliceReviews: {}, featureFingerprints: {} };
   });

@@ -1,5 +1,6 @@
+import { readRegular } from './regular.js';
 import { constants } from 'node:fs';
-import { link, lstat, mkdir, open, readFile, unlink } from 'node:fs/promises';
+import { link, lstat, mkdir, open, unlink } from 'node:fs/promises';
 import { hostname } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -41,7 +42,7 @@ async function ownerAt(project: Project, path: string): Promise<Owner | null> {
     const absolute = await storagePath(project, path);
     const info = await lstat(absolute);
     if (!info.isFile() || info.size > 4096) return null;
-    const owner: unknown = JSON.parse(await readFile(absolute, 'utf8'));
+    const owner: unknown = JSON.parse((await readRegular(absolute)).toString('utf8'));
     if (typeof owner !== 'object' || owner === null) return null;
     const candidate = owner as Owner;
     return candidate.version === 1 && Number.isSafeInteger(candidate.pid) && candidate.pid > 0

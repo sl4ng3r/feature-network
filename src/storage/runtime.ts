@@ -1,6 +1,7 @@
+import { publishReadCache } from './read-cache.js';
 import type { Project } from '../project/root.js';
 import { NetworkError } from '../model/errors.js';
-import { assertStorageSize, atomicStorageWrite, digest, hasJournal, readStorage } from './journal.js';
+import { assertStorageSize, atomicStorageWrite, digest, hasJournal, readStorage, stableCapture } from './journal.js';
 import { withProjectLock } from './lock.js';
 import { recoverNetworkUnderLock, type StorageOptions } from './repository.js';
 
@@ -54,5 +55,6 @@ export async function writeRuntime<T>(project: Project, key: string, expectedRev
       if (validate) await validate();
       if (await readStorage(project, path) !== (existing?.text ?? null)) throw new NetworkError('conflict', 'Runtime changed before replacement', [key]);
     });
+    await publishReadCache(project, await stableCapture(project), options);
   });
 }

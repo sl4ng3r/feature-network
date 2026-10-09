@@ -1,6 +1,7 @@
-import { constants } from 'node:fs';
+import { readRegular } from '../storage/regular.js';
+import { openRegular } from '../storage/regular.js';
 import { execFile } from 'node:child_process';
-import { lstat, mkdir, open, readFile, realpath, rename, unlink } from 'node:fs/promises';
+import { lstat, mkdir, open, realpath, rename, unlink } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { promisify } from 'node:util';
@@ -34,7 +35,7 @@ async function safePath(root: string, path: string): Promise<string> {
 }
 async function readConfig(root: string, path: string): Promise<string | null> {
   let file;
-  try { file = await open(await safePath(root, path), constants.O_RDONLY | constants.O_NOFOLLOW); }
+  try { file = await openRegular(await safePath(root, path), 'unsafe_config'); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null; throw error; }
   try {
     const info = await file.stat(); if (!info.isFile() || info.size > maxConfigBytes) fail('unsafe_config');
@@ -92,7 +93,7 @@ async function createSetupPlan(host: SetupHost, project: string, existingConfig:
   for (const name of ['dist/cli.mjs', 'dist/hook.mjs']) {
     const path = await safePath(pluginRoot, name); const info = await lstat(path);
     if (!info.isFile()) fail('unsafe_path');
-    sources.push({ path, hash: digest(await readFile(path)) });
+    sources.push({ path, hash: digest(await readRegular(path)) });
   }
   const targets = setupTargets(host, registration);
   if (Object.keys(existingConfig).some(key => !targets.includes(key))) fail('unsafe_config');
@@ -154,7 +155,7 @@ export async function applySetup(plan: SetupPlan): Promise<void> {
   try {
     if (await realpath(internal.root) !== internal.root) fail('unsafe_path');
     for (const source of internal.sources) {
-      if ((await lstat(source.path)).isSymbolicLink() || await realpath(source.path) !== source.path || digest(await readFile(source.path)) !== source.hash) fail();
+      if ((await lstat(source.path)).isSymbolicLink() || await realpath(source.path) !== source.path || digest(await readRegular(source.path)) !== source.hash) fail();
     }
     for (const file of internal.files) {
       const target = await safePath(internal.root, file.path); await mkdir(dirname(target), { recursive: true });

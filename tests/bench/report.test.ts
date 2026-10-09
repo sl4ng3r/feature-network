@@ -144,3 +144,12 @@ test('definitive_factual_or_behavior_failure_is_not_hidden_by_missing_other_evid
   runs[1] = run('plugin', 1); runs[1].behavior.status = 'failed'; runs[1].graph = { status: 'unavailable', evidenceHash: null };
   expect(compareRuns(runs).status).toBe('quality_failed');
 });
+
+test('same_size_degree_contrast_runs_distinct_cyclic_workloads_and_real_budgets', () => {
+  const options={coldIterations:1,warmupIterations:1,warmIterations:1,updateIterations:1};
+  const sparse=runCoreCase(100,{...options,degree:2}); const dense=runCoreCase(100,{...options,degree:12});
+  expect(sparse.graph.edges).toBe(200);expect(dense.graph.edges).toBe(1200);
+  expect(dense.graph.directedDensity).toBeCloseTo(12/99);
+  expect(dense.output.impactBytes).toBeLessThanOrEqual(12000);
+  expect(syntheticSnapshot(100,12).features[99]!.relations).toHaveLength(12);
+});

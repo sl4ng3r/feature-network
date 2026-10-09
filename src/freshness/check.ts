@@ -48,34 +48,7 @@ export async function checkNetwork(project: Project, mode: 'summary' | 'full', s
     turnAssumptions: 'not_recorded', changeCoverage: mode === 'summary' ? 'last_known' : 'unknown', lastCheckedAt: null,
     openDecisions: [], diagnostics: [...snapshot.diagnostics] };
   if (snapshot.integrity === 'pending_recovery' || snapshot.integrity === 'not_initialized') return result;
-  let baselines: z.infer<typeof baselineSchema> | null = null;
-  try {
-    const value = await readRuntime<unknown>(project, 'baselines');
-    if (value !== null) {
-      const parsed = baselineSchema.safeParse(value);
-      if (!parsed.success) throw new NetworkError('invalid_baselines', 'Stored reference baselines are invalid');
-      if (parsed.data.networkRevision === snapshot.revision) baselines = parsed.data;
-      else result.diagnostics.push({ code: 'stale_baselines', severity: 'warning', message: 'Reference baselines belong to a different network revision' });
-    }
-  } catch (error) { result.diagnostics.push(errorDiagnostic(error, 'invalid_baselines')); }
-  let decisions = null;
-  try { decisions = await readDecisions(project); } catch (error) { result.diagnostics.push(errorDiagnostic(error, 'invalid_decisions')); }
-  const ids = new Map<string, Set<string>>();
-  for (const feature of snapshot.features) for (const ref of featureReferences(feature)) {
-    const set = ids.get(ref.path) ?? new Set<string>(); set.add(feature.id); ids.set(ref.path, set);
-  }
-  for (const path of [...ids.keys()].sort()) {
-    const baseline = baselines && Object.hasOwn(baselines.references, path) ? baselines.references[path] : undefined;
-    const state: ReferenceState = { path, state: baseline ? 'current' : 'unknown', hash: baseline ?? null, featureIds: [...ids.get(path)!].sort() };
-    if (mode === 'full') {
-      const observed = await inspectReference(project, path, options); state.hash = observed.hash;
-      state.state = observed.state === 'present' ? baseline ? observed.hash === baseline ? 'current' : 'changed' : 'unknown' : observed.state;
-      if (observed.diagnostic) result.diagnostics.push(observed.diagnostic);
-    }
-    result.references.push(state);
-    const reviewed = state.state === 'current' && state.hash !== null && matchingDecision(decisions, snapshot, path, state.hash);
-    if (!reviewed) result.openDecisions.push({ path, featureIds: state.featureIds, reason: state.state === 'current' ? 'decision_missing' : state.state });
-  }
+  const { decisions, ids } = await populateReferences(project, snapshot, mode, options, result);
   if (mode === 'summary') {
     const dates = result.references.filter(ref => ref.hash !== null && matchingDecision(decisions, snapshot, ref.path, ref.hash))
       .map(ref => decisions!.references[ref.path]!.decidedAt).sort();
@@ -138,4 +111,54 @@ export async function checkNetwork(project: Project, mode: 'summary' | 'full', s
   // Git's disabled-filter warning is a real coverage boundary, never clean proof.
   if (result.diagnostics.some(d => d.code === 'git_filters_disabled')) result.changeCoverage = 'unknown';
   return result;
+}
+
+type ReferenceResult = Pick<CheckResult, 'references' | 'openDecisions' | 'diagnostics'>;
+/** Shared baseline/decision policy for full checks and scoped query warnings. */
+async function populateReferences(project: Project, snapshot: Snapshot, mode: 'summary' | 'full', options: StorageOptions, result: ReferenceResult, selected?: Set<string>) {
+  let baselines: z.infer<typeof baselineSchema> | null = null;
+  try {
+    const value = await readRuntime<unknown>(project, 'baselines');
+    if (value !== null) {
+      const parsed = baselineSchema.safeParse(value);
+      if (!parsed.success) throw new NetworkError('invalid_baselines', 'Stored reference baselines are invalid');
+      if (parsed.data.networkRevision === snapshot.revision) baselines = parsed.data;
+      else result.diagnostics.push({ code: 'stale_baselines', severity: 'warning', message: 'Reference baselines belong to a different network revision' });
+    }
+  } catch (error) { result.diagnostics.push(errorDiagnostic(error, 'invalid_baselines')); }
+  let decisions = null;
+  try { decisions = await readDecisions(project); } catch (error) { result.diagnostics.push(errorDiagnostic(error, 'invalid_decisions')); }
+  const ids = new Map<string, Set<string>>();
+  for (const feature of snapshot.features.filter(feature => !selected || selected.has(feature.id))) for (const ref of featureReferences(feature)) {
+    const set = ids.get(ref.path) ?? new Set<string>(); set.add(feature.id); ids.set(ref.path, set);
+  }
+  for (const path of [...ids.keys()].sort()) {
+    const baseline = baselines && Object.hasOwn(baselines.references, path) ? baselines.references[path] : undefined;
+    const state: ReferenceState = { path, state: baseline ? 'current' : 'unknown', hash: baseline ?? null, featureIds: [...ids.get(path)!].sort() };
+    if (mode === 'full') {
+      const observed = await inspectReference(project, path, options); state.hash = observed.hash;
+      state.state = observed.state === 'present' ? baseline ? observed.hash === baseline ? 'current' : 'changed' : 'unknown' : observed.state;
+      if (observed.diagnostic) result.diagnostics.push(observed.diagnostic);
+    }
+    result.references.push(state);
+    const reviewed = state.state === 'current' && state.hash !== null && matchingDecision(decisions, snapshot, path, state.hash);
+    if (!reviewed) result.openDecisions.push({ path, featureIds: state.featureIds, reason: state.state === 'current' ? 'decision_missing' : state.state });
+  }
+  return { decisions, ids };
+}
+export interface FeatureFreshness { state: 'current' | 'changed' | 'missing' | 'unknown'; review: 'recorded' | 'open' }
+/** Fresh technical observations only for the features the page can return.
+ * This is not semantic analysis or a whole-project freshness assertion. */
+export async function queryFreshness(project: Project, snapshot: Snapshot, featureIds: string[], options: StorageOptions): Promise<Record<string, FeatureFreshness>> {
+  const selected = new Set(featureIds);
+  const scoped = { ...snapshot, features: snapshot.features.filter(feature => selected.has(feature.id)) };
+  const result: ReferenceResult = { references: [], openDecisions: [], diagnostics: [] };
+  await populateReferences(project, snapshot, 'full', options, result, selected);
+  const output: Record<string, FeatureFreshness> = {};
+  for (const feature of scoped.features) {
+    const refs = result.references.filter(ref => ref.featureIds.includes(feature.id));
+    const state = (['missing', 'changed', 'unknown'] as const).find(state => refs.some(ref => ref.state === state)) ?? 'current';
+    output[feature.id] = { state, review: result.openDecisions.some(decision => decision.featureIds.includes(feature.id)) ? 'open' : 'recorded' };
+  }
+  return output;
 }

@@ -1,0 +1,1408 @@
+{
+  "format": 1,
+  "kind": "synthetic-core-benchmark",
+  "measuredAt": "2026-10-09T17:03:39.000Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M5",
+    "logicalCpus": 10,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.19.0"
+  },
+  "limitations": [
+    "Local machine snapshot only; no cross-host or agent/token benefit claim.",
+    "Cold means fresh index in an already running process, not cold filesystem/plugin startup.",
+    "Retained memory deltas may be negative/noisy; no peak sampler or per-feature allocation claim."
+  ],
+  "cases": [
+    {
+      "graph": {
+        "features": 100,
+        "edges": 200,
+        "edgesPerFeature": 2,
+        "directedDensity": 0.020202020202020204,
+        "topology": "directed cyclic ring with +1 through +2 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          2.3542500000000004,
+          1.1719579999999965,
+          0.8462499999999977,
+          0.8656659999999974,
+          0.8382500000000022
+        ],
+        "minMs": 0.8382500000000022,
+        "medianMs": 0.8656659999999974,
+        "p95Ms": 2.3542500000000004,
+        "maxMs": 2.3542500000000004
+      },
+      "warm": {
+        "samplesMs": [
+          0.1109170000000006,
+          0.09962500000000318,
+          0.10275000000000034,
+          0.10441600000000051,
+          0.10112500000000324,
+          0.10062500000000085,
+          0.09675000000000011,
+          0.10999999999999943,
+          0.0976660000000038,
+          0.09695800000000077,
+          0.09708400000000239,
+          0.10354199999999736,
+          0.11233399999999705,
+          0.09458300000000008,
+          0.09224999999999994,
+          0.09083299999999639,
+          0.19104199999999594,
+          0.11237500000000011,
+          0.10341599999999573,
+          0.09870800000000202,
+          0.10183299999999917,
+          0.09441599999999539,
+          0.09849999999999426,
+          0.09262499999999818,
+          0.10362500000000097,
+          0.09250000000000114,
+          0.10208300000000037,
+          0.09391700000000469,
+          0.09108300000000469,
+          0.09304200000000407
+        ],
+        "minMs": 0.09083299999999639,
+        "medianMs": 0.09870800000000202,
+        "p95Ms": 0.11237500000000011,
+        "maxMs": 0.19104199999999594
+      },
+      "refresh": {
+        "samplesMs": [
+          0.22470799999999969,
+          0.08024999999999949,
+          0.06374999999999886,
+          0.05904199999999804,
+          0.058875000000000455
+        ],
+        "minMs": 0.058875000000000455,
+        "medianMs": 0.06374999999999886,
+        "p95Ms": 0.22470799999999969,
+        "maxMs": 0.22470799999999969
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 67846144,
+          "heapTotal": 17317888,
+          "heapUsed": 7825216,
+          "external": 2152463,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 68681728,
+          "heapTotal": 17842176,
+          "heapUsed": 8222216,
+          "external": 2152467,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 397000,
+          "rss": 835584
+        },
+        "afterWork": {
+          "rss": 73924608,
+          "heapTotal": 18890752,
+          "heapUsed": 12245952,
+          "external": 2349075,
+          "arrayBuffers": 340219
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1819,
+        "impactBytes": 3165,
+        "combinedBytes": 4984,
+        "contextItems": 20,
+        "impactItems": 9
+      },
+      "warmGoal": null
+    },
+    {
+      "graph": {
+        "features": 100,
+        "edges": 1200,
+        "edgesPerFeature": 12,
+        "directedDensity": 0.12121212121212122,
+        "topology": "directed cyclic ring with +1 through +12 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          1.8543340000000015,
+          1.8353329999999985,
+          1.8320419999999942,
+          1.6965000000000003,
+          1.748375000000003
+        ],
+        "minMs": 1.6965000000000003,
+        "medianMs": 1.8320419999999942,
+        "p95Ms": 1.8543340000000015,
+        "maxMs": 1.8543340000000015
+      },
+      "warm": {
+        "samplesMs": [
+          0.2847500000000025,
+          0.27633300000000105,
+          0.27412499999999795,
+          0.27041600000000443,
+          0.26745800000000486,
+          0.26695899999999995,
+          0.26691600000000903,
+          0.2754580000000004,
+          0.27354200000000617,
+          0.3313750000000084,
+          0.25925000000000864,
+          0.2737910000000028,
+          0.2604170000000039,
+          0.27829200000000753,
+          0.28708299999999554,
+          0.2604999999999933,
+          0.26491699999999696,
+          0.25637500000000557,
+          0.3366659999999939,
+          0.2716250000000002,
+          0.2808340000000129,
+          0.28120800000000656,
+          0.2610420000000033,
+          0.2632080000000059,
+          0.2577500000000015,
+          0.2739580000000075,
+          0.26012500000000216,
+          0.3164170000000013,
+          0.2602499999999992,
+          0.25720800000000565
+        ],
+        "minMs": 0.25637500000000557,
+        "medianMs": 0.27041600000000443,
+        "p95Ms": 0.3313750000000084,
+        "maxMs": 0.3366659999999939
+      },
+      "refresh": {
+        "samplesMs": [
+          0.1290000000000049,
+          0.07166599999999335,
+          0.06604099999999846,
+          0.0646250000000066,
+          0.06570800000000077
+        ],
+        "minMs": 0.0646250000000066,
+        "medianMs": 0.06604099999999846,
+        "p95Ms": 0.1290000000000049,
+        "maxMs": 0.1290000000000049
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 74022912,
+          "heapTotal": 17842176,
+          "heapUsed": 8716072,
+          "external": 2283539,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 74547200,
+          "heapTotal": 19152896,
+          "heapUsed": 9494192,
+          "external": 2152467,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 778120,
+          "rss": 524288
+        },
+        "afterWork": {
+          "rss": 78905344,
+          "heapTotal": 19677184,
+          "heapUsed": 12176472,
+          "external": 2349075,
+          "arrayBuffers": 274683
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1819,
+        "impactBytes": 5805,
+        "combinedBytes": 7624,
+        "contextItems": 20,
+        "impactItems": 20
+      },
+      "warmGoal": null
+    },
+    {
+      "graph": {
+        "features": 1000,
+        "edges": 2000,
+        "edgesPerFeature": 2,
+        "directedDensity": 0.002002002002002002,
+        "topology": "directed cyclic ring with +1 through +2 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          16.380291999999997,
+          18.392750000000007,
+          17.29679200000001,
+          15.971875000000011,
+          15.716499999999996
+        ],
+        "minMs": 15.716499999999996,
+        "medianMs": 16.380291999999997,
+        "p95Ms": 18.392750000000007,
+        "maxMs": 18.392750000000007
+      },
+      "warm": {
+        "samplesMs": [
+          0.26916700000001015,
+          0.2810829999999953,
+          0.2498329999999953,
+          0.24045799999998962,
+          0.23875000000001023,
+          0.2396669999999972,
+          0.24095800000000622,
+          0.23866599999999494,
+          0.23825000000002206,
+          0.236582999999996,
+          0.23858400000000302,
+          0.23833300000001145,
+          0.23979199999999423,
+          0.2384580000000085,
+          0.23824999999999363,
+          0.2377909999999872,
+          0.2387499999999818,
+          0.23708299999998417,
+          0.23833400000000893,
+          0.2375419999999906,
+          0.2381249999999966,
+          0.2381249999999966,
+          0.2659580000000119,
+          0.25570899999999597,
+          0.24533299999998803,
+          0.25508400000001075,
+          0.23954100000000267,
+          0.23887500000000728,
+          0.2535829999999919,
+          0.244624999999985
+        ],
+        "minMs": 0.236582999999996,
+        "medianMs": 0.23875000000001023,
+        "p95Ms": 0.26916700000001015,
+        "maxMs": 0.2810829999999953
+      },
+      "refresh": {
+        "samplesMs": [
+          0.8712919999999826,
+          0.5419159999999863,
+          0.4939579999999921,
+          0.46674999999999045,
+          0.46366699999998673
+        ],
+        "minMs": 0.46366699999998673,
+        "medianMs": 0.4939579999999921,
+        "p95Ms": 0.8712919999999826,
+        "maxMs": 0.8712919999999826
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 83034112,
+          "heapTotal": 29376512,
+          "heapUsed": 10776776,
+          "external": 2218003,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 109854720,
+          "heapTotal": 49299456,
+          "heapUsed": 14148824,
+          "external": 2152467,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 3372048,
+          "rss": 26820608
+        },
+        "afterWork": {
+          "rss": 162152448,
+          "heapTotal": 99631104,
+          "heapUsed": 57701696,
+          "external": 2414611,
+          "arrayBuffers": 405755
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1820,
+        "impactBytes": 3169,
+        "combinedBytes": 4989,
+        "contextItems": 20,
+        "impactItems": 9
+      },
+      "warmGoal": {
+        "thresholdMs": 100,
+        "statistic": "p95 of loaded-index context+impact+encoding",
+        "observedMs": 0.26916700000001015,
+        "passed": true
+      }
+    },
+    {
+      "graph": {
+        "features": 1000,
+        "edges": 12000,
+        "edgesPerFeature": 12,
+        "directedDensity": 0.012012012012012012,
+        "topology": "directed cyclic ring with +1 through +12 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          27.270166999999987,
+          26.28770899999995,
+          25.220249999999965,
+          25.48362499999996,
+          24.582790999999986
+        ],
+        "minMs": 24.582790999999986,
+        "medianMs": 25.48362499999996,
+        "p95Ms": 27.270166999999987,
+        "maxMs": 27.270166999999987
+      },
+      "warm": {
+        "samplesMs": [
+          0.48275000000001,
+          0.4662500000000023,
+          0.4579159999999547,
+          0.4460409999999797,
+          0.43291700000003175,
+          0.42558300000001736,
+          0.43641600000000835,
+          0.41208299999999554,
+          0.39904200000000856,
+          0.40216600000002245,
+          0.39883300000002464,
+          0.3977090000000203,
+          0.39520900000002257,
+          0.4002909999999815,
+          0.39929200000000264,
+          0.3955829999999878,
+          0.3991669999999772,
+          0.4172079999999596,
+          0.39508299999999963,
+          0.3970830000000092,
+          0.4249579999999469,
+          0.4259580000000369,
+          0.4071670000000154,
+          0.39929100000000517,
+          0.39758299999999736,
+          0.39604200000002265,
+          0.3957500000000209,
+          0.39383400000002666,
+          0.39362500000004275,
+          0.39437499999996817
+        ],
+        "minMs": 0.39362500000004275,
+        "medianMs": 0.39929100000000517,
+        "p95Ms": 0.4662500000000023,
+        "maxMs": 0.48275000000001
+      },
+      "refresh": {
+        "samplesMs": [
+          0.7640839999999685,
+          0.556165999999962,
+          0.5264999999999986,
+          0.49799999999999045,
+          0.501166000000012
+        ],
+        "minMs": 0.49799999999999045,
+        "medianMs": 0.5264999999999986,
+        "p95Ms": 0.7640839999999685,
+        "maxMs": 0.7640839999999685
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 170164224,
+          "heapTotal": 152322048,
+          "heapUsed": 16310776,
+          "external": 2218003,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 221855744,
+          "heapTotal": 159924224,
+          "heapUsed": 23956592,
+          "external": 2152467,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 7645816,
+          "rss": 51691520
+        },
+        "afterWork": {
+          "rss": 264060928,
+          "heapTotal": 196100096,
+          "heapUsed": 96950744,
+          "external": 2676755,
+          "arrayBuffers": 667899
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1820,
+        "impactBytes": 5812,
+        "combinedBytes": 7632,
+        "contextItems": 20,
+        "impactItems": 20
+      },
+      "warmGoal": {
+        "thresholdMs": 100,
+        "statistic": "p95 of loaded-index context+impact+encoding",
+        "observedMs": 0.4662500000000023,
+        "passed": true
+      }
+    },
+    {
+      "graph": {
+        "features": 10000,
+        "edges": 20000,
+        "edgesPerFeature": 2,
+        "directedDensity": 0.00020002000200020003,
+        "topology": "directed cyclic ring with +1 through +2 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          1815.927541,
+          1818.5173749999994,
+          1803.4216670000005,
+          1864.7545420000006,
+          1841.2849160000005
+        ],
+        "minMs": 1803.4216670000005,
+        "medianMs": 1818.5173749999994,
+        "p95Ms": 1864.7545420000006,
+        "maxMs": 1864.7545420000006
+      },
+      "warm": {
+        "samplesMs": [
+          1.294292000000496,
+          1.2604169999995065,
+          1.2816249999996217,
+          1.2629159999996773,
+          1.2797500000015134,
+          1.2835830000003625,
+          1.366834000000381,
+          1.2833750000008877,
+          1.2442909999990661,
+          1.236917000000176,
+          1.2687079999996058,
+          1.2454170000000886,
+          1.2427500000012515,
+          1.2706670000006852,
+          1.355374999999185,
+          1.2686250000006112,
+          1.2480830000004062,
+          1.2502089999998134,
+          1.2370409999984986,
+          1.2594580000004498,
+          1.2342920000010054,
+          1.2764170000009472,
+          2.8690829999995913,
+          1.274583000000348,
+          1.2573750000010477,
+          1.2915410000005068,
+          1.2551249999996799,
+          1.2564999999995052,
+          1.2892080000001442,
+          1.2574580000000424
+        ],
+        "minMs": 1.2342920000010054,
+        "medianMs": 1.2629159999996773,
+        "p95Ms": 1.366834000000381,
+        "maxMs": 2.8690829999995913
+      },
+      "refresh": {
+        "samplesMs": [
+          7.861791999999696,
+          6.789084000000003,
+          6.725291000000652,
+          8.177332999999635,
+          19.36516699999993
+        ],
+        "minMs": 6.725291000000652,
+        "medianMs": 7.861791999999696,
+        "p95Ms": 19.36516699999993,
+        "maxMs": 19.36516699999993
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 285245440,
+          "heapTotal": 181157888,
+          "heapUsed": 32908872,
+          "external": 2283539,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 295845888,
+          "heapTotal": 205340672,
+          "heapUsed": 68135424,
+          "external": 2152467,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 35226552,
+          "rss": 10600448
+        },
+        "afterWork": {
+          "rss": 388415488,
+          "heapTotal": 221446144,
+          "heapUsed": 89588856,
+          "external": 2218003,
+          "arrayBuffers": 143611
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1821,
+        "impactBytes": 3173,
+        "combinedBytes": 4994,
+        "contextItems": 20,
+        "impactItems": 9
+      },
+      "warmGoal": null
+    },
+    {
+      "graph": {
+        "features": 10000,
+        "edges": 120000,
+        "edgesPerFeature": 12,
+        "directedDensity": 0.0012001200120012002,
+        "topology": "directed cyclic ring with +1 through +12 edges; no self edges",
+        "references": "one distinct synthetic source path per feature; relation evidence references reuse that path; no files read"
+      },
+      "scope": {
+        "cold": "loaded Snapshot -> index build + context and impact queries + UTF-8 JSON encoding; already running process, fresh index",
+        "warm": "loaded index -> context and impact queries + UTF-8 JSON encoding",
+        "refresh": "loaded old index + preconstructed changed Snapshot -> incremental index refresh only",
+        "excluded": [
+          "filesystem/YAML loading",
+          "Git/reference hashing",
+          "storage write/journaling",
+          "process/plugin startup",
+          "MCP transport/envelope",
+          "hooks",
+          "agent/model latency"
+        ]
+      },
+      "workload": {
+        "context": {
+          "request": {
+            "query": "synthetic profile",
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "limit": 20,
+            "includeFingerprints": false
+          }
+        },
+        "impact": {
+          "request": {
+            "ids": [
+              "feature-00000"
+            ],
+            "depth": 2,
+            "budget": 12000
+          },
+          "effective": {
+            "detail": "summary",
+            "direction": "both",
+            "limit": 20
+          }
+        }
+      },
+      "iterations": {
+        "cold": 5,
+        "warmup": 10,
+        "warm": 30,
+        "refresh": 5
+      },
+      "cold": {
+        "samplesMs": [
+          2003.2722080000003,
+          2132.3118749999994,
+          2112.778041999998,
+          2123.5168330000015,
+          2074.484790999999
+        ],
+        "minMs": 2003.2722080000003,
+        "medianMs": 2112.778041999998,
+        "p95Ms": 2132.3118749999994,
+        "maxMs": 2132.3118749999994
+      },
+      "warm": {
+        "samplesMs": [
+          1.471125000000029,
+          1.4449580000000424,
+          1.596332999997685,
+          1.486750000000029,
+          1.4658330000020214,
+          1.4410839999982272,
+          1.4534999999996217,
+          1.4629170000007434,
+          1.4297909999986587,
+          1.4447090000030585,
+          1.4782500000001164,
+          1.4910409999974945,
+          1.4997909999983676,
+          1.4818750000013097,
+          1.570332999999664,
+          1.4779170000001614,
+          1.4270829999986745,
+          1.4072500000002037,
+          3.35583399999814,
+          1.4044170000015583,
+          1.4381659999999101,
+          1.4115830000009737,
+          1.4163340000013704,
+          1.414708000000246,
+          1.4955420000005688,
+          1.4399579999990237,
+          1.4103330000034475,
+          1.4151249999995343,
+          1.4651670000021113,
+          1.3954159999993863
+        ],
+        "minMs": 1.3954159999993863,
+        "medianMs": 1.4449580000000424,
+        "p95Ms": 1.596332999997685,
+        "maxMs": 3.35583399999814
+      },
+      "refresh": {
+        "samplesMs": [
+          6.889917000000423,
+          6.463124999998399,
+          6.2097079999985,
+          8.376500000002125,
+          6.063249999999243
+        ],
+        "minMs": 6.063249999999243,
+        "medianMs": 6.463124999998399,
+        "p95Ms": 8.376500000002125,
+        "maxMs": 8.376500000002125
+      },
+      "memory": {
+        "scope": "whole process bytes; retained delta after loaded synthetic snapshots, not isolated feature allocations or peak",
+        "gcAvailable": true,
+        "gcPolicy": "explicit GC before/after retaining one index; natural GC during timed loops",
+        "beforeIndex": {
+          "rss": 405520384,
+          "heapTotal": 221003776,
+          "heapUsed": 84649248,
+          "external": 2148662,
+          "arrayBuffers": 143611
+        },
+        "retainedIndex": {
+          "rss": 424280064,
+          "heapTotal": 298401792,
+          "heapUsed": 161925104,
+          "external": 2148662,
+          "arrayBuffers": 143611
+        },
+        "retainedDelta": {
+          "heapUsed": 77275856,
+          "rss": 18759680
+        },
+        "afterWork": {
+          "rss": 1192329216,
+          "heapTotal": 1055195136,
+          "heapUsed": 905721256,
+          "external": 2410806,
+          "arrayBuffers": 274683
+        }
+      },
+      "output": {
+        "encoding": "UTF-8 JSON core context + impact results; not MCP envelopes",
+        "contextBytes": 1821,
+        "impactBytes": 5819,
+        "combinedBytes": 7640,
+        "contextItems": 20,
+        "impactItems": 20
+      },
+      "warmGoal": null
+    }
+  ],
+  "provenance": {
+    "sourceRevision": null,
+    "sourceTree": null,
+    "workingTreeDirty": null,
+    "loadedBundleSha256": "1b2fdcf11fc893d3b7dc2946a6c546378e1c19c0eb7c14903d6c8ff377024c22",
+    "inputs": [
+      {
+        "path": "bench/core.ts",
+        "sha256": "82af6f000a79a0dfe9b49ef5a93cd08c25ee532269de21679627d23309a62da0"
+      },
+      {
+        "path": "node_modules/zod/index.js",
+        "sha256": "32e7efd49a94a765f6d10a1a0a3c02c50c246def17c80c6f0225f85525d98505"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/checks.js",
+        "sha256": "7543391a9ad5e7df287bbfecaa79844d46af44c75c1de0d43a411d65795d9dd1"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/coerce.js",
+        "sha256": "fb2efe3b6eacc475c77cbb571b5fb8650d92a10f316dc869e49b722973d83c3c"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/compat.js",
+        "sha256": "0e948b101771cc0e7b753e54b3f5b486929d3db9bd4c09d98fe4ce86271bcf7b"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/deep-partial.js",
+        "sha256": "0abffcc9838e04dc6f091229c1d522fbfd43aab9563316b52d3eb8ff2bacf26d"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/errors.js",
+        "sha256": "d32f7c1ef8e2c70072f6f0ec8ba7081bbc331353cc3a7cb4429e5ece91409543"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/external.js",
+        "sha256": "c6b584ae70ba4e7132b2cd78c23ea4ecedc9828abf999edee312372e1fb453d6"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/from-json-schema.js",
+        "sha256": "31dc999a26cb6928f5e99ea564d648567e85cf9aa47565198fb6186dbd6c070e"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/in-out.js",
+        "sha256": "34370913842ff02d14a9796b11c5ec2af160bdb35a7148edc286e9a9c6fb5c17"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/iso.js",
+        "sha256": "deaa026b7c5302e59719f401248e7866691d8d8a892884dd2b6868b1cb7252d8"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/parse.js",
+        "sha256": "11941573401bbef138842c7a523dff554873343fccbf0e8b0a144259d2d703f1"
+      },
+      {
+        "path": "node_modules/zod/v4/classic/schemas.js",
+        "sha256": "2bf4a631a18f734a9a7ab7fc11bcf919214774d2235a312dcec0dd53d0324c32"
+      },
+      {
+        "path": "node_modules/zod/v4/core/api.js",
+        "sha256": "03ae6016abc9585e3f3481d6b8d775a95ae4ee65badbde73ca1ed953ff14c0e7"
+      },
+      {
+        "path": "node_modules/zod/v4/core/checks.js",
+        "sha256": "bc42543274218aa7ef72192b3218d2a4a399e53df8de240a04d9ff275096f563"
+      },
+      {
+        "path": "node_modules/zod/v4/core/compile.js",
+        "sha256": "df28853593428e5a2a8729b09f43baf0998eaae7f1e37797993035187833b054"
+      },
+      {
+        "path": "node_modules/zod/v4/core/core.js",
+        "sha256": "c7ce485c97263e42568d16b11bb4a90133221c7e807498a9273d70f41ba16ef6"
+      },
+      {
+        "path": "node_modules/zod/v4/core/doc.js",
+        "sha256": "be4c1b1a1ad247cc70f360a572060edd7e0cea24252c3a319f33d247899c5643"
+      },
+      {
+        "path": "node_modules/zod/v4/core/errors.js",
+        "sha256": "a0c95ef2f7085b5bc2931f7b566f524b26a0360c8df741e3f87f923745cf9792"
+      },
+      {
+        "path": "node_modules/zod/v4/core/index.js",
+        "sha256": "2a0e452323aa5b75b7d7de4879289e2579b9dd2d6af291c0416ba6806ca2199d"
+      },
+      {
+        "path": "node_modules/zod/v4/core/json-schema-generator.js",
+        "sha256": "beaeab6faa654e99e443b8a9f5d8a4adc08cd8226f92a0cd32477a58ecfa1807"
+      },
+      {
+        "path": "node_modules/zod/v4/core/json-schema-processors.js",
+        "sha256": "b6d2aee72212c076b9cde38da6333591c76a24eb049a4ee4e7bd2b7825d8b817"
+      },
+      {
+        "path": "node_modules/zod/v4/core/json-schema.js",
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "node_modules/zod/v4/core/memoizer.js",
+        "sha256": "18a3188c51229d9189a5408b0b7fbc3e121b55c2b4c3c406d79cb9b77e7ad964"
+      },
+      {
+        "path": "node_modules/zod/v4/core/parse.js",
+        "sha256": "fb05b91ec260f3f484f7c00a177b6126ceb8fd1b09dc90b1200afdffd4d98efd"
+      },
+      {
+        "path": "node_modules/zod/v4/core/regexes.js",
+        "sha256": "24fc98f6fc9175e50ff29d28b040e3b4ac5650de19914d45ee27b853d367ecc6"
+      },
+      {
+        "path": "node_modules/zod/v4/core/registries.js",
+        "sha256": "f04d4b2c0bc5b4ac2d6610ea34edf2e5260eade18f20976b79916dcdbeb9fa4d"
+      },
+      {
+        "path": "node_modules/zod/v4/core/schemas.js",
+        "sha256": "e632b655441418f0593153abc6809fd81cf3e0782d810622d0a4fa50ef6e182e"
+      },
+      {
+        "path": "node_modules/zod/v4/core/to-json-schema.js",
+        "sha256": "85b883eb8f05e9f060c71a39fce7df9345b566af29d5bc9c8fa477fe616a051d"
+      },
+      {
+        "path": "node_modules/zod/v4/core/util.js",
+        "sha256": "728f52b496620336775eafcdb91c0a574380086e53f215b55c58eedc1422c49c"
+      },
+      {
+        "path": "node_modules/zod/v4/core/versions.js",
+        "sha256": "63b38035ff5e2a5a5cfe5665e271af72b0cf9791e770dccf5e99d977064fb96c"
+      },
+      {
+        "path": "node_modules/zod/v4/core/visit.js",
+        "sha256": "a804062900869e09ea0b975cfa569fd3c70dc33bad7fc30b63872d451cae29f7"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ar.js",
+        "sha256": "eec4016c2b3063ae929617d90ec609e4c425e60c97a954d3a24de0f457b6ec97"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/az.js",
+        "sha256": "5bd03646b9d18b73e71356cd28937e4e6413b806bb23e14689cc88f6f65ff3a6"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/be.js",
+        "sha256": "f969afea5d9800a71958a621658943b85a2576a2bfefdd5dea70afc4924d4af4"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/bg.js",
+        "sha256": "96741333a790320e05aef7286b5b709a4a7c48cfffc50fc5e6acff5b505275e9"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/bn.js",
+        "sha256": "6d8227b52a6864465b7c52a9ef7e09d261d904ec8a619932e15dd9f9f826e8dd"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ca.js",
+        "sha256": "67f6f38b59a6e3ee81cc5155480465331dd9a142b2471a495503a81dafba0684"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ckb.js",
+        "sha256": "bdb9ef0cfda4009f8892585a1780fff863cd409931d6f89394c271042c131137"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/cs.js",
+        "sha256": "4ffa0e484ad1842a2c0e5c7f2dfe9160155ff5be4b95ab6e524d3a30a2210488"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/da.js",
+        "sha256": "29addcd60e88422bed9ed78c6c864220a15c06b31fdb4ab7ad4f87be4098e6ae"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/de.js",
+        "sha256": "f344eb96ba18d9db907f3f9c95897ce2590ab0cde1553c023daffbb1cb5ef6f4"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/el.js",
+        "sha256": "fdea833aa0a8c381d26216db1521dd7fbc4dccb6d3aa50f9a585ffb975df91eb"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/en.js",
+        "sha256": "d5930e10d137b048b37823e168e4177947e1f696ada8419c71bb0d32da4333c0"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/eo.js",
+        "sha256": "97797bd22319ecc3f2044da6c305f1114b851803697029ffce2b66644757da3a"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/es.js",
+        "sha256": "12e762b921b1e3fdb8e265d2b554de81ce9706ceb23a81527f48ae2dddf355db"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/fa.js",
+        "sha256": "60e7eeff4c000c85f8420168374344305d3c2110a5f91a2fb672b2a2381eeddf"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/fi.js",
+        "sha256": "1e72af4193e564cd37dce4a850dc18bc1bcd6ca280f29e9f5f8c6bbab6a2cad9"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/fr-CA.js",
+        "sha256": "a2ca0451ff943766bb6a88b392b25447462a1d3ed75c1adda5ddb0bc474bcd42"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/fr.js",
+        "sha256": "477345d6401d0e4f07794b1a2cff8b78953723f1fc8cfaeb6b660c19be47125a"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/gu.js",
+        "sha256": "b1921ac6b4158e6360a8da6099df8bbf2d7bce7c1cf381d5a5e47aa0c74874d2"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/he.js",
+        "sha256": "1cfff31fac19616d900d1f3febd9690ea87711e13b5be299326ebfd3f33aad4d"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/hi.js",
+        "sha256": "c31e466c2a31dc10ba6a288e1aebf429a6e9566a26918d0240aae058693f6329"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/hr.js",
+        "sha256": "ff2bebef0761f2d6095103d58484e3b95551bc51d56770db8f161b8e0e0ec941"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/hu.js",
+        "sha256": "9816c21ee0b3be9d973f9e033e9587a608f2d35dd1b984d415b88e03242b0189"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/hy.js",
+        "sha256": "daf6d0c590d9b061759598ba9f7f97041e2874c7a58da2c64b86f152840d68fa"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/id.js",
+        "sha256": "e5c23bb0b6f696fa936bafd7969e64738504cf7a5be3ec04b24ae899d4912b58"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/index.js",
+        "sha256": "7ea85250d1e7bd9459cda61f38c78757a410d561a5421bb3f08019bba79c9849"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/is.js",
+        "sha256": "1cce1285bbf55c8a76303fea0be0fb6d39fbd0ece833137ea23a22f406ac1ae1"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/it.js",
+        "sha256": "096b497df6c5fe7de4422482b7733e764e4b344e8d7f768a7289556687acdb82"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ja.js",
+        "sha256": "2a6bbbd6dbd573687b22f35873a13cdf730c07423b4ab114e5a8b12d8777146d"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ka.js",
+        "sha256": "baf3204123cf4246df654fd1948b6c8da6917e7a06e470aeeaf7c1eaa7003628"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/kh.js",
+        "sha256": "78c3d1991041bb8c8fc0f7c5d745aae422d4c2e4e8f30bae44f3fef4765900a8"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/km.js",
+        "sha256": "e61079f14070dfa9c7b2047eb79f5bea6d4e845f192756d103c121bbd63ee18a"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/kn.js",
+        "sha256": "884b1b68a1ca02fe9a774b8de9cbfa3486892eea36192699120f57b31f0a1f42"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ko.js",
+        "sha256": "11fcef61a2f23e010bf0f569d71be0d49524afc97f3072cc03fdc6fe3ea2f14d"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/lt.js",
+        "sha256": "d2e67a35a3c6e7241a9eb9c5851e4b5b651ac8b23278854862e6055829946c48"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/mk.js",
+        "sha256": "64ddd914c432ba5690d0686bff6603651ce886a891f84823d7dc766c9c980cd1"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ms.js",
+        "sha256": "94faf0d306ffa2a4f95e57f3e53060d27220a639b9cb529f00d1d01b6270f045"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ne.js",
+        "sha256": "6da69989b702ae15baa27b799b6b2b32fd011ba3980a190dd0eccfc9233083d6"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/nl.js",
+        "sha256": "296ced8be508c5f9e82b562049d2974882029bcd5b2ab4ade14401b33ec99909"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/nn.js",
+        "sha256": "bae9756817629db30841eb54a27ed9b3c71c2a4208314d8d070be624bd2e9359"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/no.js",
+        "sha256": "f358e5586940350ee25a05db184565d23eb1c66903e182ebec812172f31cb55a"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ota.js",
+        "sha256": "66ed8c3ce00b2e9971ed5a17f002937405d8cdfeb399ebe012db9d2317f42146"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/pl.js",
+        "sha256": "b7f82cf9f747785beeec05cd31d3d7493c52bd3647598924141568f148c07222"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ps.js",
+        "sha256": "1c15b81fcce0cdc59dbcca18df5c4ecf4e176fc3fb7668207b9ba54df43cce46"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/pt-BR.js",
+        "sha256": "abc52db767b9dd938954776728ea7480cdcab569a5a17664f60e5a2c1d63e60b"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/pt.js",
+        "sha256": "93a820f60d571607bf34b69198f5b24617475584c0b22c0f8d160fcdef096a46"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ro.js",
+        "sha256": "54751d2866171c9c7ce1a72868dec09efa54d1b2b67401767594c5b360aca38a"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ru.js",
+        "sha256": "40a019b53bd1684fd4b750db87021520dd5d710f714010c0a594e5bcf5787478"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/sk.js",
+        "sha256": "ae7c49242e70149434c9051dd00209afbd517d98ba54c13692371a5340b616da"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/sl.js",
+        "sha256": "490ca48f8aae3aed660758b32856d49a9fc5c7e255dad220e75abaef8c35140b"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/sv.js",
+        "sha256": "448f36996bb0d159489b34ad7d86df03e520a13e43b1c98ea2fb18d7ed4a3c95"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ta.js",
+        "sha256": "8b6e1bc033fdaefb1acfc7edf88c9f53c3a50cc892066effdab306103e994d42"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/tg.js",
+        "sha256": "9a5c9a3b18b8ccded28d66033575b22d823df17a7afa8bb9a733f31fe071462f"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/th.js",
+        "sha256": "913cc4962ddf5cb54ed694d04b7008493ef401d3333b26426b32f4890712574e"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/tk.js",
+        "sha256": "445abfed18c5a9d79143b02c9cf9c171b41fb5dff8ffc2cb59b7aef7203e5a7f"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/tr.js",
+        "sha256": "bca07607a27f518f19877dd9c2235fada9c73eb56896f0f6e274781fab71d64e"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ua.js",
+        "sha256": "9391169ffbc72f777a83230b6ffcc3f4cf46ab5945ec540de9ef4609dca1f4cc"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/uk.js",
+        "sha256": "1e59ba41296aeb5b6142a6e5ed84712931e33e54ab0b9ae5d83faf436fc3d968"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/ur.js",
+        "sha256": "d37ed2c93408e0a6b6e1cd290117a6f0e9d7b2c83509cd34b502e1dd94899c87"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/uz.js",
+        "sha256": "2cbe07635b03064ffad0bfcc98d2d570f3264b9cd3e22bbd5c160cd0343f7872"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/vi.js",
+        "sha256": "15939adaf263e0869c602d4b34c206178a235b8bec11c8207ccd3fa50de3a141"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/yo.js",
+        "sha256": "88b33f6527c1a2faaf159568330cf727c448dc468eac72142a6fb24f8714ac1e"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/zh-CN.js",
+        "sha256": "8fc02f2bd4d92f46b24b8d82da0ee95c962fc80c14dd7dd469500e14de08d320"
+      },
+      {
+        "path": "node_modules/zod/v4/locales/zh-TW.js",
+        "sha256": "01d9b119e318d8b9f1a8fa720d06424457429425a61d0730984b750e6a5edf7d"
+      },
+      {
+        "path": "scripts/bench-core.mjs",
+        "sha256": "56d1888f0eff5ebb4c20f53dc9d98f272990ec478c8f982ffc56270e12035d9f"
+      },
+      {
+        "path": "src/model/errors.ts",
+        "sha256": "f9a61613412c1618945ed55c972ef632d2c5d6b410b1d285d40b95611c7d2adb"
+      },
+      {
+        "path": "src/query/impact.ts",
+        "sha256": "509dbaf7f3b3947bfbc270c2438e96f69f88462def08af84aedea09bccacfd7c"
+      },
+      {
+        "path": "src/query/index.ts",
+        "sha256": "9a54f914c63c1a3d553b640ac07f880c4de67cea066110a31e88aad0c9084d64"
+      },
+      {
+        "path": "src/query/pagination.ts",
+        "sha256": "243d6e965fde0486525c2699355197c0e25ad9b3cb46228677ade300ce33ba36"
+      },
+      {
+        "path": "src/query/search.ts",
+        "sha256": "214fb0f0910d31aab3be59ad4f7b6bcdf9d3ee8404ffb5fed4eb158fbfb40c24"
+      }
+    ],
+    "sourceBinding": "HEAD/tree are nullable checkout metadata; loadedBundleSha256 binds exact executed synthetic code; inputs are post-build source observations"
+  }
+}

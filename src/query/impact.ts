@@ -1,3 +1,4 @@
+import type { FeatureFreshness } from '../freshness/check.js';
 import type { Feature, Relation } from '../model/types.js';
 import { compare, requireQueryable, type Edge, type NetworkIndex } from './index.js';
 import { paginate, queryState, type ImpactRequest, type QueryResult } from './pagination.js';
@@ -6,11 +7,16 @@ export type { ImpactRequest } from './pagination.js';
 export interface ImpactStep extends Edge { direction: 'incoming' | 'outgoing' }
 export interface ImpactItem { id: string; summary: string; origin: string; status: Relation['status']; path: ImpactStep[]; feature?: Feature }
 export type ImpactResult = QueryResult<ImpactItem>;
-export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}, options: { responseReserveBytes?: number } = {}): ImpactResult {
-  requireQueryable(index); const state = queryState(index, request, 'impact'); const depth = state.parameters.depth ?? 2; const direction = state.parameters.direction ?? 'both';
+export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}, options: { freshness?: Record<string, FeatureFreshness>; responseReserveBytes?: number } = {}): ImpactResult {
+  requireQueryable(index);
+  const state = queryState(index, request, 'impact');
+  const depth = state.parameters.depth ?? 2;
+  const direction = state.parameters.direction ?? 'both';
   const queue: ImpactItem[] = rankedIds(index, state.parameters, false).map(id => ({ id, summary: index.entries.get(id)!.feature.summary, origin: id, status: 'evidenced', path: [] }));
   const queuedDepth = new Map(queue.map(row => [`${row.id}:${row.status}`, 0]));
-  const visited = new Set<string>(); const exploredDepth = new Map<string, number>(); const rows: ImpactItem[] = [];
+  const visited = new Set<string>();
+  const exploredDepth = new Map<string, number>();
+  const rows: ImpactItem[] = [];
   // Evidence-only BFS is exhausted before any hypothesis path is chosen. Stable sort
   // preserves shortest evidenced routes and deterministic origin/edge tie-breaking.
   while (queue.length) {
@@ -19,7 +25,10 @@ export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}, op
     const routeKey = `${current.id}:${current.status}`;
     if ((exploredDepth.get(routeKey) ?? Infinity) <= current.path.length) continue;
     exploredDepth.set(routeKey, current.path.length);
-    if (!visited.has(current.id)) { visited.add(current.id); rows.push(current); }
+    if (!visited.has(current.id)) {
+      visited.add(current.id);
+      rows.push(current);
+    }
     if (state.parameters.detail === 'full') current.feature = index.entries.get(current.id)!.feature;
     if (current.path.length >= depth) continue;
     const steps: ImpactStep[] = [
@@ -31,7 +40,8 @@ export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}, op
       const id = step.direction === 'outgoing' ? step.to : step.from;
       if (!index.entries.has(id)) continue;
       const status = current.status === 'hypothesis' || step.status === 'hypothesis' ? 'hypothesis' : 'evidenced';
-      const routeKey = `${id}:${status}`; const nextDepth = current.path.length + 1;
+      const routeKey = `${id}:${status}`;
+      const nextDepth = current.path.length + 1;
       if ((queuedDepth.get(routeKey) ?? Infinity) <= nextDepth) continue;
       queuedDepth.set(routeKey, nextDepth);
       queue.push({ id, summary: index.entries.get(id)!.feature.summary, origin: current.origin, status, path: [...current.path, step] });

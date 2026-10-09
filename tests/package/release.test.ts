@@ -48,7 +48,7 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   // Supply development dependencies explicitly; the source export has no Git checkout.
   await cp(join(checkout, 'node_modules'), join(exportedSource, 'node_modules'), { recursive: true });
   const measured = JSON.parse((await exec(process.execPath, ['scripts/bench-core.mjs'], { cwd: exportedSource })).stdout);
-  expect(measured.cases.map((value: any) => value.graph.features)).toEqual([100, 1000, 10000]);
+  expect(measured.cases.map((value: any) => [value.graph.features, value.graph.edgesPerFeature])).toEqual([[100, 2], [100, 12], [1000, 2], [1000, 12], [10000, 2], [10000, 12]]);
   expect(measured.provenance.sourceRevision).toBeNull();
   expect(measured.provenance.loadedBundleSha256).toMatch(/^[a-f0-9]{64}$/);
   await rm(join(exportedSource, 'node_modules'), { recursive: true });

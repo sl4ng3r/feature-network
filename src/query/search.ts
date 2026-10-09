@@ -1,3 +1,4 @@
+import type { FeatureFreshness } from '../freshness/check.js';
 import type { Feature } from '../model/types.js';
 import { compare, requireQueryable, tokenize, type NetworkIndex } from './index.js';
 import { paginate, queryState, type ContextRequest, type QueryParameters, type QueryResult } from './pagination.js';
@@ -15,7 +16,7 @@ export function rankedIds(index: NetworkIndex, request: QueryParameters, overvie
   if (overview && !request.ids?.length && !request.paths?.length && !request.query?.trim()) return [...index.entries.keys()].sort(compare);
   return [...scores.keys()].sort((a, b) => scores.get(b)! - scores.get(a)! || compare(a, b));
 }
-export function queryContext(index: NetworkIndex, request: ContextRequest = {}, options: { responseReserveBytes?: number; includeFingerprints?: boolean } = {}): ContextResult {
+export function queryContext(index: NetworkIndex, request: ContextRequest = {}, options: { freshness?: Record<string, FeatureFreshness>; responseReserveBytes?: number; includeFingerprints?: boolean } = {}): ContextResult {
   requireQueryable(index); const state = queryState(index, request, 'context');
   const ids = rankedIds(index, state.parameters, true); const budget = state.parameters.budget ?? 12000;
   const rows: ContextItem[] = ids.flatMap<ContextItem>(id => {

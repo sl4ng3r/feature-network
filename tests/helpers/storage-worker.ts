@@ -45,20 +45,18 @@ export async function runWorker(): Promise<void> {
     await originalRename(source, destination);
     if (match && phase === 'after-rename') await pause(phase);
   };
-  const originalOpen = fs.promises.open;
-  let reads = 0;
-  fs.promises.open = async (...args: Parameters<typeof fs.promises.open>) => {
-    const handle = await originalOpen(...args);
-    if (String(args[0]).replaceAll('\\', '/').endsWith('/network-spec/alpha.yaml') && phase?.startsWith('external-')) {
-      const read = handle.readFile.bind(handle);
-      handle.readFile = (async (...readArgs: Parameters<typeof handle.readFile>) => {
-        const value = await read(...readArgs); reads++;
-        if ((phase === 'external-once' && reads === 1) || (phase === 'external-repeat' && reads % 2 === 1 && reads <= 5)) await pause('captured');
-        return value;
-      }) as typeof handle.readFile;
+  const originalReaddir = fs.promises.readdir;
+  let captures = 0;
+  fs.promises.readdir = (async (...args: Parameters<typeof fs.promises.readdir>) => {
+    const names = await originalReaddir(...args);
+    if (String(args[0]).replaceAll('\\', '/').endsWith('/network-spec') && phase?.startsWith('external-')) {
+      captures++;
+      // Pause between the two captures, independent of cold/cache read details.
+      if ((phase === 'external-once' && captures === 2)
+        || (phase === 'external-repeat' && captures % 2 === 0 && captures <= 6)) await pause('captured');
     }
-    return handle;
-  };
+    return names;
+  }) as typeof fs.promises.readdir;
   syncBuiltinESMExports();
   const { openProject } = await import('../../src/project/root.js');
   const { applyUpdate, readSnapshot } = await import('../../src/storage/repository.js');

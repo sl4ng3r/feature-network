@@ -20,7 +20,7 @@ export const checkSchema = z.strictObject({ mode: z.enum(['summary', 'full']).op
 const source = z.strictObject({ path, hash: fingerprint });
 const result = z.strictObject({ path, startByte: z.number().int().nonnegative(), endByte: z.number().int().nonnegative(), featureIds: z.array(id).max(100), outcome: z.enum(['analyzed', 'needs_review']), reason: z.string().trim().min(1).max(8192) });
 export const bootstrapSchema = z.discriminatedUnion('action', [
-  z.strictObject({ action: z.literal('status'), budget }),
+  z.strictObject({ action: z.literal('status'), budget, recordFilter: z.enum(['all', 'needs_review', 'excluded', 'scope']).optional(), recordCursor: z.strictObject({ revision: fingerprint, filter: z.enum(['all', 'needs_review', 'excluded', 'scope']), offset: z.number().int().nonnegative() }).optional() }),
   z.strictObject({ action: z.literal('start'), reconcile: z.boolean().optional(), maxFiles: z.number().int().min(1).max(20).optional(), maxBytes: z.number().int().min(4).max(65536).optional(), scope: z.array(path).max(100).optional(), exclusions: z.array(path).max(100).optional(), sanitizedExamples: z.array(source).max(100).optional(), budget }),
   z.strictObject({ action: z.literal('next'), budget }),
   z.strictObject({ action: z.literal('checkpoint'), expectedRunRevision: fingerprint, packageId: fingerprint.nullable(), networkRevision: fingerprint, sources: z.array(source).max(20), featureFingerprints: z.record(id, fingerprint), results: z.array(result).max(20), relationalReviewComplete: z.boolean().optional(), reason: z.string().trim().min(1).max(8192).optional(), budget }),

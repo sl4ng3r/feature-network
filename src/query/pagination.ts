@@ -1,3 +1,4 @@
+import type { FeatureFreshness } from '../freshness/check.js';
 import { z } from 'zod';
 import { NetworkError } from '../model/errors.js';
 import type { Diagnostic } from '../model/types.js';
@@ -33,6 +34,9 @@ export interface QueryResult<T> {
   omitted: number;
   nextCursor?: QueryCursor;
   fingerprints?: Record<string, string>;
+  freshness?: Record<string, FeatureFreshness>;
+  freshnessScope?: 'returned_features';
+  freshnessBasis?: 'technical_now_saved_review';
   depth?: number;
   depthLimited?: boolean;
 }
@@ -54,13 +58,30 @@ export function queryState(index: NetworkIndex, request: ContextRequest | Impact
 /** Offset and fragment offsets are UTF-16 code-unit indices, never split surrogate pairs.
  * Reassemble a fragmented row by concatenating text in offset order, then JSON.parse.
  * total is the original serialized row length; no row content is silently discarded. */
-export function paginate<T extends { id: string }>(index: NetworkIndex, state: QueryState, rows: T[], defaultLimit: number, options: { maxLimit?: number; depth?: number; depthLimited?: boolean; responseReserveBytes?: number; includeFingerprints?: boolean } = {}): QueryResult<T> {
+export function paginate<T extends { id: string }>(index: NetworkIndex, state: QueryState, rows: T[], defaultLimit: number, options: { maxLimit?: number; depth?: number; depthLimited?: boolean; responseReserveBytes?: number; includeFingerprints?: boolean; freshness?: Record<string, FeatureFreshness> } = {}): QueryResult<T> {
   const reserve = options.responseReserveBytes ?? 0;
   if (!Number.isSafeInteger(reserve) || reserve < 0) throw new NetworkError('invalid_query', 'Invalid internal response reserve');
-  const budget = (state.parameters.budget ?? 12000) - reserve; const limit = Math.min(state.parameters.limit ?? defaultLimit, options.maxLimit ?? 100);
+  const budget = (state.parameters.budget ?? 12000) - reserve;
+  const limit = Math.min(state.parameters.limit ?? defaultLimit, options.maxLimit ?? 100);
   if (state.offset > rows.length || (state.offset === rows.length && state.fragment !== 0)) throw new NetworkError('invalid_cursor', 'Cursor offset is outside the result');
-  const result: QueryResult<T> = { ...(options.depth !== undefined ? { depth: options.depth, depthLimited: options.depthLimited ?? false } : {}), revision: index.revision, integrity: index.integrity, coverage: 'partial', incomplete: index.integrity !== 'valid', diagnostics: [], ...(index.diagnostics.length ? { diagnosticsOmitted: index.diagnostics.length } : {}), items: [], truncated: false, omitted: 0 };
+  const result: QueryResult<T> = {
+    ...(options.depth !== undefined ? { depth: options.depth, depthLimited: options.depthLimited ?? false } : {}),
+    revision: index.revision,
+    integrity: index.integrity,
+    coverage: 'partial',
+    incomplete: index.integrity !== 'valid',
+    diagnostics: [],
+    ...(index.diagnostics.length ? { diagnosticsOmitted: index.diagnostics.length } : {}),
+    items: [],
+    truncated: false,
+    omitted: 0,
+  };
   const finalize = (offset: number, fragment = 0): void => {
+    if (options.freshness) {
+      result.freshnessScope = 'returned_features';
+      result.freshnessBasis = 'technical_now_saved_review';
+      result.freshness = Object.fromEntries([...new Set(result.items.map(item => item.id))].map(id => [id, options.freshness![id] ?? { state: 'unknown', review: 'open' }]));
+    }
     if (options.includeFingerprints) {
       const paths = new Set(['network-spec/_meta.yaml', ...result.items.map(item => `network-spec/${item.id}.yaml`)]);
       result.fingerprints = Object.fromEntries([...paths].sort().filter(path => index.fingerprints[path] !== undefined).map(path => [path, index.fingerprints[path]!]));
@@ -70,36 +91,54 @@ export function paginate<T extends { id: string }>(index: NetworkIndex, state: Q
     if (result.truncated) result.nextCursor = { revision: index.revision, kind: state.kind, parameters: state.parameters, offset, fragment };
     else delete result.nextCursor;
   };
-  let offset = state.offset; finalize(offset, state.fragment);
+  let offset = state.offset;
+  finalize(offset, state.fragment);
   // Reject continuation metadata that already exceeds the entire response budget.
   if (bytes(result) > budget && rows.length > offset) throw new NetworkError('invalid_query', 'Budget is too small for query parameters and continuation metadata');
   for (const diagnostic of index.diagnostics) {
     result.diagnostics.push(diagnostic);
     const omitted = index.diagnostics.length - result.diagnostics.length;
-    if (omitted) result.diagnosticsOmitted = omitted; else delete result.diagnosticsOmitted;
-    if (bytes(result) > Math.min(budget / 3, bytes({ ...result, diagnostics: [] }) + 512)) { result.diagnostics.pop(); result.diagnosticsOmitted = index.diagnostics.length - result.diagnostics.length; break; }
+    if (omitted) result.diagnosticsOmitted = omitted;
+    else delete result.diagnosticsOmitted;
+    if (bytes(result) > Math.min(budget / 3, bytes({ ...result, diagnostics: [] }) + 512)) {
+      result.diagnostics.pop();
+      result.diagnosticsOmitted = index.diagnostics.length - result.diagnostics.length;
+      break;
+    }
   }
   let fragmentOffset = state.fragment;
   while (offset < rows.length && result.items.length < limit) {
-    const row = rows[offset]!; const serialized = JSON.stringify(row);
+    const row = rows[offset]!;
+    const serialized = JSON.stringify(row);
     if (fragmentOffset >= serialized.length || (fragmentOffset > 0 && isLowSurrogate(serialized.charCodeAt(fragmentOffset)))) throw new NetworkError('invalid_cursor', 'Cursor fragment is outside the row or splits Unicode');
     if (fragmentOffset === 0) {
-      result.items.push(row); finalize(offset + 1);
-      if (bytes(result) <= budget) { offset++; continue; }
+      result.items.push(row);
+      finalize(offset + 1);
+      if (bytes(result) <= budget) {
+        offset++;
+        continue;
+      }
       result.items.pop();
-      if (result.items.length) { finalize(offset); break; }
+      if (result.items.length) {
+        finalize(offset);
+        break;
+      }
     }
     const piece: FragmentItem = { id: row.id, fragment: { format: 'json', offset: fragmentOffset, total: serialized.length, text: '' } };
     result.items.push(piece);
-    let low = fragmentOffset; let high = serialized.length;
+    let low = fragmentOffset;
+    let high = serialized.length;
     while (low < high) {
       const mid = Math.ceil((low + high) / 2);
-      piece.fragment.text = serialized.slice(fragmentOffset, mid); finalize(mid === serialized.length ? offset + 1 : offset, mid === serialized.length ? 0 : mid);
-      if (bytes(result) <= budget) low = mid; else high = mid - 1;
+      piece.fragment.text = serialized.slice(fragmentOffset, mid);
+      finalize(mid === serialized.length ? offset + 1 : offset, mid === serialized.length ? 0 : mid);
+      if (bytes(result) <= budget) low = mid;
+      else high = mid - 1;
     }
     if (low < serialized.length && isLowSurrogate(serialized.charCodeAt(low))) low--;
     if (low === fragmentOffset) throw new NetworkError('invalid_query', 'Budget cannot fit a content fragment and its continuation metadata');
-    piece.fragment.text = serialized.slice(fragmentOffset, low); finalize(low === serialized.length ? offset + 1 : offset, low === serialized.length ? 0 : low);
+    piece.fragment.text = serialized.slice(fragmentOffset, low);
+    finalize(low === serialized.length ? offset + 1 : offset, low === serialized.length ? 0 : low);
     break;
   }
   if (bytes(result) > budget) throw new NetworkError('invalid_query', 'Budget cannot fit result metadata');

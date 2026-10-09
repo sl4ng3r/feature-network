@@ -57,3 +57,5 @@ CI defines Node 24 validation on Linux, macOS and Windows with read-only reposit
 Local synthetic core measurements and future agent-comparison boundaries are documented in [benchmark protocol](docs/validation/benchmark-protocol.md). The [host matrix](docs/validation/host-matrix.md) keeps all three native surfaces pending; this is not full v1 acceptance. Benchmarks measure loaded-Snapshot index construction, loaded-index queries/encoding and incremental index refresh, excluding filesystem, MCP and hook latency. Actual provider token/read observations remain unavailable until authorized host sessions.
 
 An [actual local core report](docs/validation/reports/core-2026-10-09-darwin-arm64.md) preserves the raw samples and fresh-export provenance; its 1,000-feature warm goal applies only to the recorded workload.
+
+A later [degree-contrast report](docs/validation/reports/core-2026-10-09-degree-contrast-darwin-arm64.md) measures cyclic degree 2 and 12 at all three sizes and preserves all raw observations. It remains a loaded-Core measurement, with native host/Windows acceptance pending.

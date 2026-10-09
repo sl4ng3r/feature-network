@@ -1,4 +1,5 @@
-import { lstat, readFile, realpath, stat } from 'node:fs/promises';
+import { readRegular } from '../storage/regular.js';
+import { lstat, realpath, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { NetworkError } from '../model/errors.js';
 import { parseMeta } from '../model/schema.js';
@@ -59,7 +60,7 @@ export async function discoverHookProject(cwd: string): Promise<Project | null> 
       throw new NetworkError('unsafe_path', 'Network marker must be a regular file', [project.markerPath]);
     }
     const path = await resolveProjectPath(project, 'network-spec/_meta.yaml');
-    parseMeta(await readFile(path, 'utf8'));
+    parseMeta((await readRegular(path)).toString('utf8'));
     return project;
   }
   return null;
