@@ -4,7 +4,7 @@
 
 Lokales Open-Source-Plugin für Coding-Agenten: TypeScript/Node.js-Kern, STDIO-MCP, Skill und kleine Hook-Adapter. Erste Zielumgebungen sind Codex in der lokalen Mac-App, GitHub Copilot CLI und GitHub Copilot App. Claude Code folgt später.
 
-Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`; die Umsetzung erfolgt nach Planreview und gewählter Ausführung in einem isolierten Worktree. Implementiert sind der YAML-Vertragskern (`src/model/`), sichere Projektbindung (`src/project/`) und konfliktgeschützte Speicherung (`src/storage/`) sowie deterministische Suche und erklärbare Impact-Abfragen (`src/query/`) und Aktualitäts-/Arbeitsdurchlaufprüfung (`src/freshness/`) sowie begrenzte, wiederaufnehmbare Projektinitialisierung (`src/bootstrap/`) mit automatisierten Tests. MCP, Hostadapter und vorgebautes Plugin-Paket folgen in den weiteren Tasks.
+Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`; die Umsetzung erfolgt nach Planreview und gewählter Ausführung in einem isolierten Worktree. Implementiert sind der YAML-Vertragskern (`src/model/`), sichere Projektbindung (`src/project/`) und konfliktgeschützte Speicherung (`src/storage/`) sowie deterministische Suche und erklärbare Impact-Abfragen (`src/query/`) und Aktualitäts-/Arbeitsdurchlaufprüfung (`src/freshness/`) sowie begrenzte, wiederaufnehmbare Projektinitialisierung (`src/bootstrap/`) mit automatisierten Tests. Fünf STDIO-MCP-Werkzeuge und der gebündelte Node-CLI-Einstieg sind implementiert; Hostadapter und vollständiges Releasepaket folgen. MCP-Vertrag: `docs/mcp.md`.
 
 ## Arbeitsregeln
 
@@ -45,9 +45,12 @@ Voraussetzung für Entwicklung und Laufzeit: Node.js 24 LTS (`.node-version`). E
 - `npm test -- tests/query tests/storage`: Suche, inkrementelle Indizes, konservative Beziehungspfade und revisionsgebundene Budget-Fortsetzung zusammen mit Storage.
 - `npm test -- tests/freshness tests/storage`: Referenzaktualität, begründete Prüfentscheidungen, Arbeitsdurchläufe und Speicherkonflikte.
 - `npm test -- tests/bootstrap tests/freshness tests/storage`: Git-Inventar, Unicode-Pakete, Checkpoint-CAS, Wiederaufnahme und zugehörige Speicherverträge.
+- `npm test -- tests/mcp/stdio.test.ts`: echter separater SDK-v2-Serverprozess, Konflikte, Checkpoints, Budgetgrenzen und kopiertes Offline-Bundle.
+- `npm run build`: `scripts/build-plugin.mjs` bündelt CLI und Laufzeitbibliotheken nach `plugin/dist/cli.mjs`.
+- `node plugin/dist/cli.mjs mcp --project-root <root>`: explizit gebundener STDIO-MCP-Prozess; Node.js 24 LTS erforderlich.
 - `npm run typecheck`: strikte TypeScript-Prüfung ohne Ausgabe.
 
-Die npm-Skripte `build`, `verify:package` und `bench:core` reservieren die Schnittstellen für spätere Tasks. Ihre Zieldateien existieren noch nicht; sie schlagen derzeit fehl und sind kein Build-, Paket- oder Performancenachweis. Es gibt noch keinen laufenden Dienst oder installierbares Plugin. Keine Live-Abnahme behaupten.
+Die npm-Skripte `verify:package` und `bench:core` reservieren Schnittstellen für spätere Tasks; ihre Zieldateien existieren noch nicht. Der Core-/MCP-Build ist verfügbar, das vollständige Plugin-/Releasepaket noch nicht. Keine Host-Live-Abnahme behaupten.
 
 Der Parser begrenzt jedes YAML-Dokument auf 65.536 UTF-8-Bytes, verwirft unbekannte Felder, doppelte Schlüssel, Aliase, Anker und explizite Tags und normalisiert optionale Listen. `_meta.yaml` erlaubt ausschließlich `schema: 1`, `coverage: partial` und optionale `areas` als beschreibende Hinweise; diese beweisen keine vollständige Abdeckung. Referenzpfade werden syntaktisch geprüft; Dateiexistenz und projektbezogene Pfadsicherheit werden erst in den Speicher-/Projekttasks implementiert.
 

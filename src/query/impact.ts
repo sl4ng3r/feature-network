@@ -6,7 +6,7 @@ export type { ImpactRequest } from './pagination.js';
 export interface ImpactStep extends Edge { direction: 'incoming' | 'outgoing' }
 export interface ImpactItem { id: string; summary: string; origin: string; status: Relation['status']; path: ImpactStep[]; feature?: Feature }
 export type ImpactResult = QueryResult<ImpactItem>;
-export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}): ImpactResult {
+export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}, options: { responseReserveBytes?: number } = {}): ImpactResult {
   requireQueryable(index); const state = queryState(index, request, 'impact'); const depth = state.parameters.depth ?? 2; const direction = state.parameters.direction ?? 'both';
   const queue: ImpactItem[] = rankedIds(index, state.parameters, false).map(id => ({ id, summary: index.entries.get(id)!.feature.summary, origin: id, status: 'evidenced', path: [] }));
   const queuedDepth = new Map(queue.map(row => [`${row.id}:${row.status}`, 0]));
@@ -42,5 +42,5 @@ export function queryImpact(index: NetworkIndex, request: ImpactRequest = {}): I
     ...(direction !== 'incoming' ? (index.outgoing.get(row.id) ?? []).map(edge => edge.to) : []),
     ...(direction !== 'outgoing' ? (index.incoming.get(row.id) ?? []).map(edge => edge.from) : []),
   ].some(id => index.entries.has(id) && !reached.has(id)));
-  return paginate(index, state, rows, 20, { depth, depthLimited });
+  return paginate(index, state, rows, 20, { ...options, depth, depthLimited });
 }

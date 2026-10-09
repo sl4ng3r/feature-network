@@ -15,7 +15,7 @@ export function rankedIds(index: NetworkIndex, request: QueryParameters, overvie
   if (overview && !request.ids?.length && !request.paths?.length && !request.query?.trim()) return [...index.entries.keys()].sort(compare);
   return [...scores.keys()].sort((a, b) => scores.get(b)! - scores.get(a)! || compare(a, b));
 }
-export function queryContext(index: NetworkIndex, request: ContextRequest = {}): ContextResult {
+export function queryContext(index: NetworkIndex, request: ContextRequest = {}, options: { responseReserveBytes?: number; includeFingerprints?: boolean } = {}): ContextResult {
   requireQueryable(index); const state = queryState(index, request, 'context');
   const ids = rankedIds(index, state.parameters, true); const budget = state.parameters.budget ?? 12000;
   const rows: ContextItem[] = ids.flatMap<ContextItem>(id => {
@@ -27,5 +27,5 @@ export function queryContext(index: NetworkIndex, request: ContextRequest = {}):
     return [feature];
   });
   const overview = !state.parameters.ids?.length && !state.parameters.paths?.length && !state.parameters.query?.trim();
-  return paginate(index, state, rows, overview ? 10 : 20, { maxLimit: overview ? 10 : 100 });
+  return paginate(index, state, rows, overview ? 10 : 20, { ...options, maxLimit: overview ? 10 : 100 });
 }
