@@ -32,7 +32,7 @@ try {
   const verification = await verifyPackage();
   const tracked = git('ls-files', '-z').split('\0').filter(Boolean);
   // Public source allowlist deliberately excludes local AGENTS, planning history and runtime data.
-  const source = tracked.filter(path => /^(src\/|scripts\/|tests\/|demo\/|\.github\/|\.agents\/plugins\/|docs\/(?:installation|adapters|mcp)\.md$|(?:README|CONTRIBUTING|LICENSE|CHANGELOG)\.md$|LICENSE$|package(?:-lock)?\.json$|tsconfig\.json$|vitest\.config\.ts$|\.node-version$|\.gitignore$)/.test(path) && !/(?:^|\/)(?:private-fixtures|\.feature-network|\.env(?:\.[^/]+)?)(?:\/|$)/.test(path));
+  const source = tracked.filter(path => /^(src\/|scripts\/|tests\/|demo\/|bench\/|docs\/validation\/|\.github\/|\.agents\/plugins\/|docs\/(?:installation|adapters|mcp)\.md$|(?:README|CONTRIBUTING|LICENSE|CHANGELOG)\.md$|LICENSE$|package(?:-lock)?\.json$|tsconfig\.json$|vitest\.config\.ts$|\.node-version$|\.gitignore$)/.test(path) && !/(?:^|\/)(?:private-fixtures|\.feature-network|\.env(?:\.[^/]+)?)(?:\/|$)/.test(path));
   const entries = new Map();
   for (const path of source) {
     if (path.split('/').includes('..') || /(?:^|\/)(?:\.env|\.feature-network|node_modules)(?:\/|$)/.test(path) || !(await lstat(path)).isFile()) throw new Error('unsafe_source_file');

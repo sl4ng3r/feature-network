@@ -8,7 +8,7 @@ let checkout: string;
 const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 beforeAll(async () => {
   checkout = await tree();
-  for (const directory of ['src', 'scripts', 'tests', 'demo', 'plugin', 'docs', '.github', '.agents', 'node_modules']) await cp(resolve(directory), join(checkout, directory), { recursive: true });
+  for (const directory of ['src', 'scripts', 'tests', 'demo', 'bench', 'plugin', 'docs', '.github', '.agents', 'node_modules']) await cp(resolve(directory), join(checkout, directory), { recursive: true });
   for (const name of ['package.json', 'package-lock.json', '.gitignore', '.node-version', 'tsconfig.json', 'vitest.config.ts', 'LICENSE', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md']) await cp(resolve(name), join(checkout, name));
   await writeFile(join(checkout, 'AGENTS.md'), 'LOCAL ONLY /Users/private/developer');
   await mkdir(join(checkout, 'tests/private-fixtures')); await writeFile(join(checkout, 'tests/private-fixtures/excluded.txt'), 'PRIVATE_FIXTURE');
@@ -41,6 +41,17 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   expect(manifest.sourceTree).toBe((await exec('git', ['-C', checkout, 'rev-parse', 'HEAD^{tree}'])).stdout.trim());
   const entries = untar(archive);
   expect(entries.has('feature-network-0.1.0/source/package-lock.json')).toBe(true);
+  expect(entries.has('feature-network-0.1.0/source/bench/core.ts')).toBe(true);
+  expect(entries.has('feature-network-0.1.0/source/bench/comparison.ts')).toBe(true);
+  expect(entries.has('feature-network-0.1.0/source/docs/validation/benchmark-protocol.md')).toBe(true);
+  const exportedSource = join(output, 'source');
+  // Supply development dependencies explicitly; the source export has no Git checkout.
+  await cp(join(checkout, 'node_modules'), join(exportedSource, 'node_modules'), { recursive: true });
+  const measured = JSON.parse((await exec(process.execPath, ['scripts/bench-core.mjs'], { cwd: exportedSource })).stdout);
+  expect(measured.cases.map((value: any) => value.graph.features)).toEqual([100, 1000, 10000]);
+  expect(measured.provenance.sourceRevision).toBeNull();
+  expect(measured.provenance.loadedBundleSha256).toMatch(/^[a-f0-9]{64}$/);
+  await rm(join(exportedSource, 'node_modules'), { recursive: true });
   expect(entries.has('feature-network-0.1.0/plugin/dist/cli.mjs')).toBe(true);
   for (const [path, expected] of Object.entries(manifest.checksums)) expect(hash(entries.get('feature-network-0.1.0/' + path)!)).toBe(expected);
   expect([...entries.keys()].some(path => /AGENTS\.md|superpowers|node_modules|private-fixtures|\.feature-network/.test(path))).toBe(false);
@@ -53,7 +64,7 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   expect(await readFile(join(output, 'feature-network-0.1.0.tar.gz'))).toEqual(archive);
   expect((await exec('git', ['-C', checkout, 'status', '--short'])).stdout).toBe('');
   expect((await exec('git', ['-C', checkout, 'tag', '--list'])).stdout).toBe('');
-}, 20000);
+}, 60000);
 test('release_refuses_dirty_source_and_mismatched_version_without_new_output', async () => {
   await expect(exec(process.execPath, ['scripts/release.mjs', '--version', '2.0.0'], { cwd: checkout })).rejects.toThrow(/version_mismatch/);
   await writeFile(join(checkout, 'src/cli.ts'), '// unreviewed edit');

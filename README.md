@@ -45,6 +45,7 @@ npm run typecheck
 npm test
 npm run build
 npm run verify:package
+npm run bench:core
 # In a clean, tested checkout with the selected license:
 npm run release:prepare -- --version 0.1.0
 ```
@@ -52,3 +53,7 @@ npm run release:prepare -- --version 0.1.0
 `release:prepare` writes an ignored local `releases/feature-network-0.1.0/` tree, deterministic `.tar.gz`, source/checksum manifest and validation report. Sources and prebuilt plugin share the recorded Git revision and tree. It never pushes, tags, uploads or publishes. Existing output is refused. Missing licensing blocks release preparation while local builds remain possible.
 
 CI defines Node 24 validation on Linux, macOS and Windows with read-only repository permissions and no publication workflow. An actual CI run is required to establish each platform's result; local macOS tests do not prove Windows or Linux support. See [contributing](CONTRIBUTING.md), [MCP contract](docs/mcp.md) and [adapter limits](docs/adapters.md).
+
+Local synthetic core measurements and future agent-comparison boundaries are documented in [benchmark protocol](docs/validation/benchmark-protocol.md). The [host matrix](docs/validation/host-matrix.md) keeps all three native surfaces pending; this is not full v1 acceptance. Benchmarks measure loaded-Snapshot index construction, loaded-index queries/encoding and incremental index refresh, excluding filesystem, MCP and hook latency. Actual provider token/read observations remain unavailable until authorized host sessions.
+
+An [actual local core report](docs/validation/reports/core-2026-10-09-darwin-arm64.md) preserves the raw samples and fresh-export provenance; its 1,000-feature warm goal applies only to the recorded workload.
