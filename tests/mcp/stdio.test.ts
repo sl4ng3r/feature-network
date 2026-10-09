@@ -97,7 +97,8 @@ test('complete_tool_result_budget_and_unicode_continuation', async ({ signal }) 
   const small = await call(client, 'network_context', { ids: ['alpha'], detail: 'full', budget: 512 });
   expect(Buffer.byteLength(JSON.stringify(small))).toBeLessThanOrEqual(512);
   expect(data(await call(client, 'network_impact', { budget: 512 }))).toHaveProperty('revision');
-}, 60000);
+// Up to 200 real SDK roundtrips revalidate Git/source state; bound the whole exchange separately.
+}, 180000);
 test('pending_journal_is_not_recovered_by_reads', async ({ signal }) => {
   const p = await fixture(roots); const path = join(p.runtimeDir, 'journal.json'); await writeFile(path, 'unreadable journal'); const { client } = await connect(p.root, bundle, signal);
   expect(data(await call(client, 'network_check', { mode: 'full' })).integrity).toBe('pending_recovery');
@@ -278,8 +279,13 @@ test('bootstrap_nested_exclusions_scope_continuation_and_small_budget_are_explic
 
 test('bootstrap_long_blocker_keeps_successful_write_receipt_and_reachable_reason',async({signal})=>{
  const root=await tree();roots.push(root);await repo(root);
+ // Git for Windows directory enumeration opts into MAX_PATH support independently of Node.
+ // Change only this synthetic repository, preserving the original long-path receipt workload.
+ await exec('git',['-C',root,'config','--local','core.longpaths','true']);
  const folder=Array.from({length:4},(_,i)=>`${i}-${'a'.repeat(180)}`).join('/');
  await mkdir(join(root,folder),{recursive:true});await writeFile(join(root,folder,'.env'),'private synthetic content');
+ const inventoried=await exec('git',['-C',root,'ls-files','--others','--exclude-standard','-z','--','.']);
+ expect(inventoried.stdout.split('\0')).toContain(`${folder}/.env`);
  const {client}=await connect(root, bundle, signal);
  const response=await call(client,'network_bootstrap',{action:'start',budget:1100});
  expect(response.isError).not.toBe(true);expect(Buffer.byteLength(JSON.stringify(response))).toBeLessThanOrEqual(1100);
