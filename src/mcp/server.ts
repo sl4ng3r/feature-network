@@ -17,10 +17,54 @@ import { toolSchemas, type ToolName } from './tools.js';
 const clean = <T>(value: unknown): T => JSON.parse(JSON.stringify(value)) as T;
 const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value), 'utf8');
 const packageAdvice = 'Retry with budget up to 64000; if still omitted, start with smaller maxFiles/maxBytes. Existing features are preserved.';
-const readable = 'FeatureNetwork result; inspect structuredContent.';
-function result(value: object): CallToolResult { return { content: [{ type: 'text', text: readable }], structuredContent: value as Record<string, unknown> }; }
+// Code-point truncation preserves Unicode and keeps readable previews short.
+const preview = (value: unknown, limit = 32): string => typeof value === 'string'
+  ? [...value.replace(/[\u0000-\u001f\u007f]/g, ' ')].slice(0, limit).join('') + ([...value].length > limit ? '…' : '') : '';
+const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+function readable(value: Record<string, unknown>): string {
+  let text: string;
+  if (Array.isArray(value.items)) {
+    const first = object(value.items[0]); const fragment = object(first.fragment);
+    const detail = first.fragment ? `JSON fragment ${fragment.offset}/${fragment.total}`
+      : first.section ? `section ${preview(first.section)}`
+      : preview(first.summary);
+    text = `${value.depth !== undefined ? 'Impact' : 'Context'}: ${value.items.length} shown${first.id ? `; ${preview(first.id)}${detail ? `: ${detail}` : ''}${first.status ? ` (${preview(first.status)})` : ''}` : ''}.`;
+    text += value.nextCursor ? ` Continue with nextCursor; ${value.omitted} omitted.` : ' Complete.';
+    if (value.incomplete) text += ' Integrity incomplete.';
+    if (value.depthLimited) text += ' Depth limit reached.';
+    if (typeof value.diagnosticsOmitted === 'number' && value.diagnosticsOmitted > 0) text += ` ${value.diagnosticsOmitted} diagnostics omitted.`;
+  } else if (value.mode !== undefined) {
+    const open = Array.isArray(value.openDecisions) ? value.openDecisions : []; const first = object(open[0]);
+    text = `Check ${value.mode}: ${value.integrity}; ${value.freshness}; ${open.length} shown open${first.path ? ` (${preview(first.path)}: ${preview(first.reason)})` : ''}.`;
+  } else if (value.runRevision !== undefined) {
+    const progress = object(value.progress); const pack = object(value.package); const slices = Array.isArray(pack.slices) ? pack.slices : [];
+    text = `Bootstrap: ${value.status}; ${value.basis}; `;
+    text += typeof progress.analyzed === 'number' && typeof progress.files === 'number' ? `${progress.analyzed}/${progress.files} files analyzed.` : 'Progress unavailable in this projection.';
+    text += value.packageOmitted ? ' Package omitted; retry larger budget or smaller maxFiles/maxBytes.'
+      : slices.length ? ` Package: ${slices.length} slices (${preview(object(slices[0]).path)}).` : ' No active package.';
+  } else if (value.semanticReview !== undefined) {
+    text = `Update: revision ${preview(value.revision, 12)}; semantic review ${value.semanticReview}; ${value.recovered ? 'recovered transaction' : 'no recovery'}.`;
+  } else text = 'FeatureNetwork result.';
+  if (value.truncated && !value.nextCursor) {
+    const omitted = object(value.omitted); const count = Object.values(omitted).reduce<number>((sum, n) => sum + (typeof n === 'number' ? n : 0), 0);
+    text += ` Truncated; ${count} entries omitted; retry with a larger budget.`;
+  }
+  return text;
+}
+function result(value: object): CallToolResult { return { content: [{ type: 'text', text: readable(value as Record<string, unknown>) }], structuredContent: value as Record<string, unknown> }; }
 // Measured boundary is COMPLETE CallToolResult JSON; JSON-RPC ID/envelope is transport.
-const reserve = bytes(result({})) - bytes({});
+const emptyWrapperReserve = bytes({ content: [{ type: 'text', text: '' }], structuredContent: {} }) - bytes({});
+/** Re-evaluate the SAME snapshot with a monotonically increasing measured text reserve.
+ * Eight attempts bound adapter work; unfit metadata always rejects without an empty cursor loop. */
+function renderedQuery(query: (reserveBytes: number) => object, budget: number): CallToolResult {
+  let reserveBytes = emptyWrapperReserve;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const value = query(reserveBytes); const response = result(value);
+    if (bytes(response) <= budget) return response;
+    reserveBytes = Math.max(reserveBytes + 1, bytes(response) - bytes(value));
+  }
+  throw new NetworkError('invalid_query', 'Budget cannot accommodate the rendered query');
+}
 function failure(error: unknown): CallToolResult {
   const code = error instanceof NetworkError && /^[a-z][a-z0-9_]{0,63}$/.test(error.code) ? error.code : 'internal_error';
   return { content: [{ type: 'text', text: `FeatureNetwork: ${code}.` }], structuredContent: { error: { code, message: 'Operation could not be completed; refresh inputs or review the reported state.' } }, isError: true };
@@ -76,11 +120,13 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
       switch (name as ToolName) {
         case 'network_context': {
           const input = toolSchemas.network_context.parse(parsed.data); budget = input.cursor?.parameters.budget ?? input.budget ?? 12000;
-          response = result(queryContext(buildIndex(await readSnapshot(bound, options)), clean<ContextRequest>(input), { responseReserveBytes: reserve, includeFingerprints: true })); break;
+          const index = buildIndex(await readSnapshot(bound, options));
+          response = renderedQuery(reserveBytes => queryContext(index, clean<ContextRequest>(input), { responseReserveBytes: reserveBytes, includeFingerprints: true }), budget); break;
         }
         case 'network_impact': {
           const input = toolSchemas.network_impact.parse(parsed.data); budget = input.cursor?.parameters.budget ?? input.budget ?? 12000;
-          response = result(queryImpact(buildIndex(await readSnapshot(bound, options)), clean<ImpactRequest>(input), { responseReserveBytes: reserve })); break;
+          const index = buildIndex(await readSnapshot(bound, options));
+          response = renderedQuery(reserveBytes => queryImpact(index, clean<ImpactRequest>(input), { responseReserveBytes: reserveBytes }), budget); break;
         }
         case 'network_check': {
           const input = toolSchemas.network_check.parse(parsed.data); budget = input.budget ?? 12000;

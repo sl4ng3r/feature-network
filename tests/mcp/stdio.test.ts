@@ -146,7 +146,7 @@ test('bounded_bootstrap_package_can_be_replanned_without_feature_loss', async ()
   for (let i = 0; i < 15; i++) await writeFile(join(p.root, `extra-${String(i).padStart(2, '0')}.ts`), 'metadata only');
   const { client } = await connect(p.root);
   const small = await call(client, 'network_bootstrap', { action: 'start', budget: 1100 }); expect(Buffer.byteLength(JSON.stringify(small))).toBeLessThanOrEqual(1100);
-  expect(data(small)).toMatchObject({ status: 'pending', package: null, packageOmitted: true }); expect(data(small).nextAction).toContain('smaller maxFiles');
+  expect(data(small)).toMatchObject({ status: 'pending', package: null, packageOmitted: true }); expect(data(small).nextAction).toContain('smaller maxFiles'); expect(readable(small)).toContain('Package omitted'); expect(readable(small)).toContain('smaller maxFiles');
   const large = data(await call(client, 'network_bootstrap', { action: 'next', budget: 64000 })); expect(large.package.slices).toHaveLength(16); expect(large.progress.packages).toBe(0);
   const replanned = data(await call(client, 'network_bootstrap', { action: 'start', maxFiles: 1, budget: 1100 })); expect(replanned.package.slices).toHaveLength(1);
   expect(await readFile(join(p.networkDir, 'alpha.yaml'))).toEqual(original);
@@ -158,11 +158,47 @@ test('bounded_check_prioritizes_late_open_reference_over_confirmed_prefix', asyn
   expect((await call(client, 'network_update', { expected, expectedRevision: current.revision, upserts, deletes: [], verifiedReferences, decision: { outcome: 'updated', reason: 'Reviewed all actual source references' } })).isError).not.toBe(true);
   await writeFile(join(p.root, 'z-source-8.ts'), 'changed');
   const limited = await call(client, 'network_check', { mode: 'full', budget: 1400 }); expect(limited.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(limited))).toBeLessThanOrEqual(1400);
-  expect(data(limited).openDecisions[0]).toMatchObject({ path: 'z-source-8.ts', reason: 'changed' }); expect(data(limited).references[0]).toMatchObject({ path: 'z-source-8.ts', state: 'changed' }); expect(data(limited).truncated).toBe(true);
+  expect(data(limited).openDecisions[0]).toMatchObject({ path: 'z-source-8.ts', reason: 'changed' }); expect(data(limited).references[0]).toMatchObject({ path: 'z-source-8.ts', state: 'changed' }); expect(data(limited).truncated).toBe(true); expect(readable(limited)).toContain('z-source-8.ts'); expect(readable(limited)).toContain('changed'); expect(readable(limited)).toContain('omitted');
 });
 
 test('wrong_node_major_fails_with_readable_redacted_prerequisite', async () => {
   const root = await tree(); roots.push(root); const preloader = join(root, 'older-node.mjs'); await writeFile(preloader, "Object.defineProperty(process.versions, 'node', { value: '22.0.0' });");
   const rejected = await exec(process.execPath, ['--import', preloader, bundle, 'mcp', '--project-root', root]).catch(error => error);
   expect(rejected.code).toBe(1); expect(rejected.stdout).toBe(''); expect(rejected.stderr).toContain('node_24_required'); expect(rejected.stderr).toContain('Node.js 24 LTS'); expect(rejected.stderr).not.toContain(root);
+});
+
+function readable(result: Awaited<ReturnType<typeof call>>) { return result.content?.filter(block => block.type === 'text').map(block => block.text).join('\n') ?? ''; }
+// A generic text block would hide all successful results from text-only clients.
+test('successful_text_reflects_each_final_tool_result', async () => {
+  const p = await fixture(roots); const { client } = await connect(p.root);
+  const context = await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }); expect(readable(context)).toContain('alpha'); expect(readable(context)).toContain('Source');
+  const impact = await call(client, 'network_impact', { ids: ['alpha'] }); expect(readable(impact)).toContain('alpha'); expect(readable(impact)).toContain('evidenced');
+  const checked = await call(client, 'network_check', { mode: 'full' }); expect(readable(checked)).toContain('source.ts'); expect(readable(checked)).toContain('decision_missing'); expect(readable(checked)).toContain('full');
+  const started = await call(client, 'network_bootstrap', { action: 'start' }); expect(readable(started)).toContain('pending'); expect(readable(started)).toContain('source.ts'); expect(readable(started)).toContain('0/3');
+  const current = data(context);
+  const saved = await call(client, 'network_update', { expected: current.fingerprints, expectedRevision: current.revision, upserts: [{ ...current.items[0], summary: 'Reviewed source' }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'updated', reason: 'Read source and reviewed semantics' } });
+  expect(saved.isError).not.toBe(true); expect(readable(saved)).toContain(data(saved).revision.slice(0, 12)); expect(readable(saved)).toContain('recorded');
+  const status = await call(client, 'network_bootstrap', { action: 'status' }); expect(readable(status)).toContain(data(status).status); expect(readable(status)).toContain('last_known');
+});
+test('rendered_unicode_and_cursor_text_fit_complete_budget', async () => {
+  const p = await fixture(roots); const { client } = await connect(p.root); const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
+  const saved = await call(client, 'network_update', { expected: current.fingerprints, upserts: [{ ...current.items[0], summary: '😀'.repeat(400) }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'updated', reason: 'Reviewed Unicode summary' } }); expect(saved.isError).not.toBe(true);
+  const summary = await call(client, 'network_context', { ids: ['alpha'], budget: 2400 }); expect(summary.isError).not.toBe(true); expect(readable(summary)).toContain('😀'); expect(Buffer.byteLength(JSON.stringify(summary))).toBeLessThanOrEqual(2400);
+  let cursor: unknown; let pages = 0;
+  do {
+    const page = await call(client, 'network_context', cursor ? { cursor } : { ids: ['alpha'], detail: 'full', budget: 1000 });
+    expect(page.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(page))).toBeLessThanOrEqual(1000); expect(readable(page)).toContain('alpha');
+    cursor = data(page).nextCursor;
+    if (cursor) { expect(readable(page)).toContain('nextCursor'); expect(readable(page)).toContain('omitted'); } else expect(readable(page)).toContain('Complete');
+    expect(pages++).toBeLessThan(100);
+  } while (cursor);
+});
+
+test('minimum_budgets_include_actual_check_bootstrap_update_text', async () => {
+  const p = await fixture(roots); const { client } = await connect(p.root); const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
+  const checked = await call(client, 'network_check', { budget: 512 }); expect(Buffer.byteLength(JSON.stringify(checked))).toBeLessThanOrEqual(512);
+  if (!checked.isError) { expect(readable(checked)).toContain(data(checked).freshness); if (data(checked).truncated) expect(readable(checked)).toContain('omitted'); }
+  const status = await call(client, 'network_bootstrap', { action: 'status', budget: 512 }); expect(status.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(status))).toBeLessThanOrEqual(512); expect(readable(status)).toContain('not_started');
+  const saved = await call(client, 'network_update', { expected: {}, expectedRevision: current.revision, upserts: [], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'no_semantic_change', reason: 'Source remains semantically unchanged' }, budget: 512 });
+  expect(saved.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(saved))).toBeLessThanOrEqual(512); expect(readable(saved)).toContain(data(saved).revision.slice(0, 12)); expect(readable(saved)).toContain('recorded'); if (data(saved).truncated) expect(readable(saved)).toContain('omitted');
 });
