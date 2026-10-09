@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-status"
+  short_description: "Gespeicherten Gedächtnisstand und offene Prüfungen anzeigen"
+policy:
+  allow_implicit_invocation: false

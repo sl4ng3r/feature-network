@@ -1,0 +1,140 @@
+{
+  "provenance": "hand-authored synthetic transcripts; no actual model or host execution",
+  "features": [
+    {
+      "id": "profile-a",
+      "summary": "Profile screen memory."
+    },
+    {
+      "id": "profile-b",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-c",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-d",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-e",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-f",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-g",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "profile-h",
+      "summary": "Profile preferences memory."
+    },
+    {
+      "id": "restore-a",
+      "summary": "Restore import memory."
+    },
+    {
+      "id": "restore-b",
+      "summary": "Restore validation memory."
+    },
+    {
+      "id": "restore-c",
+      "summary": "Restore storage memory."
+    },
+    {
+      "id": "settings",
+      "summary": "Settings memory."
+    }
+  ],
+  "cases": [
+    {
+      "user": "/feature-network-show",
+      "request": {
+        "limit": 100
+      },
+      "ids": [
+        "profile-a",
+        "profile-b",
+        "profile-c",
+        "profile-d",
+        "profile-e",
+        "profile-f",
+        "profile-g",
+        "profile-h",
+        "restore-a",
+        "restore-b"
+      ],
+      "omitted": 2,
+      "shape": "overview"
+    },
+    {
+      "user": "/feature-network-show the profile screen",
+      "request": {
+        "query": "screen",
+        "detail": "full"
+      },
+      "ids": [
+        "profile-a"
+      ],
+      "omitted": 0,
+      "shape": "detail"
+    },
+    {
+      "user": "/feature-network-show profile",
+      "request": {
+        "query": "profile",
+        "limit": 5
+      },
+      "ids": [
+        "profile-a",
+        "profile-b",
+        "profile-c",
+        "profile-d",
+        "profile-e"
+      ],
+      "omitted": 3,
+      "shape": "choices"
+    },
+    {
+      "user": "/feature-network-show 2",
+      "request": {
+        "ids": [
+          "profile-b"
+        ],
+        "detail": "full"
+      },
+      "ids": [
+        "profile-b"
+      ],
+      "omitted": 0,
+      "shape": "detail"
+    },
+    {
+      "user": "/feature-network-show the whole restore area",
+      "request": {
+        "query": "restore"
+      },
+      "ids": [
+        "restore-a",
+        "restore-b",
+        "restore-c"
+      ],
+      "omitted": 0,
+      "shape": "theme"
+    },
+    {
+      "user": "/feature-network-show billing",
+      "request": {
+        "query": "billing"
+      },
+      "ids": [],
+      "omitted": 0,
+      "shape": "gap",
+      "gap": "No grounded memory entry; describe differently or explicitly request init/sync."
+    }
+  ]
+}

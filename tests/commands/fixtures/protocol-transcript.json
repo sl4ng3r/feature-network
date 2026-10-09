@@ -1,0 +1,46 @@
+{
+  "provenance": "synthetic proposed actions, not host execution; context alias reproduces controller H probe failure; other shapes are contract cases",
+  "contextContinuation": {
+    "cursor": {
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "context",
+      "parameters": {},
+      "offset": 10,
+      "fragment": 0
+    }
+  },
+  "impactContinuation": {
+    "cursor": {
+      "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "impact",
+      "parameters": {},
+      "offset": 10,
+      "fragment": 0
+    }
+  },
+  "newFeatureUpdate": {
+    "expected": {
+      "network-spec/new-feature.yaml": null
+    },
+    "expectedRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "upserts": [
+      {
+        "schema": 1,
+        "id": "new-feature",
+        "summary": "Synthetic schema example.",
+        "key_points": [],
+        "code": [
+          {
+            "path": "src/new-feature.ts"
+          }
+        ]
+      }
+    ],
+    "deletes": [],
+    "verifiedReferences": [],
+    "decision": {
+      "outcome": "updated",
+      "reason": "Synthetic request shape only; not executed."
+    }
+  }
+}

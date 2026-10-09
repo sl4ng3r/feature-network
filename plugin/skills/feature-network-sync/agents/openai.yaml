@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-sync"
+  short_description: "Gedächtnis gezielt anhand geänderten Codes prüfen und aktualisieren"
+policy:
+  allow_implicit_invocation: false

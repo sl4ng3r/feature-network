@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-check"
+  short_description: "Gedächtnis und Codereferenzen technisch prüfen und Befunde anzeigen"
+policy:
+  allow_implicit_invocation: false

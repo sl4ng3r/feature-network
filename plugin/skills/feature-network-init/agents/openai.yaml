@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-init"
+  short_description: "Projektgedächtnis aufbauen oder unterbrochenen Aufbau fortsetzen"
+policy:
+  allow_implicit_invocation: false

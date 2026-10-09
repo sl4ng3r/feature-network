@@ -1,0 +1,5 @@
+interface:
+  display_name: "FeatureNetwork"
+  short_description: "Projektgedächtnis bei Entwicklungsaufgaben nutzen"
+policy:
+  allow_implicit_invocation: true

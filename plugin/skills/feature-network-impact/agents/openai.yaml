@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-impact"
+  short_description: "Gespeicherte Abhängigkeiten und mögliche Auswirkungen anzeigen"
+policy:
+  allow_implicit_invocation: false

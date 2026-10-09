@@ -1,0 +1,5 @@
+interface:
+  display_name: "feature-network-show"
+  short_description: "Features per Beschreibung finden oder das Gedächtnis durchblättern"
+policy:
+  allow_implicit_invocation: false
