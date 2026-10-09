@@ -1,0 +1,201 @@
+{
+  "date": "2026-10-09",
+  "sourceRevision": "1b0c396",
+  "pluginVersion": "0.1.0",
+  "cliVersion": "0.162.0-alpha.17.2",
+  "scope": "Authorized synthetic demo; native discovery, not Desktop menus or hook execution",
+  "snapshotSha256": "043d2d739dc6b661ef8615d59c416e85a4e024c2037bbc6464a5e722bf521aa9",
+  "files": [
+    {
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "f3f4b197b70dde427e9695c1ad00b412e60e7d8c0dc94bcd52cc3667126ce9a8",
+      "bytes": 360
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "9f2c301a5d0ce0e973902c036d058e558d1f3adae3773d5a38be600bc9e88b38",
+      "bytes": 1073
+    },
+    {
+      "path": "dist/build-info.json",
+      "sha256": "191d4776eabe4cb15aa97ff2d7b2639de33aa10cf8ae11798092c42b6bba20c9",
+      "bytes": 27561
+    },
+    {
+      "path": "dist/cli.mjs",
+      "sha256": "ff2648e8f9f6a558452cd53d258f1e850088c3e3aa5c4ea1e25f28d7c74b0977",
+      "bytes": 1753092
+    },
+    {
+      "path": "dist/hook.mjs",
+      "sha256": "cf1fde344a221489de2e825e74bf319f252baf04b15ce04c358bf83c4e21d75f",
+      "bytes": 1111652
+    },
+    {
+      "path": "dist/third-party-notices.json",
+      "sha256": "948bdd95651e887f8a435beac2529f3a60ee756cf824672804b345651069f02b",
+      "bytes": 28958
+    },
+    {
+      "path": "hooks/hooks.json",
+      "sha256": "b62987c5e217733d0a3736e3e1affdfc5824b3b0b6af8e30ab5c846f81b4e350",
+      "bytes": 427
+    },
+    {
+      "path": "skills/feature-network/SKILL.md",
+      "sha256": "b5621de875c4429d2e8405a7f061954f26336d6d357f7cb6bbc1a482b1a7c49a",
+      "bytes": 4159
+    },
+    {
+      "path": "skills/feature-network/agents/openai.yaml",
+      "sha256": "0077a14730e073c8e0656d18fb0c570a62d1ccdf00498005930c7c82591c71f7",
+      "bytes": 160
+    },
+    {
+      "path": "skills/feature-network-check/SKILL.md",
+      "sha256": "48bc509cc880a8f0979db8bdd62234537165b14239630a281a83688b4e947aa7",
+      "bytes": 1665
+    },
+    {
+      "path": "skills/feature-network-check/agents/openai.yaml",
+      "sha256": "4e5c162de506b7c5b44d17299f0f66f901c9e2fafc20d052c5c0593540ea30b0",
+      "bytes": 187
+    },
+    {
+      "path": "skills/feature-network-impact/SKILL.md",
+      "sha256": "3cf534bf25bf0a1e017f310b7278bf41e49dced94858e0d2ef65282d45dc0266",
+      "bytes": 2478
+    },
+    {
+      "path": "skills/feature-network-impact/agents/openai.yaml",
+      "sha256": "0b0ee1568181011d4e8afef996ca8a42fde4c8ada571c19ff8448a94c4838d61",
+      "bytes": 183
+    },
+    {
+      "path": "skills/feature-network-init/SKILL.md",
+      "sha256": "5fe3a69dd7c374e540d2d311f8fb977529e9af11532c1b22b3a617a66a4ac7b4",
+      "bytes": 5119
+    },
+    {
+      "path": "skills/feature-network-init/agents/openai.yaml",
+      "sha256": "2a6902a0b18158472c47e3c8d83eb6c65727856a6f881098dc3f06c380d250a4",
+      "bytes": 182
+    },
+    {
+      "path": "skills/feature-network-show/SKILL.md",
+      "sha256": "6d392b73d4f4daab727a9c3e7a7ffbb6fe73ff92753ef1cd9815a5e4a999c0f3",
+      "bytes": 3449
+    },
+    {
+      "path": "skills/feature-network-show/agents/openai.yaml",
+      "sha256": "d26ac9970ee532cc1014f8c12c65f77d504d185df4a7a60782bd20316cab7351",
+      "bytes": 185
+    },
+    {
+      "path": "skills/feature-network-status/SKILL.md",
+      "sha256": "b42800ea571b8787b7f8cdc6808c3c6a04f4b5416dc5bda9a460f9bdf2f0f4d3",
+      "bytes": 1539
+    },
+    {
+      "path": "skills/feature-network-status/agents/openai.yaml",
+      "sha256": "f63803a02b7c2a84ce4b04afb6c1ab4746f5eff2af394acdd114ac9262ac619f",
+      "bytes": 180
+    },
+    {
+      "path": "skills/feature-network-sync/SKILL.md",
+      "sha256": "f079f577c401bc0dbb329066daf81b1c73814db27cd46ea8b5aa7733785f4a36",
+      "bytes": 4016
+    },
+    {
+      "path": "skills/feature-network-sync/agents/openai.yaml",
+      "sha256": "1c016a9732c133ed07b6759480d3573ab68e7b16349411f4130d7f1e44bbee85",
+      "bytes": 187
+    }
+  ],
+  "installation": {
+    "sourceRevision": "1b0c396",
+    "installedFiles": 21,
+    "portableDemoMcpFiles": 23,
+    "installedBytesMatchReviewedDistribution": true,
+    "globalPluginEnabled": false,
+    "demoPluginEnabled": true,
+    "unrelatedGlobalConfigPreserved": true,
+    "unrelatedGlobalConfigSha256": "508c6fa9ee61756ff34fbf9db197fe078a3dbf8b771215ba55fde89a2eb6db8f",
+    "projectConfigSha256": "7911125cdd9de7361fb3509dc81b05e091e36e3871b07c0450f024e132855e94",
+    "projectConfigUnchanged": true,
+    "sourceAndNetworkUnchanged": 8,
+    "nativeSkills": 7,
+    "nativeHooks": 3,
+    "hookTrustStatus": "untrusted",
+    "trustBypass": false,
+    "hookExecution": false,
+    "note": "Native installer enables its owned global entry; disabled again with validated TOML and unrelated-configuration comparison. No global runtime change."
+  },
+  "skills": [
+    {
+      "name": "feature-network:feature-network",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-check",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-impact",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-init",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-show",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-status",
+      "enabled": true
+    },
+    {
+      "name": "feature-network:feature-network-sync",
+      "enabled": true
+    }
+  ],
+  "hooks": [
+    {
+      "eventName": "sessionStart",
+      "enabled": true,
+      "trustStatus": "untrusted",
+      "source": "plugin",
+      "pluginId": "feature-network@feature-network-local",
+      "timeoutSec": 8
+    },
+    {
+      "eventName": "userPromptSubmit",
+      "enabled": true,
+      "trustStatus": "untrusted",
+      "source": "plugin",
+      "pluginId": "feature-network@feature-network-local",
+      "timeoutSec": 8
+    },
+    {
+      "eventName": "stop",
+      "enabled": true,
+      "trustStatus": "untrusted",
+      "source": "plugin",
+      "pluginId": "feature-network@feature-network-local",
+      "timeoutSec": 8
+    }
+  ],
+  "artifactHashes": {
+    "compatibility-installation.json": "42dbd8f6a3abfb0c7d34a24f65712c17e7c694238992a178e4930bb10bea3eaf",
+    "compatibility-native-inventory.json": "d7cfda4bcd3e630837acae3172e9120ec3c16b2234fd95e6683eaa4745e810b4",
+    "authfree-native-proof.json": "7f6df2e5f6544374a43799666fbc91722301b0ec364d501f78eea6635f4d493c"
+  },
+  "limitations": [
+    "Hooks require normal trust review; not executed",
+    "Desktop menu and effective GUI Node24 PATH unverified",
+    "Copilot CLI/App only on work computer; live acceptance not performed",
+    "No comparative model benchmark or savings claim"
+  ]
+}

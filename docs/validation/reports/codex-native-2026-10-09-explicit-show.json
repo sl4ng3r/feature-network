@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-09",
+  "scope": "Native Codex app-server explicit show invocation on authorized synthetic demo; not Desktop menu acceptance",
+  "cliVersion": "0.162.0-alpha.17.2",
+  "sourceRevision": "b5087e24fd098cd3f938e0eae97edcb4c32d391c",
+  "pluginVersion": "0.1.0",
+  "provider": "openai",
+  "effectiveModel": "gpt-6-sol",
+  "modelVersion": null,
+  "skill": "feature-network:feature-network-show",
+  "turnStatus": "completed",
+  "sandbox": "read-only",
+  "nativeSkillsDiscovered": 7,
+  "nativePortableHooksDiscovered": 0,
+  "sourceAndNetworkFilesUnchanged": 8,
+  "persistentRuntimeFiles": [
+    ".gitignore"
+  ],
+  "calls": [
+    {
+      "tool": "network_context",
+      "arguments": {
+        "query": "Benutzerprofil",
+        "detail": "summary"
+      },
+      "status": "completed"
+    },
+    {
+      "tool": "network_context",
+      "arguments": {
+        "query": "user profile",
+        "detail": "summary"
+      },
+      "status": "completed"
+    },
+    {
+      "tool": "network_context",
+      "arguments": {
+        "query": "profile",
+        "detail": "summary"
+      },
+      "status": "completed"
+    },
+    {
+      "tool": "network_context",
+      "arguments": {
+        "query": "Benutzer",
+        "detail": "summary"
+      },
+      "status": "completed"
+    },
+    {
+      "tool": "network_context",
+      "arguments": {
+        "ids": [
+          "user-profile"
+        ],
+        "detail": "full"
+      },
+      "status": "completed"
+    }
+  ],
+  "selectedFeature": "user-profile",
+  "networkRevision": "7818764ec34a6b26239c8546778c86144a7201b91da4edfd9734cee260dd45a2",
+  "coverage": "partial",
+  "freshness": {
+    "user-profile": {
+      "state": "unknown",
+      "review": "open"
+    }
+  },
+  "usage": {
+    "totalTokens": 106478,
+    "inputTokens": 105984,
+    "cachedInputTokens": 95872,
+    "cacheWriteInputTokens": 0,
+    "outputTokens": 494,
+    "reasoningOutputTokens": 147
+  },
+  "artifactHashes": {
+    "explicit-skill-events.json": "0d8809a18c69179cb1ba519c17a1f23de1effe9734a76ce2305ffb88a992a675",
+    "explicit-skill-record.json": "3b9a5016285b398f4c43ec5cd521c7091d33427e851bbf3e375c3a45582f1359"
+  },
+  "limitations": [
+    "No Desktop slash-menu or visual evidence",
+    "Shown relations are selected feature outgoing entries; no incoming impact query performed",
+    "No init/sync or source semantic analysis",
+    "Portable manifest hooks ignored by this native host version; compatibility package tracked separately",
+    "No cost comparison or savings established",
+    "Copilot surfaces only available on user work computer; not tested"
+  ]
+}

@@ -1,0 +1,11 @@
+# Native explicit Codex skill diagnostic — 2026-10-09
+
+The native Codex app-server from CLI `0.162.0-alpha.17.2` discovered all seven installed FeatureNetwork skills. An actual `skill` input selected `feature-network:feature-network-show` in an ephemeral read-only session bound to the authorized synthetic demo. The session reported provider `openai` and model `gpt-6-sol`; a separately versioned model revision was unavailable. This is native service/agent evidence, not Desktop slash-menu evidence.
+
+The user description “Benutzerprofil” initially matched no stored tokens. The agent translated it to “user profile”, found the grounded feature, and fetched full details without asking the user for its ID. Five successful `network_context` calls returned summary, key points, code references and the feature's empty outgoing relation list. The answer retained `coverage:partial`, `freshness:unknown` and `review:open`. It did not query incoming relationships; backup/restore dependencies remain demonstrated by the earlier impact diagnostic, not this display.
+
+All eight demo source/network files still matched the preserved scenario after the turn. The runtime directory contained only its ignore marker. No source analysis, YAML update, bootstrap, shell command or web operation was observed in the completed items. The [machine-readable record](codex-native-2026-10-09-explicit-show.json) contains filtered calls, actual usage and hashes of ignored raw evidence. Usage is not an estimate of savings.
+
+Native inventory also found **zero hooks** for the installed portable manifest, without load errors. A separate auth-free native format experiment found three untrusted hooks only when using a legacy-only Codex manifest; adding a legacy overlay beside the portable manifest still produced zero hooks. The compatibility distribution is therefore checked separately. Hook discovery proves neither trust nor execution.
+
+Desktop computer use remains unavailable; no alternate GUI automation was attempted. Copilot CLI and the standalone GitHub Copilot App are installed only on the user's work computer. Their live checks, Codex Desktop menu/trust behavior, actual initialization/maintenance and controlled model comparisons remain pending.
