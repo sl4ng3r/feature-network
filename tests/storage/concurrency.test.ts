@@ -1,14 +1,15 @@
-import { describe, afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test, vi } from 'vitest';
 import { writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hostname } from 'node:os';
 import { openProject } from '../../src/project/root.js';
 import { applyUpdate, readSnapshot } from '../../src/storage/repository.js';
+import { withProjectLock } from '../../src/storage/lock.js';
 import { cleanup, tree } from '../project/helpers.js';
 import { feature, initial, refs, worker, type Worker } from '../helpers/storage-worker.js';
 
 const roots: string[] = []; const workers: Worker[] = [];
-afterEach(async () => { for (const w of workers.splice(0)) { w.child.kill('SIGKILL'); await w.done; } await Promise.all(roots.splice(0).map(cleanup)); });
+afterEach(async () => { vi.restoreAllMocks(); for (const w of workers.splice(0)) { w.child.kill('SIGKILL'); await w.done; } await Promise.all(roots.splice(0).map(cleanup)); });
 async function setup() { const root = await tree(); roots.push(root); await writeFile(join(root, 'source.ts'), 'source'); const p = await openProject(root); await applyUpdate(p, initial()); return p; }
 const start = (...args: Parameters<typeof worker>) => { const w = worker(...args); workers.push(w); return w; };
 
@@ -40,12 +41,29 @@ test('dead_owner_reclaimed_unknown_owner_not_removed', async () => {
   expect(await lock.next()).toEqual({ stage: 'locked' });
   lock.child.kill('SIGKILL'); await lock.done;
   expect((await readSnapshot(p)).integrity).toBe('valid');
-  await writeFile(join(p.runtimeDir, 'lock'), JSON.stringify({ version: 1, pid: process.pid, hostname: `${hostname()}-unknown`, token: 'unknown' }));
-  const begin = Date.now();
+  const unknownOwner = JSON.stringify({ version: 1, pid: process.pid, hostname: `${hostname()}-unknown`, token: 'unknown' });
+  await writeFile(join(p.runtimeDir, 'lock'), unknownOwner);
   await expect(readSnapshot(p)).rejects.toMatchObject({ code: 'lock_busy' });
-  expect(Date.now() - begin).toBeLessThan(2300);
   const { readFile } = await import('node:fs/promises');
-  expect(JSON.parse(await readFile(join(p.runtimeDir, 'lock'), 'utf8')).token).toBe('unknown');
+  const retainedOwner = await readFile(join(p.runtimeDir, 'lock'), 'utf8');
+  expect(retainedOwner).toBe(unknownOwner);
+  expect(JSON.parse(retainedOwner).token).toBe('unknown');
+}, 6000);
+
+test('unknown_owner_acquisition_stops_at_two_second_deadline_without_running_action', async () => {
+  const p = await setup();
+  const ownerPath = join(p.runtimeDir, 'lock');
+  const owner = JSON.stringify({ version: 1, pid: process.pid, hostname: `${hostname()}-unknown`, token: 'unknown' });
+  await writeFile(ownerPath, owner);
+  const action = vi.fn(async () => 'must not run');
+  // Test the acquisition budget independently of filesystem and scheduler latency.
+  const clock = vi.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValue(2001);
+  try {
+    await expect(withProjectLock(p, action)).rejects.toMatchObject({ code: 'lock_busy' });
+    expect(action).not.toHaveBeenCalled();
+    expect(clock).toHaveBeenCalledTimes(2);
+    expect(await readFile(ownerPath, 'utf8')).toBe(owner);
+  } finally { clock.mockRestore(); }
 }, 6000);
 
 for (const phase of ['external-once', 'external-repeat']) {
