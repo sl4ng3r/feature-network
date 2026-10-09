@@ -4,7 +4,7 @@
 
 Lokales Open-Source-Plugin für Coding-Agenten: TypeScript/Node.js-Kern, STDIO-MCP, Skill und kleine Hook-Adapter. Erste Zielumgebungen sind Codex in der lokalen Mac-App, GitHub Copilot CLI und GitHub Copilot App. Claude Code folgt später.
 
-Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`. Aktuell besteht das Projekt nur aus Entwurfsdokumentation; Produktcode, Build und Tests sind noch nicht vorhanden. Vor Implementierung sind schriftliche Spezifikationsfreigabe und Implementierungsplanung gemäß dem ausgewählten Brainstorming-Workflow erforderlich.
+Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`, zur Nutzerprüfung und Wahl der Ausführungsmethode. Aktuell besteht das Projekt nur aus Entwurfsdokumentation; Produktcode, Build und Tests sind noch nicht vorhanden. Vor Produktcode sind Planreview und Wahl der Ausführungsmethode gemäß dem ausgewählten Brainstorming-Workflow erforderlich.
 
 ## Arbeitsregeln
 
@@ -23,9 +23,9 @@ V1 enthält den expliziten Skill-/Command-Einstieg `feature-network-init` zum Au
 
 Freigegebene Nutzerbefehle: `feature-network-init`, `feature-network-status`, `feature-network-show`, `feature-network-impact`, `feature-network-check`, `feature-network-sync`. Alle sollen im nativen Codex-Slash-Menü über `/feature-net` auffindbar sein. `show` akzeptiert natürliche Beschreibungen, bietet bei Mehrdeutigkeit eine Auswahl und ohne Argument eine paginierte Übersicht; keine ID-/Symbolkenntnis erforderlich. `check` meldet Befunde, `sync` aktualisiert anhand gezielter Codeprüfung. Die automatische Pflege benötigt im Alltag keine manuellen Befehle.
 
-Der Nutzer hat Docker Compose und Deploy Cockpit ausdrücklich vollständig ausgenommen. Auslieferung erfolgt als vorgebautes lokales Plugin-Paket; normale Updates dürfen Projektdaten und vorhandene Hostkonfigurationen nicht überschreiben. Keine absoluten Entwicklerpfade im Produktpaket. Node-Version, Installation, Update, Build und Testbefehle werden mit der Implementierung dokumentiert.
+Der Nutzer hat Docker Compose und Deploy Cockpit ausdrücklich vollständig ausgenommen. Auslieferung erfolgt als vorgebautes lokales Plugin-Paket für vorausgesetztes Node.js 24 LTS; normale Updates dürfen Projektdaten und vorhandene Hostkonfigurationen nicht überschreiben. Keine absoluten Entwicklerpfade im Produktpaket. Installation, Update, Build und Testbefehle werden mit der Implementierung dokumentiert.
 
-Kern und Plugins sollen öffentlich als Open Source über Git verfügbar werden. Release-Tags enthalten ein geprüftes vorgebautes Plugin-Paket; README, Lizenz, Versionshinweise und Beitragshinweise gehören zur Auslieferung. Lizenzwahl, Remote und tatsächliche Veröffentlichung benötigen konkrete Nutzerangaben beziehungsweise eine Veröffentlichungsanweisung. Releases aus frischem Checkout prüfen; keine privaten Projekt- oder Laufzeitdaten ausliefern.
+Kern und Plugins sollen öffentlich als Open Source über Git verfügbar werden. Nutzer-Repository: `git@github.com:sl4ng3r/feature-network.git`, lokal als `origin` eingerichtet. Release-Tags enthalten ein geprüftes vorgebautes Plugin-Paket; README, Lizenz, Versionshinweise und Beitragshinweise gehören zur Auslieferung. Lizenzwahl und tatsächliche Veröffentlichung benötigen konkrete Nutzerangaben beziehungsweise eine Veröffentlichungsanweisung. Releases aus frischem Checkout prüfen; keine privaten Projekt- oder Laufzeitdaten ausliefern.
 
 FeatureNetwork besitzt derzeit keine eigene Authentifizierung. Falls später eine Anwendung mit Login-Proxy-Integration entsteht, vor Planung und Umsetzung den vollständigen Vertrag unter `/Users/alexanderstroll/Proggen/ki-applikationen/login-proxy/docs/app-integration-contract.md` lesen und einhalten.
 

@@ -2,7 +2,7 @@
 
 Datum: 2026-10-09
 
-Status: Zur schriftlichen Freigabe; die Grundarchitektur und der MVP-Umfang wurden im Gespräch abgestimmt.
+Status: Schriftlicher Entwurf vom Nutzer am 2026-10-09 freigegeben; abschließende Spezifikationsprüfung durchgeführt. Freigabe gilt für die Implementierungsplanung; Produktcode folgt nach Planreview und Wahl der Ausführungsmethode.
 
 Zielumgebungen: OpenAI Codex in der lokalen Mac-App, GitHub Copilot CLI und GitHub Copilot App.
 
@@ -60,7 +60,7 @@ Die Bibliothek und die Hook-Helfer müssen portable Dateipfade verwenden. Bash- 
 
 Die fachliche Interpretation übernimmt der bereits laufende Coding-Agent. Der Kern verwendet keine Modellaufrufe. MCP und Hooks enthalten keine eigene, abweichende Graphlogik.
 
-Runtime: eine bei Umsetzung unterstützte Node-LTS-Version, verbindlich in Paketmetadaten und CI festgelegt. Dependencies beschränken sich auf einen YAML-Parser, Schema-Validierung und das offizielle TypeScript-MCP-SDK, soweit erforderlich. Für Tests wird ein schlanker Runner verwendet. Der Kern benötigt keine Datenbank.
+Runtime: Node.js 24 LTS, verbindlich in Paketmetadaten und CI festgelegt; die konkrete geprüfte Patchversion wird im Release dokumentiert. Node wird auf dem Nutzerrechner vorausgesetzt und nicht im Plugin gebündelt. Der vorgebaute JavaScript-Kern enthält seine Laufzeitbibliotheken; fehlendes oder inkompatibles Node führt zu einer verständlichen Installationsmeldung ohne automatischen Download. Dependencies beschränken sich auf einen YAML-Parser, Schema-Validierung und das offizielle TypeScript-MCP-SDK, soweit erforderlich. Für Tests wird ein schlanker Runner verwendet. Der Kern benötigt keine Datenbank. [Node.js: Release-Status](https://nodejs.org/en/about/previous-releases)
 
 ## 4. Ablage und Feature-Format
 
@@ -74,6 +74,8 @@ network-spec/
 ```
 
 `_meta.yaml` ist der explizite Netzwerkmarker und enthält `schema: 1` sowie die deklarierte Abdeckung. In v1 ist die fachliche Abdeckung stets `partial`: Auch ein abgeschlossener Initialisierungslauf beweist nicht, dass alle Features und Beziehungen korrekt erkannt wurden. Der technische Analysestatus wird separat geführt. Beschreibungen der bereits untersuchten Bereiche sind optionale Hinweise, keine Vollständigkeitsbeweise.
+
+Beim ersten schreibenden Laufzeitaufruf wird `.feature-network/.gitignore` mit `*` angelegt, sofern keine eigene Ignore-Datei vorhanden ist. Damit bleiben lokale Zustände ohne Änderung der Repository- oder globalen Git-Konfiguration ignoriert. Bestehende Ignore-Regeln werden bewahrt; sind Laufzeitdateien bereits getrackt oder entgegen den Regeln sichtbar, wird dies gemeldet und nicht durch automatisches Untracking behoben.
 
 Feature-IDs sind stabil, innerhalb eines Netzwerks eindeutig und entsprechen dem Dateinamen ohne `.yaml`. Erlaubt sind Kleinbuchstaben, Ziffern und einfache Bindestriche, beginnend mit einem Buchstaben. Eine geänderte Summary ändert die ID nicht. Die reservierte Datei `_meta.yaml` ist kein Feature.
 
@@ -117,6 +119,8 @@ Pflichtfelder sind `schema`, `id`, `summary`, `key_points` und `code`. `key_poin
 Unbestätigte Aussagen stehen separat unter `hypotheses`, jeweils als Objekt mit `text` und optional `evidence`. Sie werden nicht in verbindliche Kernpunkte umgewandelt, nur weil sie im Netzwerk stehen. Vor Übernahme muss der Agent sie anhand konkreter Quellen prüfen. Bestehende Anforderungen und beobachtetes Verhalten dürfen nicht miteinander verwechselt werden: Im Konfliktfall wird die Abweichung gemeldet.
 
 Unbekannte Schema-Versionen oder Felder führen bei Tool-Schreibzugriffen zu einer konkreten Validierungsfehlermeldung; sie werden nicht stillschweigend gelöscht. V1 verwendet keine automatischen Formatmigrationen.
+
+Beim Lesen werden ungültige Dateien mit Pfad und Fehlercode gemeldet und nicht in den gültigen Index übernommen. Alle darauf beruhenden Ergebnisse kennzeichnen die eingeschränkte strukturelle Integrität ausdrücklich; eine leere Treffermenge ist dann keine Entwarnung. Ein ungültiger Netzwerkmarker verhindert normale Abfragen. Schreibzugriffe erfordern einen gültigen Gesamtendzustand; ein expliziter Reparaturänderungssatz darf ungültige Dateien ersetzen, aber keine fremden Inhalte still entfernen.
 
 ## 5. Beziehungen und Impact-Semantik
 
@@ -173,6 +177,8 @@ Der Server läuft lokal über STDIO. Diagnoseausgaben gehen an STDERR; STDOUT bl
 
 `network_context` liefert zunächst IDs und Summaries; für ausgewählte Features werden Kernpunkte und Referenzen nachgeladen. Das Werkzeug bietet zusätzlich die Möglichkeit, einzelne umfangreiche Ergebnisse mit einem Offset fortzusetzen.
 
+Fortsetzungsverweise enthalten neben dem Offset den Fingerprint des zugrunde liegenden Netzwerkstands und die ursprünglichen Abfrageparameter. Hat sich das Netzwerk inzwischen verändert, wird `stale_cursor` zurückgegeben und die Abfrage neu begonnen. Seiten aus unterschiedlichen Ständen dürfen nicht unbemerkt vermischt werden.
+
 Alle Werkzeuge liefern strukturierte Resultate und kurze lesbare Erläuterungen. Fehler erhalten stabile Codes wie `invalid_schema`, `missing_target`, `unsafe_path`, `write_conflict` und `pending_recovery`. Unsicherheit, fehlender Kontext und truncation sind Ergebniszustände, keine generischen internen Fehler.
 
 Ein MCP-Prozess ist an genau einen explizit konfigurierten Projektroot gebunden. Hook-Prozesse verwenden das vom Host übergebene `cwd` und bestimmen den nächsten gültigen Netzwerkroot innerhalb des aktuellen Git-Checkouts. Mehrdeutige Roots führen zu einem Hinweis statt zur Auswahl eines fremden Projekts. Installationspfad des Plugins, Projektroot und beschreibbare Laufzeitdaten sind getrennte Orte. Bei einem Projekt ohne Netzwerkmarker melden lesende Werkzeuge `not_initialized`. Der agentengeführte Einstieg erzeugt `_meta.yaml` zusammen mit dem ersten Feature über einen expliziten Initialisierungsmodus von `network_update`; normale Kontextabfragen legen keine Dateien an.
@@ -186,6 +192,8 @@ Der Kern validiert den gesamten geplanten Endzustand, insbesondere neue oder gel
 Dateien werden zuerst temporär geschrieben. Ein kleines lokales Journal hält erwartete Ausgangsfingerprints und neue Inhalte fest. Einzelne Ersetzungen erfolgen per atomarem Rename. Vor dem nächsten schreibenden Zugriff wird ein unterbrochener Änderungssatz unter Lock vervollständigt, sofern alle Dateien noch entweder dem erwarteten Ausgangs- oder Zielstand entsprechen. Bei zwischenzeitlicher manueller Änderung wird `pending_recovery` gemeldet und nichts blind überschrieben. Rein lesende Nutzerbefehle melden eine offene Transaktion, statt selbst eine schreibende Wiederherstellung auszuführen oder einen inkonsistenten Zustand als gültig auszugeben.
 
 Manuelle Bearbeitung der YAML-Dateien bleibt möglich. Sie nimmt nicht am Tool-Lock teil; unerwartete Veränderungen müssen deshalb beim Speichern beziehungsweise bei Wiederherstellung als Konflikt behandelt werden. Der Kern verspricht keine atomare Transaktion für externe Editoren oder Git-Operationen.
+
+Tool-Leser übernehmen ihren Netzwerksnapshot unter demselben kurzen Lock, prüfen das Journal und geben den Lock vor Graphabfrage oder Codeprüfung wieder frei. Dadurch kann kein Tool-Schreibvorgang zwischen Journalprüfung und Snapshotübernahme einen Mischstand erzeugen. Bei externen Änderungen während des Einlesens wird der Snapshot verworfen und begrenzt erneut gelesen; bleibt er instabil, wird ein Konflikt gemeldet. Ein Lock darf nur bei nachweislich beendetem Besitzer zurückgewonnen werden; bei unklarem Besitzer gilt ein begrenzter Wartezeitraum mit `lock_busy`, kein blindes Entfernen.
 
 ## 9. Automatischer Arbeitsablauf
 
@@ -242,6 +250,8 @@ Der laufende Agent übersetzt natürliche Beschreibungen in Suchbegriffe für da
 
 Das Plugin baut keinen eigenen Auswahl-Editor. Vorschlagsmenü und Befehlserkennung kommen vom Host; Feature-Auswahl und Eingrenzung können im normalen Gespräch erfolgen. Es gibt in v1 keine zusätzlichen Befehle zum manuellen Anlegen, Löschen oder Fortsetzen einzelner Features. `init` übernimmt Wiederaufnahme; Hilfe und Beispiele stehen in den Befehlsbeschreibungen und der README.
 
+Die benannten Befehls-Skills beschreiben ihren expliziten Nutzereinstieg; nur der allgemeine Pflege-Skill ist für automatische Entwicklungsaufträge vorgesehen. Insbesondere darf ein bloßer Treffer auf die Beschreibung von `init` keine Vollanalyse starten. Rein lesende Nutzerbefehle bleiben auch bei aktiven Abschluss-Hooks lesend und lösen keine Nacharbeit zur Netzwerkpflege aus.
+
 Bevorzugte Struktur:
 
 ```text
@@ -274,7 +284,7 @@ Die Release-Prüfung baut aus einem frischen Checkout mit festgelegter Node-Vers
 
 Copilot erhält eine dokumentierte Git-/Marketplace-Installation; Codex zunächst den dokumentierten lokalen Installationsweg nach Bezug aus Git oder dem Release-Archiv. Ein öffentlicher Git-Release setzt keine Aufnahme in die Plugin-Verzeichnisse der Anbieter voraus. Die Hostregeln für Vertrauen und Organisationsrichtlinien bleiben wirksam.
 
-Die öffentliche Bereitstellung ist ein Produktziel. Ein Repository-Remote, die Lizenzwahl und ein tatsächlicher Push beziehungsweise öffentlicher Release werden erst mit den konkreten Angaben und der entsprechenden Veröffentlichungsanweisung des Nutzers vorgenommen.
+Die öffentliche Bereitstellung ist ein Produktziel. Das vom Nutzer angelegte Repository ist [sl4ng3r/feature-network](https://github.com/sl4ng3r/feature-network); lokal ist `git@github.com:sl4ng3r/feature-network.git` als `origin` eingerichtet. Lizenzwahl und ein tatsächlicher Push beziehungsweise öffentlicher Release bleiben an die entsprechende Nutzeranweisung gebunden.
 
 ### Codex in der lokalen Mac-App
 
@@ -354,6 +364,8 @@ Automatisierte Tests prüfen gültige/ungültige YAML-Dateien, unbekannte Versio
 
 Schreibtests enthalten parallele Prozesse, veraltete erwartete Stände, gültige gemeinsame Lösch-/Umbenennungssätze und unterbrochene Journaltransaktionen. Pfadtests enthalten Traversal und Symlinks außerhalb des Projektroots. MCP-Tests starten einen echten STDIO-Prozess und prüfen Protokoll, Werkzeuge, Fehler und Trennung der Logausgabe.
 
+Zusätzliche Grenztests prüfen ungültige Dateien im bestehenden Netzwerk, paralleles Lesen während einer Transaktion, externe Änderungen während der Snapshotübernahme, belegbar verwaiste beziehungsweise unklare Locks und Fortsetzungsverweise nach einer Netzwerkänderung. Ergebnisse dürfen weder defekte Daten verschweigen noch Stände vermischen.
+
 ### Fachliche Demo
 
 Die Demo besitzt ein kleines persistentes Profilmodell, JSON-Sicherung und Wiederherstellung. Eine SQLite-Datei liegt lokal im Demo-Datenverzeichnis; sie dient ausschließlich der Demo und ist keine Speicherabhängigkeit von FeatureNetwork. Automatische Demo-Schemamigrationen werden getestet.
@@ -407,4 +419,5 @@ Diese Spezifikation wird zuerst schriftlich geprüft. Nach Freigabe folgt ein ei
 - Initialisierung ganzer Bestandsprojekte gehört zu v1; Bearbeitungsstatus, Wiederaufnahme und Grenzen der fachlichen Coverage sind ausdrücklich getrennt. Weitergehende AST-/Parallelisierungsoptimierungen folgen später.
 - Öffentliche Git-Verteilung, Release-Pakete und Installationen durch andere Nutzer sind vorgesehen; tatsächliche Veröffentlichung und Lizenzwahl sind separate Schritte.
 - Die sechs freigegebenen Nutzerbefehle, ihre lesenden beziehungsweise schreibenden Wirkungen und die Feature-Anzeige ohne ID-/Symbolkenntnis sind festgelegt.
+- Abschließender Check: Verhalten bei ungültigen Bestandsdaten, konsistente Lesesnapshots und standgebundene Pagination sind präzisiert; Node-Voraussetzung und Nutzer-Repository sind konkretisiert. Host-Live-Nachweise, Leistungsnachweis und Lizenzwahl bleiben ausgewiesene spätere Abnahmen.
 - Es gibt keine Platzhalter für das Kernverhalten und keine Behauptung bereits bestandener Produkt- oder Live-Tests.
