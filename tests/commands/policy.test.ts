@@ -17,6 +17,32 @@ describe('command policy', () => {
     expect(classifyCommand(`  $feature-network-${mode}\nprofile`)).toBe(mode);
   });
   it.each([
+    ['init', { analyzeCode: true, updateFeatures: true, continueForMaintenance: true }],
+    ['status', readOnly], ['show', readOnly], ['impact', readOnly], ['check', readOnly],
+    ['sync', { analyzeCode: true, updateFeatures: true, continueForMaintenance: true }],
+  ] as const)('recognizes the native Codex namespace for an explicit %s invocation', async (mode, expectedPolicy) => {
+    const { classifyCommand, commandPolicy } = await policyModule();
+    expect(classifyCommand(`/feature-network:feature-network-${mode} profile`)).toBe(mode);
+    expect(classifyCommand(`  $feature-network:feature-network-${mode}\nprofile`)).toBe(mode);
+    expect(classifyCommand(`$feature-network:feature-network-${mode}`)).toBe(mode);
+    expect(commandPolicy(classifyCommand(`$feature-network:feature-network-${mode}`))).toEqual(expectedPolicy);
+  });
+  it.each([
+    '/other:feature-network-init', '$other:feature-network-sync',
+    '/feature-network:other:feature-network-init', '/feature-network::feature-network-init',
+    '/feature-network:feature-network-init-more', '$feature-network:feature-network-initialization',
+    '/feature-network:feature-network-init/profile', '$feature-network:feature-network-sync; delete files',
+    '/feature-network:feature-network-showcase', '/FEATURE-NETWORK:feature-network-init',
+    '/feature-network:FEATURE-NETWORK-INIT', 'feature-network:feature-network-init',
+    'please $feature-network:feature-network-init', '"$feature-network:feature-network-init"',
+    '`$feature-network:feature-network-sync`', '```\n$feature-network:feature-network-init\n```',
+    '> /feature-network:feature-network-init',
+  ])('rejects an unsupported namespace or non-invocation: %s', async text => {
+    const { classifyCommand, commandPolicy } = await policyModule();
+    expect(classifyCommand(text)).toBe('unspecified');
+    expect(commandPolicy(classifyCommand(text))).toEqual(readOnly);
+  });
+  it.each([
     'feature-network-init', 'please /feature-network-init', '"/feature-network-init"',
     '`$feature-network-sync`', '```\n/feature-network-init\n```', '> /feature-network-init',
     '/feature-network-init-more', '/feature-network-initialization', '/feature-network-init/profile',

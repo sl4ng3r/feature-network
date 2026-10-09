@@ -5,7 +5,7 @@ export type CommandMode = 'init' | 'status' | 'show' | 'impact' | 'check' | 'syn
 export interface CommandPolicy { analyzeCode: boolean; updateFeatures: boolean; continueForMaintenance: boolean }
 
 export function classifyCommand(text: string): CommandMode {
-  const match = /^\s*[/$]feature-network-(init|status|show|impact|check|sync)(?=\s|$)/.exec(text);
+  const match = /^\s*[/$](?:feature-network:)?feature-network-(init|status|show|impact|check|sync)(?=\s|$)/.exec(text);
   return (match?.[1] as CommandMode | undefined) ?? 'unspecified';
 }
 
