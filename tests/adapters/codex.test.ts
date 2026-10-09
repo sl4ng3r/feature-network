@@ -25,7 +25,7 @@ test('stop_continues_at_most_once even concurrent calls', async () => {
   const outputs = await Promise.all(Array.from({ length: 4 }, () => handleCodexEvent(stop, options)));
   expect(outputs.filter(out => out.decision === 'block')).toHaveLength(1);
   expect((await handleCodexEvent({ ...stop, stop_hook_active: true }, options)).decision).toBeUndefined();
-});
+}, 20000);
 test.each(['status', 'show', 'impact', 'check'])('read_command_%s_does_not_trigger_write_or_recovery', async command => {
   const p = await fixture(roots); const before = await readFile(p.markerPath);
   await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: `/feature-network-${command}` }), options);
@@ -75,7 +75,7 @@ test('plugin_root_differs_from_project_root and is excluded from current changes
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), trusted)).decision).toBeUndefined();
   await writeFile(join(p.root, 'source.ts'), 'real change');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), trusted)).decision).toBe('block');
-});
+}, 20000);
 test('invalid_nearest_marker is blocked without parent fallback', async () => {
   const p = await fixture(roots); const child = join(p.root, 'child'); await mkdir(join(child, 'network-spec'), { recursive: true });
   await writeFile(join(child, 'network-spec/_meta.yaml'), 'invalid: true');

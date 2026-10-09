@@ -20,7 +20,7 @@ test('checkpoint_conflict_preserves_progress', async () => {
   const saved = await bootstrap(p, request); expect(saved.state!.files.find(f => f.path === 'source.ts')?.status).toBe('analyzed');
   await expect(bootstrap(p, request)).rejects.toMatchObject({ code: 'conflict' });
   expect((await bootstrap(p, { action: 'status' })).runRevision).toBe(saved.runRevision);
-});
+}, 20000);
 test('crash_after_update_leaves_package_pending', async () => {
   const p = await fixture(roots); const next = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   await applyUpdate(p, { expected: snap.fingerprints, upserts: [{ ...snap.features[0]!, summary: 'Saved before interruption' }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }] });

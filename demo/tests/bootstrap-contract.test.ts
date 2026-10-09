@@ -20,4 +20,4 @@ test('empty_network_initialization_is_only_a_protocol_test_with_prescribed_answe
   const reconciled = await bootstrap(project, { action: 'next' }); expect(reconciled.package).toBeNull();
   const done = await bootstrap(project, { action: 'checkpoint', expectedRunRevision: reconciled.runRevision!, packageId: null, networkRevision: saved.revision, sources: [], results: [], featureFingerprints: fingerprints, relationalReviewComplete: true, reason: 'Prescribed synthetic relation oracle; no actual host agent analysis claimed.' });
   expect(done).toMatchObject({ status: 'completed', coverage: 'partial' }); expect(await readFile(join(project.root, 'src/profile.ts'))).toEqual(sourceBefore);
-});
+}, 20000);

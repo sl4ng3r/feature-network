@@ -2,7 +2,7 @@ import { openRegular } from '../storage/regular.js';
 import { lstat, realpath, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import type { Project } from '../project/root.js';
-import { isAutomaticGeneratedPath, isSensitivePath, resolveProjectPath } from '../project/paths.js';
+import { isAutomaticGeneratedPath, isPathContained, isSensitivePath, resolveProjectPath } from '../project/paths.js';
 import { readGitInventory } from '../project/git.js';
 import { digest } from '../storage/journal.js';
 import type { StorageOptions } from '../storage/repository.js';
@@ -30,7 +30,7 @@ export async function inventory(project: Project, options: InventoryOptions = {}
     const canonical = relative(project.root, absolute).split(sep).join('/');
     if (isSensitivePath(path) || isSensitivePath(canonical)) reason = 'sensitive';
     else if (isAutomaticGeneratedPath(path) || isAutomaticGeneratedPath(canonical)) reason = 'generated';
-    else if (roots.some(root => absolute === root || absolute.startsWith(root + sep))) reason = 'plugin';
+    else if (roots.some(root => isPathContained(root, absolute))) reason = 'plugin';
     else if (options.scope?.length && !options.scope.some(root => inside(path, root))) reason = 'outside_scope';
     else if (options.exclusions?.some(root => inside(path, root))) reason = 'configured_exclusion';
     if (!reason) {

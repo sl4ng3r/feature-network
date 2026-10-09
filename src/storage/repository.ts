@@ -7,7 +7,7 @@ import { stringify } from 'yaml';
 import { NetworkError } from '../model/errors.js';
 import { parseFeature, parseMeta } from '../model/schema.js';
 import type { Diagnostic, Feature, Fingerprint, Reference, VerifiedReference } from '../model/types.js';
-import { isAutomaticGeneratedPath, isSensitivePath, resolveProjectPath } from '../project/paths.js';
+import { isAutomaticGeneratedPath, isPathContained, isSensitivePath, resolveProjectPath } from '../project/paths.js';
 import { readGitState } from '../project/git.js';
 import type { Project } from '../project/root.js';
 import { withProjectLock, isMissing, storagePath } from './lock.js';
@@ -40,9 +40,6 @@ const featurePath = (id: string) => {
 export function featureReferences(feature: Feature): Reference[] {
   return [...feature.code, ...feature.evidence, ...feature.relations.flatMap(r => r.evidence), ...feature.hypotheses.flatMap(h => h.evidence)];
 }
-function inside(root: string, path: string): boolean {
-  const suffix = relative(root, path); return suffix === '' || (!suffix.startsWith(`..${sep}`) && suffix !== '..' && !suffix.startsWith(sep));
-}
 /** Canonical exclusions are checked before opening source bytes, including aliases. */
 async function referencePath(project: Project, path: string, options: StorageOptions): Promise<string> {
   const absolute = await resolveProjectPath(project, path);
@@ -52,7 +49,7 @@ async function referencePath(project: Project, path: string, options: StorageOpt
   }
   const components = relative(project.root, absolute).split(sep);
   if (path.split('/').some(p => ['.git', '.feature-network', 'network-spec'].includes(p))
-    || components.some(p => ['.git', '.feature-network', 'network-spec'].includes(p)) || excluded.some(root => inside(root, absolute))) {
+    || components.some(p => ['.git', '.feature-network', 'network-spec'].includes(p)) || excluded.some(root => isPathContained(root, absolute))) {
     throw new NetworkError('unsafe_reference', 'Reference points into excluded metadata or plugin storage', [path]);
   }
   return absolute;

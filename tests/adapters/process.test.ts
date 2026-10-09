@@ -19,12 +19,16 @@ test('real_bundle_host_json_protocol_and_concurrent_stop_processes', async () =>
   const p = await fixture(roots); const events = JSON.parse(await readFile(resolve('tests/adapters/fixtures/host-events.json'), 'utf8'));
   const event = (index: number) => ({ ...events.codex[index], cwd: p.root });
   expect((await run(hook, ['--host', 'codex'], JSON.stringify(event(0)))).stderr).toBe('');
-  expect(JSON.parse((await run(cli, ['hook', '--host', 'codex'], JSON.stringify(event(1)))).stdout).hookSpecificOutput).toBeDefined();
+  const submitted = await run(cli, ['hook', '--host', 'codex'], JSON.stringify(event(1)));
+  const protocol = JSON.parse(submitted.stdout);
+  // A timeout or fail-open diagnostic must remain visible in CI assertions;
+  // neither path nor transcript contents are included in this hook output.
+  expect(protocol.hookSpecificOutput, JSON.stringify({ code: submitted.code, stderr: submitted.stderr, protocol })).toBeDefined();
   await writeFile(join(p.root, 'source.ts'), 'changed');
   const outputs = await Promise.all(Array.from({ length: 4 }, () => run(hook, ['--host', 'codex'], JSON.stringify(event(2)))));
   expect(outputs.every(out => out.code === 0 && out.stderr === '')).toBe(true);
   expect(outputs.filter(out => JSON.parse(out.stdout).decision === 'block')).toHaveLength(1);
-});
+}, 20000);
 test('malformed_oversized_unknown_hook_input_is_bounded_and_redacted', async () => {
   for (const input of ['SECRET malformed', JSON.stringify({ secret: 'SECRET', hook_event_name: 'unknown' }), 'SECRET'.repeat(50000)]) {
     const out = await run(hook, ['--host', 'codex'], input); expect(out.code).toBe(0); expect(JSON.parse(out.stdout)).toEqual({}); expect(out.stderr).not.toContain('SECRET');

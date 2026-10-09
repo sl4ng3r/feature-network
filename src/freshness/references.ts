@@ -3,7 +3,7 @@ import { relative, resolve, sep } from 'node:path';
 import { z } from 'zod';
 import { NetworkError } from '../model/errors.js';
 import type { Diagnostic, VerifiedReference } from '../model/types.js';
-import { isAutomaticGeneratedPath, isSensitivePath, resolveProjectPath } from '../project/paths.js';
+import { isAutomaticGeneratedPath, isPathContained, isSensitivePath, resolveProjectPath } from '../project/paths.js';
 import type { Project } from '../project/root.js';
 import { applyUpdate, assertMissingReference, featureReferences, readReferenceHash, readSnapshot, type Snapshot, type StorageOptions } from '../storage/repository.js';
 import { readRuntime, runtimeRevision, writeRuntime } from '../storage/runtime.js';
@@ -41,9 +41,6 @@ export async function inspectChange(project: Project, path: string, options: Sto
   } }; }
 }
 
-function inside(root: string, path: string) {
-  const suffix = relative(root, path); return suffix === '' || (suffix !== '..' && !suffix.startsWith(`..${sep}`) && !suffix.startsWith(sep));
-}
 /** Exclude generated/runtime paths and canonical plugin aliases before source I/O. */
 export async function isIgnoredChange(project: Project, path: string, options: StorageOptions = {}): Promise<boolean> {
   if (isAutomaticGeneratedPath(path)) return true;
@@ -54,7 +51,7 @@ export async function isIgnoredChange(project: Project, path: string, options: S
   for (const root of options.excludedReferenceRoots ?? []) {
     let canonical: string;
     try { canonical = await realpath(root); } catch { canonical = resolve(root); }
-    if (inside(canonical, absolute)) return true;
+    if (isPathContained(canonical, absolute)) return true;
   }
   return false;
 }

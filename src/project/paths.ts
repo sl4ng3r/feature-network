@@ -12,7 +12,7 @@ function isMissing(error: unknown): boolean {
 }
 
 /** Uses a component boundary: /project-other is not inside /project. */
-function contained(root: string, path: string): boolean {
+export function isPathContained(root: string, path: string): boolean {
   const suffix = relative(root, path);
   return suffix === '' || (!isAbsolute(suffix) && suffix !== '..' && !suffix.startsWith(`..${sep}`));
 }
@@ -36,7 +36,7 @@ async function canonicalTarget(root: string, target: string): Promise<string> {
   while (true) {
     try {
       const canonical = await realpath(ancestor);
-      if (!contained(root, canonical)) unsafe(target, 'Symlink target escapes the project');
+      if (!isPathContained(root, canonical)) unsafe(target, 'Symlink target escapes the project');
       return join(canonical, ...missing);
     } catch (error) {
       if (!isMissing(error)) {
@@ -59,11 +59,11 @@ async function walk(root: string, start: string, parts: string[], links = 0): Pr
     if (part === '' || part === '.') continue;
     if (part === '..') {
       current = dirname(current);
-      if (!contained(root, current)) unsafe(current, 'Symlink target escapes the project');
+      if (!isPathContained(root, current)) unsafe(current, 'Symlink target escapes the project');
       continue;
     }
     const next = join(current, part);
-    if (!contained(root, next)) unsafe(next, 'Path escapes the project');
+    if (!isPathContained(root, next)) unsafe(next, 'Path escapes the project');
     let info;
     try { info = await lstat(next); }
     catch (error) {
@@ -100,7 +100,7 @@ export async function resolveProjectPath(project: Project, path: string): Promis
   if (await realpath(project.root) !== project.root) unsafe(project.root, 'Bound project root changed');
   await assertStorageDirectories(project.root);
   const result = await walk(project.root, project.root, path.split('/'));
-  if (!contained(project.root, result)) unsafe(path, 'Resolved path escapes the project');
+  if (!isPathContained(project.root, result)) unsafe(path, 'Resolved path escapes the project');
   return resolve(result);
 }
 

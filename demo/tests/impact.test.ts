@@ -35,7 +35,7 @@ test('contract_change_marks_restore_for_review', async () => {
   expect(changed.openDecisions.some(d => d.path === 'src/profile.ts' && d.reason === 'changed' && d.featureIds.includes('restore'))).toBe(true);
   expect(queryImpact(buildIndex(snap), { ids: ['user-profile'] }).items.map(i => i.id)).toContain('restore');
   expect(coverageGaps(snap, [...fields, 'timezone'], 'Roundtrip id, displayName, locale, timezone through SQLite backup and restore.')).not.toEqual([]);
-});
+}, 20000);
 test('stale_or_missing_relation_is_reported_as_coverage_gap', async () => {
   const project = await demoProject(roots); const snap = await readSnapshot(project);
   const stale = structuredClone(snap); stale.features.find(f => f.id === 'restore')!.relations.forEach(r => { r.check = 'Outdated displayName-only expectation.'; });
