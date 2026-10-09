@@ -21,6 +21,8 @@ Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-desi
 
 Der Nutzer hat Docker Compose und Deploy Cockpit ausdrücklich vollständig ausgenommen. Auslieferung erfolgt als vorgebautes lokales Plugin-Paket; normale Updates dürfen Projektdaten und vorhandene Hostkonfigurationen nicht überschreiben. Keine absoluten Entwicklerpfade im Produktpaket. Node-Version, Installation, Update, Build und Testbefehle werden mit der Implementierung dokumentiert.
 
+Kern und Plugins sollen öffentlich als Open Source über Git verfügbar werden. Release-Tags enthalten ein geprüftes vorgebautes Plugin-Paket; README, Lizenz, Versionshinweise und Beitragshinweise gehören zur Auslieferung. Lizenzwahl, Remote und tatsächliche Veröffentlichung benötigen konkrete Nutzerangaben beziehungsweise eine Veröffentlichungsanweisung. Releases aus frischem Checkout prüfen; keine privaten Projekt- oder Laufzeitdaten ausliefern.
+
 FeatureNetwork besitzt derzeit keine eigene Authentifizierung. Falls später eine Anwendung mit Login-Proxy-Integration entsteht, vor Planung und Umsetzung den vollständigen Vertrag unter `/Users/alexanderstroll/Proggen/ki-applikationen/login-proxy/docs/app-integration-contract.md` lesen und einhalten.
 
 ## Derzeit verfügbare Prüfungen

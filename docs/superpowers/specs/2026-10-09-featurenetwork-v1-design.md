@@ -22,6 +22,7 @@ Verbindliche Entscheidungen aus dem Gespräch:
 - Codex sowie Copilot CLI und Copilot App gehören zur ersten Version. Claude Code folgt später.
 - Docker Compose und Deploy Cockpit entfallen ausdrücklich vollständig.
 - FeatureNetwork benötigt keinen eigenen Cloud-Dienst und keinen eigenen KI-API-Schlüssel.
+- Kern und Plugins werden als Open Source über ein öffentliches Git-Repository für andere Nutzer bereitgestellt. Installation und Beiträge dürfen keine persönliche Entwicklerumgebung voraussetzen.
 - Testgetriebene Umsetzung, automatisierte Tests für fachliche Wirkung, Speicherung, Konsistenz und Integrationen.
 
 FeatureNetwork selbst überträgt keine Repository-Inhalte an einen eigenen externen Dienst. Inhalte, die es dem gewählten Coding-Agenten liefert, unterliegen weiterhin dessen normalem Datenverarbeitungsmodell und den Regeln der Arbeitsumgebung.
@@ -214,6 +215,20 @@ plugin/
 
 Das Manifest verwendet Agent Plugins 1.0. OpenAI-spezifische Einstellungen stehen in `extensions.com.openai`; Copilot-Hooks liegen im Copilot-Namespace. Die reale STDIO-Projektbindung und Variablenexpansion werden je Host getestet. Falls ein Client keine zuverlässige projektabhängige MCP-Bindung aus einem global installierten Paket unterstützt, erzeugt der lokale Setup-Helfer eine explizite Projektkonfiguration. Er erhält bestehende Einstellungen und benötigt keine täglichen Nutzerkommandos. Projektwurzeln werden nicht als persönliche absolute Pfade in das veröffentlichte Paket eingebaut.
 
+### Öffentliche Open-Source-Verteilung über Git
+
+Das öffentliche Repository enthält den gemeinsamen Kern, die Hostadapter, Tests, eine ausschließlich synthetische Demo und die zum Bauen benötigten Paketmetadaten einschließlich Lockfile. Eine `README.md` beschreibt Zweck, Voraussetzungen, unterstützte Hosts und konkrete Installations-, Update-, Build- und Testbefehle. Kompakte Hinweise für Beiträge erklären lokale Prüfung und Änderungen an Schema oder Hostverträgen.
+
+Vor der ersten öffentlichen Veröffentlichung wird eine vom Projekteigentümer ausgewählte Open-Source-Lizenz als `LICENSE` aufgenommen und in Paket- sowie Plugin-Metadaten konsistent angegeben. Die konkrete Lizenz wird separat festgelegt; diese Spezifikation trifft keine eigenmächtige Lizenzentscheidung. Lizenzen mitgelieferter Abhängigkeiten werden berücksichtigt.
+
+Releases verwenden semantische Versionen und Git-Tags nach dem Muster `v0.1.0`. Ein Release-Tag enthält neben den Quellen das vollständig gebaute `plugin/`-Verzeichnis. Damit starten Installationen aus diesem Git-Stand ohne TypeScript-Kompilierung oder Paketdownload beim Agentenstart. Zusätzlich wird dasselbe Plugin als Release-Archiv angeboten. Der Entwicklungszweig enthält die Quellen und einen dokumentierten lokalen Buildablauf; er wird nicht als fertig gebautes Release beworben.
+
+Die Release-Prüfung baut aus einem frischen Checkout mit festgelegter Node-Version und Lockfile, validiert Paket und Marketplace-Katalog und testet die Installation aus dem tatsächlichen Release-Verzeichnis beziehungsweise Archiv. Gebaute Dateien müssen den Quellen desselben Tags entsprechen. Das Paket enthält weder lokale Projektpfade noch private Netzwerke oder Laufzeitdaten. Versionshinweise benennen Änderungen, kompatible Hostversionen und erforderliche Schema- oder Hook-Anpassungen.
+
+Copilot erhält eine dokumentierte Git-/Marketplace-Installation; Codex zunächst den dokumentierten lokalen Installationsweg nach Bezug aus Git oder dem Release-Archiv. Ein öffentlicher Git-Release setzt keine Aufnahme in die Plugin-Verzeichnisse der Anbieter voraus. Die Hostregeln für Vertrauen und Organisationsrichtlinien bleiben wirksam.
+
+Die öffentliche Bereitstellung ist ein Produktziel. Ein Repository-Remote, die Lizenzwahl und ein tatsächlicher Push beziehungsweise öffentlicher Release werden erst mit den konkreten Angaben und der entsprechenden Veröffentlichungsanweisung des Nutzers vorgenommen.
+
 ### Codex in der lokalen Mac-App
 
 `SessionStart` gibt einen kurzen Ablaufhinweis. `UserPromptSubmit` kann gezielten Kontext bereitstellen. `Stop` prüft offene Arbeit und fordert bei Bedarf einmal eine Fortsetzung an. Die Rekursionssicherung berücksichtigt die vom Host gemeldete Fortsetzung sowie den lokalen Sessionstand.
@@ -284,7 +299,7 @@ Initialisierung und Pflege sind eigene Kostenpositionen. Die Auswertung zeigt so
 
 ## 15. Liefergegenstände und nächste Freigabe
 
-Die Umsetzung liefert Quellcode, automatisierte Tests, Demo, Benchmark-Harness, ein vorgebautes installierbares Plugin-Paket mit Marketplace-Katalog, Installations-/Updatehinweise und eine kompakte Projekt-`AGENTS.md`. Das Release dokumentiert tatsächlich geprüfte Host- und Node-Versionen und trennt automatisierte Tests von Live-Nachweisen.
+Die Umsetzung liefert Quellcode, automatisierte Tests, Demo, Benchmark-Harness, ein vorgebautes installierbares Plugin-Paket mit Marketplace-Katalog, Installations-/Updatehinweise und eine kompakte Projekt-`AGENTS.md`. Zur öffentlichen Git-Verteilung gehören README, Beitragshinweise, die vom Nutzer ausgewählte Lizenz und ein geprüftes Verfahren für versionierte Git-/Archiv-Releases. Das Release dokumentiert tatsächlich geprüfte Host- und Node-Versionen und trennt automatisierte Tests von Live-Nachweisen.
 
 Diese Spezifikation wird zuerst schriftlich geprüft. Nach Freigabe folgt ein eigener Implementierungsplan mit testgetriebenen Arbeitsschritten und einer Auswahl der Ausführungsmethode. Produktcode, Dependencies, Plugin-Installation und Änderungen an Agentenkonfigurationen beginnen erst nach diesem Planungsschritt.
 
@@ -295,4 +310,5 @@ Diese Spezifikation wird zuerst schriftlich geprüft. Nach Freigabe folgt ein ei
 - Graphrichtung, Traversierung, Budgets, Schreibkonflikte und Wiederherstellung sind festgelegt.
 - Copilot-Prompt-Hooks werden nicht wie Codex-Prompt-Hooks behandelt; App-Support wird separat geprüft.
 - MVP und spätere große Initialisierung sind abgegrenzt.
+- Öffentliche Git-Verteilung, Release-Pakete und Installationen durch andere Nutzer sind vorgesehen; tatsächliche Veröffentlichung und Lizenzwahl sind separate Schritte.
 - Es gibt keine Platzhalter für das Kernverhalten und keine Behauptung bereits bestandener Produkt- oder Live-Tests.
