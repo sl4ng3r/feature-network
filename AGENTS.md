@@ -4,7 +4,7 @@
 
 Lokales Open-Source-Plugin für Coding-Agenten: TypeScript/Node.js-Kern, STDIO-MCP, Skill und kleine Hook-Adapter. Erste Zielumgebungen sind Codex in der lokalen Mac-App, GitHub Copilot CLI und GitHub Copilot App. Claude Code folgt später.
 
-Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`; die Umsetzung erfolgt nach Planreview und gewählter Ausführung in einem isolierten Worktree. Implementiert sind der YAML-Vertragskern (`src/model/`), sichere Projektbindung (`src/project/`) und konfliktgeschützte Speicherung (`src/storage/`) mit automatisierten Tests. MCP, Hostadapter und vorgebautes Plugin-Paket folgen in den weiteren Tasks.
+Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`; die Umsetzung erfolgt nach Planreview und gewählter Ausführung in einem isolierten Worktree. Implementiert sind der YAML-Vertragskern (`src/model/`), sichere Projektbindung (`src/project/`) und konfliktgeschützte Speicherung (`src/storage/`) sowie deterministische Suche und erklärbare Impact-Abfragen (`src/query/`) mit automatisierten Tests. MCP, Hostadapter und vorgebautes Plugin-Paket folgen in den weiteren Tasks.
 
 ## Arbeitsregeln
 
@@ -41,6 +41,7 @@ Voraussetzung für Entwicklung und Laufzeit: Node.js 24 LTS (`.node-version`). E
 - `npm test -- tests/model/schema.test.ts`: YAML-Vertragsprüfung.
 - `npm test -- tests/project`: Projektbindung, Pfadsicherheit und echte Git-Fixtures.
 - `npm test -- tests/storage`: Snapshots, Runtime-CAS, echte parallele Node-Prozesse und SIGKILL-Wiederherstellung.
+- `npm test -- tests/query tests/storage`: Suche, inkrementelle Indizes, konservative Beziehungspfade und revisionsgebundene Budget-Fortsetzung zusammen mit Storage.
 - `npm run typecheck`: strikte TypeScript-Prüfung ohne Ausgabe.
 
 Die npm-Skripte `build`, `verify:package` und `bench:core` reservieren die Schnittstellen für spätere Tasks. Ihre Zieldateien existieren noch nicht; sie schlagen derzeit fehl und sind kein Build-, Paket- oder Performancenachweis. Es gibt noch keinen laufenden Dienst oder installierbares Plugin. Keine Live-Abnahme behaupten.
@@ -54,3 +55,5 @@ Der Parser begrenzt jedes YAML-Dokument auf 65.536 UTF-8-Bytes, verwirft unbekan
 Persistierte Dokumente haben eine gemeinsame Lese-/Schreibgrenze von 16 MiB kodierten UTF-8-Bytes einschließlich JSON-/Journal-Overhead; `storage_too_large` wird vor der Veröffentlichung oder Ersetzung ausgelöst. Die strengere Feature-YAML-Grenze von 64 KiB bleibt bestehen.
 
 Runtimewerte liegen unter `.feature-network/values/`; `runtimeRevision` berechnet den CAS-Token des zurückgegebenen JSON-Werts. `null` bedeutet fehlend und darf nicht gespeichert werden. `baselines` ist nur lesbar; ausschließlich `applyUpdate` bestätigt tatsächlich geprüfte Referenzhashes, auch ohne YAML-Änderungen. Baselines gelten nur zur zugehörigen Netzwerkrevision. Fortgeschriebene Referenzen müssen zuvor bestätigt, unverändert und im Endnetzwerk noch vorhanden sein. Jeder Host muss sein Plugin-Installationsverzeichnis als `excludedReferenceRoots` an Speicheraufrufe mit Referenzprüfung übergeben. `.git`, `network-spec` und `.feature-network` werden einschließlich kanonischer Aliase ausgeschlossen. Ein Prozessabbruch kann harmlose Owner-/Tempdateien hinterlassen; Wiederherstellung nutzt ausschließlich geprüfte Journalinhalte, kein blindes Aufräumen.
+
+`src/query/` arbeitet rein im Speicher auf Storage-Snapshots. Ungültige Marker, fehlende Initialisierung und offene Wiederherstellung blockieren Abfragen; defekte Feature-Dateien bleiben mit eingeschränkter Integrität sichtbar. Antworten zählen sämtliche JSON-Metadaten zum UTF-8-Budget. Große Details werden als vollständige benannte Abschnitte oder explizite JSON-Fragmente mit UTF-16-Offsets und Gesamtlänge fortgesetzt; Surrogatpaare bleiben zusammen. Impact kennzeichnet belegte beziehungsweise hypothetische Wege und eine erreichte Tiefengrenze, ohne fachliche Vollständigkeit zu behaupten.
