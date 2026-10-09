@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { handleCodexEvent } from '../../src/adapters/codex.js';
 import { fixture, hash } from '../freshness/fixture.js';
-import { cleanup, tree, repo } from '../project/helpers.js';
+import { cleanup, tree, repo, exec } from '../project/helpers.js';
 import { bootstrap } from '../../src/bootstrap/state.js';
 import { applyUpdate } from '../../src/storage/repository.js';
 import { readTurn } from '../../src/freshness/session.js';
@@ -120,4 +120,12 @@ test('explicit_init_continuation_only_requests_bounded_bootstrap_not_product_edi
   const out = await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options);
   expect(out.decision).toBe('block'); expect(out.reason).toContain('Do not modify product code');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBeUndefined();
+});
+
+test('unused_host_filter_registration_keeps_new_source_turn_eligible', async () => {
+  const p = await fixture(roots);
+  await exec('git', ['-C', p.root, 'config', 'filter.unused.process', 'exit 1']);
+  await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: '/feature-network-sync' }), options);
+  await writeFile(join(p.root, 'source.ts'), 'new source behavior');
+  expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBe('block');
 });

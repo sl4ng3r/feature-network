@@ -1,4 +1,5 @@
-import { afterEach, beforeAll, expect, test } from 'vitest';
+import { parse } from 'smol-toml';
+import { afterEach, expect, test } from 'vitest';
 import { spawn } from 'node:child_process';
 import { cp, mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -6,7 +7,6 @@ import { fixture } from '../freshness/fixture.js';
 import { cleanup, tree, exec } from '../project/helpers.js';
 const roots: string[] = [];
 const cli = resolve('plugin/dist/cli.mjs'); const hook = resolve('plugin/dist/hook.mjs');
-beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function run(path: string, args: string[], input: string, executable = process.execPath, env: NodeJS.ProcessEnv = process.env) {
   return new Promise<{ stdout: string; stderr: string; code: number | null }>((resolveRun, reject) => {
@@ -46,7 +46,8 @@ test('setup_dry_run_real_entry_offline_bundle_preserves_disk_and_redacts_existin
   await writeFile(join(project, '.codex/config.toml'), 'model = "SECRET_MANUAL"\n');
   const result = await run(join(installed, 'dist/cli.mjs'), ['setup', '--host', 'codex', '--project-root', project, '--dry-run'], '');
   expect(result.code).toBe(0); expect(result.stderr).toBe(''); expect(result.stdout).not.toContain('SECRET_MANUAL');
-  const plan = JSON.parse(result.stdout); expect(plan.files).toHaveLength(2); expect(plan.files[1].content).toContain(project);
+  const plan = JSON.parse(result.stdout); expect(plan.files).toHaveLength(2); const server = (parse(plan.files[1].content) as any).mcp_servers['feature-network'];
+  expect(server.args).toEqual([join(installed, 'dist/cli.mjs'), 'mcp', '--project-root', project]);
   expect(await readdir(join(project, '.codex'))).toEqual(['config.toml']);
   const context = await run(join(installed, 'dist/hook.mjs'), ['--host', 'codex'], '{}'); expect(context.code).toBe(0);
 });

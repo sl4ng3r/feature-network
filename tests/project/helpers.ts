@@ -1,12 +1,13 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, mkdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, realpath, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 export const exec = promisify(execFile);
 export async function tree(): Promise<string> {
-  return mkdtemp(join(tmpdir(), 'Feature net Ü nicode '));
+  // Bind fixtures to their canonical path, including Windows 8.3 TEMP aliases.
+  return realpath(await mkdtemp(join(tmpdir(), 'Feature net Ü nicode ')));
 }
 export const cleanup = (root: string): Promise<void> => rm(root, { recursive: true, force: true });
 export async function marker(root: string, content = 'schema: 1\ncoverage: partial\n'): Promise<void> {

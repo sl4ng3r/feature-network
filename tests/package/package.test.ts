@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, expect, test } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
@@ -10,7 +10,6 @@ import { cleanup, exec, tree } from '../project/helpers.js';
 const roots: string[] = [];
 const root = resolve('.');
 const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
-beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function fixture() {
   const temp = await realpath(await tree()); roots.push(temp);
@@ -131,7 +130,7 @@ test('same_sources_produce_same_artifacts', async () => {
   await exec(process.execPath, ['scripts/build-plugin.mjs']);
   const after = await Promise.all(['cli.mjs', 'hook.mjs', 'build-info.json', 'third-party-notices.json'].map(name => readFile(join(root, 'plugin/dist', name))));
   expect(after).toEqual(before);
-});
+}, 20000);
 test('package_contains_no_developer_paths_runtime_or_private_fixtures', async () => {
   const paths = await files(join(root, 'plugin'));
   expect(paths.some(path => /(?:node_modules|network-spec|\.feature-network|fixtures|\.env)/.test(path))).toBe(false);

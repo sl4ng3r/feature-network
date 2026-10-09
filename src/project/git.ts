@@ -28,7 +28,7 @@ async function safeGit(project: Project) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.toUpperCase().startsWith('GIT_')));
   env.GIT_TERMINAL_PROMPT = '0';
   const configOverrides: Array<readonly [string, string]> = [['core.fsmonitor', 'false']];
-  const git = async (args: string[]): Promise<string> => {
+  const git = async (args: string[], input?: string): Promise<string> => {
     // Keep configuration keys and values separate: -c key=value splits at
     // the first =, which is also valid inside a filter subsection name.
     const commandEnv: NodeJS.ProcessEnv = { ...env, GIT_CONFIG_COUNT: String(configOverrides.length) };
@@ -36,9 +36,11 @@ async function safeGit(project: Project) {
       commandEnv[`GIT_CONFIG_KEY_${index}`] = key;
       commandEnv[`GIT_CONFIG_VALUE_${index}`] = value;
     });
-    const result = await execute('git', [
+    const running = execute('git', [
       '--no-pager', '--no-optional-locks', '-C', project.root, ...args,
     ], { env: commandEnv, encoding: 'buffer', maxBuffer: 16 * 1024 * 1024, timeout: 10_000, windowsHide: true });
+    if (input !== undefined) running.child.stdin?.end(input);
+    const result = await running;
     // Invalid bytes must never become replacement characters in filter keys.
     return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(result.stdout);
   };
@@ -64,7 +66,24 @@ async function safeGit(project: Project) {
       throw new Error('Git safety configuration could not be applied');
     }
   }
-  const diagnostics: Diagnostic[] = drivers.size ? [{
+  // A globally registered driver (for example Git LFS on hosted runners)
+  // changes no bytes unless attributes select it inside this project. Suppress
+  // every driver regardless, but report a coverage limit only for selected ones.
+  let selectedFilter = false;
+  if (drivers.size) {
+    const paths = await git(['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.']);
+    if (paths) {
+      const attributes = await git(['check-attr', '-z', '--stdin', 'filter'], paths);
+      if (!attributes.endsWith('\0')) throw new Error('Git attributes are not NUL-terminated');
+      const fields = attributes.slice(0, -1).split('\0');
+      if (fields.length % 3 !== 0) throw new Error('Invalid Git attribute records');
+      for (let index = 0; index < fields.length; index += 3) {
+        if (!fields[index] || fields[index + 1] !== 'filter') throw new Error('Invalid Git attribute record');
+        if (drivers.has(`filter.${fields[index + 2]}`)) selectedFilter = true;
+      }
+    }
+  }
+  const diagnostics: Diagnostic[] = selectedFilter ? [{
     code: 'git_filters_disabled', severity: 'warning',
     message: 'Git filters were disabled; filtered files may be reported changed without content conversion',
   }] : [];

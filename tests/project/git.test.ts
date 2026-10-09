@@ -70,6 +70,19 @@ describe('git state', () => {
     await expect(stat(join(root, 'INJECTED'))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
+  it('unused_registered_filters_do_not_invalidate_unfiltered_source_coverage', async () => {
+    const root = await fresh(); await repo(root);
+    await writeFile(join(root, 'source.ts'), 'before');
+    await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'fixture']);
+    await exec('git', ['-C', root, 'config', 'filter.unused.process', 'touch UNUSED_FILTER_RAN; exit 1']);
+    await exec('git', ['-C', root, 'config', 'filter.unused.required', 'true']);
+    await writeFile(join(root, 'source.ts'), 'after');
+    const state = await readGitState(await openProject(root));
+    expect(state.status).toBe('available'); expect(state.unstaged).toEqual(['source.ts']);
+    expect(state.diagnostics).not.toContainEqual(expect.objectContaining({ code: 'git_filters_disabled' }));
+    await expect(stat(join(root, 'UNUSED_FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
   it('does_not_execute_repository_clean_filters', async () => {
     const root = await fresh(); await repo(root);
     await exec('git', ['-C', root, 'config', 'filter.fixture.clean', 'touch FILTER_RAN; cat']);

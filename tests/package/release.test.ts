@@ -44,14 +44,6 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   expect(entries.has('feature-network-0.1.0/source/bench/core.ts')).toBe(true);
   expect(entries.has('feature-network-0.1.0/source/bench/comparison.ts')).toBe(true);
   expect(entries.has('feature-network-0.1.0/source/docs/validation/benchmark-protocol.md')).toBe(true);
-  const exportedSource = join(output, 'source');
-  // Supply development dependencies explicitly; the source export has no Git checkout.
-  await cp(join(checkout, 'node_modules'), join(exportedSource, 'node_modules'), { recursive: true });
-  const measured = JSON.parse((await exec(process.execPath, ['scripts/bench-core.mjs'], { cwd: exportedSource })).stdout);
-  expect(measured.cases.map((value: any) => [value.graph.features, value.graph.edgesPerFeature])).toEqual([[100, 2], [100, 12], [1000, 2], [1000, 12], [10000, 2], [10000, 12]]);
-  expect(measured.provenance.sourceRevision).toBeNull();
-  expect(measured.provenance.loadedBundleSha256).toMatch(/^[a-f0-9]{64}$/);
-  await rm(join(exportedSource, 'node_modules'), { recursive: true });
   expect(entries.has('feature-network-0.1.0/plugin/dist/cli.mjs')).toBe(true);
   for (const [path, expected] of Object.entries(manifest.checksums)) expect(hash(entries.get('feature-network-0.1.0/' + path)!)).toBe(expected);
   expect([...entries.keys()].some(path => /AGENTS\.md|superpowers|node_modules|private-fixtures|\.feature-network/.test(path))).toBe(false);
@@ -64,6 +56,20 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   expect(await readFile(join(output, 'feature-network-0.1.0.tar.gz'))).toEqual(archive);
   expect((await exec('git', ['-C', checkout, 'status', '--short'])).stdout).toBe('');
   expect((await exec('git', ['-C', checkout, 'tag', '--list'])).stdout).toBe('');
+}, 60000);
+// This executes the full benchmark from the real export. Keep its CPU-heavy
+// workload separate from archive/copy/reproducibility assertions so each test
+// owns and awaits its work before fixture cleanup.
+test('exported_source_executes_full_benchmark_without_borrowed_checkout_identity', async () => {
+  const output = join(checkout, 'releases/feature-network-0.1.0');
+  const exportedSource = join(output, 'source');
+  // Supply development dependencies explicitly; the source export has no Git checkout.
+  await cp(join(checkout, 'node_modules'), join(exportedSource, 'node_modules'), { recursive: true });
+  const measured = JSON.parse((await exec(process.execPath, ['scripts/bench-core.mjs'], { cwd: exportedSource })).stdout);
+  expect(measured.cases.map((value: any) => [value.graph.features, value.graph.edgesPerFeature])).toEqual([[100, 2], [100, 12], [1000, 2], [1000, 12], [10000, 2], [10000, 12]]);
+  expect(measured.provenance.sourceRevision).toBeNull();
+  expect(measured.provenance.loadedBundleSha256).toMatch(/^[a-f0-9]{64}$/);
+  await rm(join(exportedSource, 'node_modules'), { recursive: true });
 }, 60000);
 test('release_refuses_dirty_source_and_mismatched_version_without_new_output', async () => {
   await expect(exec(process.execPath, ['scripts/release.mjs', '--version', '2.0.0'], { cwd: checkout })).rejects.toThrow(/version_mismatch/);

@@ -1,11 +1,10 @@
-import { afterEach, beforeAll, expect, test } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { spawn } from 'node:child_process';
 import { cp, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { cleanup, exec, tree } from '../project/helpers.js';
 const roots: string[] = [];
-beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function files(directory: string): Promise<string[]> {
   const paths: string[] = [];

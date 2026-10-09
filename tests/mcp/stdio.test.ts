@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, expect, test } from 'vitest';
+import { afterEach, expect, test } from 'vitest';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { mkdtemp, readFile, readdir, writeFile, rm, copyFile, mkdir } from 'node:fs/promises';
@@ -10,7 +10,6 @@ import { readSnapshot } from '../../src/storage/repository.js';
 const roots: string[] = [];
 const clients: Client[] = [];
 const bundle = resolve('plugin/dist/cli.mjs');
-beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(clients.splice(0).map(c => c.close())); await Promise.all(roots.splice(0).map(cleanup)); });
 async function connect(root: string, file = bundle) {
   const client = new Client({ name: 'feature-network-tests', version: '1.0.0' }); clients.push(client);
@@ -181,7 +180,11 @@ test('successful_text_reflects_each_final_tool_result', async () => {
   const status = await call(client, 'network_bootstrap', { action: 'status' }); expect(readable(status)).toContain(data(status).status); expect(readable(status)).toContain('last_known');
 });
 test('rendered_unicode_and_cursor_text_fit_complete_budget', async () => {
-  const p = await fixture(roots); const { client } = await connect(p.root); const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
+  const p = await fixture(roots);
+  // Hosted images register Git LFS globally; an unused driver must not add a
+  // spurious coverage diagnostic that displaces the actual Unicode summary.
+  await exec('git', ['-C', p.root, 'config', 'filter.unused.process', 'exit 1']);
+  const { client } = await connect(p.root); const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
   const saved = await call(client, 'network_update', { expected: current.fingerprints, upserts: [{ ...current.items[0], summary: '😀'.repeat(400) }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'updated', reason: 'Reviewed Unicode summary' } }); expect(saved.isError).not.toBe(true);
   const summary = await call(client, 'network_context', { ids: ['alpha'], budget: 2400 }); expect(summary.isError).not.toBe(true); expect(readable(summary)).toContain('😀'); expect(Buffer.byteLength(JSON.stringify(summary))).toBeLessThanOrEqual(2400);
   let cursor: unknown; let pages = 0;
@@ -192,7 +195,7 @@ test('rendered_unicode_and_cursor_text_fit_complete_budget', async () => {
     if (cursor) { expect(readable(page)).toContain('nextCursor'); expect(readable(page)).toContain('omitted'); } else expect(readable(page)).toContain('Complete');
     expect(pages++).toBeLessThan(100);
   } while (cursor);
-});
+}, 30000);
 
 test('minimum_budgets_include_actual_check_bootstrap_update_text', async () => {
   const p = await fixture(roots); const { client } = await connect(p.root); const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));

@@ -147,6 +147,7 @@ test('runtime_revision_uses_the_json_value_returned_by_read', async () => {
 test('repository_propagates_disabled_git_filter_limitations', async () => {
   const project = await setup(); await repo(project.root);
   await exec('git', ['-C', project.root, 'config', 'filter.demo.clean', 'cat']);
+  await writeFile(join(project.root, '.gitattributes'), '*.ts filter=demo\n');
   await applyUpdate(project, initial());
   expect((await readSnapshot(project)).diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled', severity: 'warning' }));
 });
