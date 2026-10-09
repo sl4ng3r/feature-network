@@ -178,3 +178,23 @@ test('invalid_runtime_values_are_diagnosed_without_overwriting', async () => {
     expect(await readFile(path)).toEqual(invalid);
   }
 });
+
+
+test('oversized_runtime_write_preserves_existing_readable_value', async () => {
+  const project = await setup(); const original = { cursor: 1 };
+  await writeRuntime(project, 'sessions/bounded', null, original);
+  await expect(writeRuntime(project, 'sessions/bounded', runtimeRevision(original), { text: 'a'.repeat(16 * 1024 * 1024) })).rejects.toMatchObject({ code: 'storage_too_large' });
+  expect(await readRuntime(project, 'sessions/bounded')).toEqual(original);
+  expect(await readdir(join(project.runtimeDir, 'values/sessions'))).toEqual(['bounded.json']);
+});
+test('runtime_size_boundary_counts_encoded_utf8_bytes_including_json', async () => {
+  const project = await setup();
+  // JSON wrapper {"text":""} is 11 bytes; each é is two UTF-8 bytes.
+  const text = 'é'.repeat(8_388_602) + 'a';
+  const exact = { text };
+  expect(Buffer.byteLength(JSON.stringify(exact))).toBe(16_777_216);
+  await writeRuntime(project, 'sessions/boundary', null, exact);
+  expect((await readRuntime<{ text: string }>(project, 'sessions/boundary'))?.text === text).toBe(true);
+  await expect(writeRuntime(project, 'sessions/boundary', runtimeRevision(exact), { text: text + 'a' })).rejects.toMatchObject({ code: 'storage_too_large' });
+  expect((await readRuntime<{ text: string }>(project, 'sessions/boundary'))?.text === text).toBe(true);
+});

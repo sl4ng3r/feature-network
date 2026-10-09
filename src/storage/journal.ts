@@ -7,6 +7,14 @@ import { NetworkError } from '../model/errors.js';
 import type { Project } from '../project/root.js';
 import { isMissing, storagePath } from './lock.js';
 
+// Every published storage document must remain readable by the same byte policy.
+const storageByteLimit = 16 * 1024 * 1024;
+export function assertStorageSize(text: string, path: string): void {
+  if (Buffer.byteLength(text, 'utf8') > storageByteLimit) {
+    throw new NetworkError('storage_too_large', 'Encoded storage document exceeds the 16 MiB limit', [path]);
+  }
+}
+
 export type Contents = Record<string, Buffer>;
 export type Fingerprints = Record<string, string>;
 export const digest = (bytes: string | Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
@@ -14,7 +22,7 @@ export function fingerprints(contents: Contents): Fingerprints { return Object.f
 export const revision = (contents: Contents): string => digest(JSON.stringify(fingerprints(contents)));
 
 /** Read only regular files, no symlink following at the open boundary. */
-async function readStorageBytes(project: Project, path: string, limit = 16 * 1024 * 1024): Promise<Buffer | null> {
+async function readStorageBytes(project: Project, path: string, limit = storageByteLimit): Promise<Buffer | null> {
   const absolute = await storagePath(project, path);
   let file;
   try { file = await open(absolute, constants.O_RDONLY | constants.O_NOFOLLOW); }
@@ -29,7 +37,7 @@ async function readStorageBytes(project: Project, path: string, limit = 16 * 102
   } finally { await file.close(); }
 }
 
-export async function readStorage(project: Project, path: string, limit = 16 * 1024 * 1024): Promise<string | null> {
+export async function readStorage(project: Project, path: string, limit = storageByteLimit): Promise<string | null> {
   const bytes = await readStorageBytes(project, path, limit);
   return bytes === null ? null : new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
 }
@@ -41,6 +49,7 @@ async function syncParent(project: Project, path: string): Promise<void> {
 
 /** Temp in the destination directory, flushed before the single atomic replacement. */
 export async function atomicStorageWrite(project: Project, path: string, text: string, beforeRename?: () => Promise<void>): Promise<void> {
+  assertStorageSize(text, path); // Before temp creation, journal publication or destination replacement.
   const target = await storagePath(project, path);
   await mkdir(dirname(target), { recursive: true });
   const temp = `${path}.tmp-${randomUUID()}`;

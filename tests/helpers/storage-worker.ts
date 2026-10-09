@@ -70,7 +70,11 @@ export async function runWorker(): Promise<void> {
       await withProjectLock(project, () => pause('locked'));
       process.send!({ okay: true });
     } else if (mode === 'read') process.send!({ result: await readSnapshot(project) });
-    else process.send!({ result: await applyUpdate(project, JSON.parse(process.env.STORAGE_PAYLOAD!)) });
+    else {
+      let request = JSON.parse(process.env.STORAGE_PAYLOAD!);
+      if (mode === 'file-update') request = JSON.parse(await fs.promises.readFile(request.requestPath, 'utf8'));
+      process.send!({ result: await applyUpdate(project, request) });
+    }
   } catch (error) { process.send!({ error: { code: (error as any).code, message: (error as Error).message } }); }
   process.disconnect!();
 }

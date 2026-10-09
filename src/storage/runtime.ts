@@ -1,6 +1,6 @@
 import type { Project } from '../project/root.js';
 import { NetworkError } from '../model/errors.js';
-import { atomicStorageWrite, digest, readStorage } from './journal.js';
+import { assertStorageSize, atomicStorageWrite, digest, readStorage } from './journal.js';
 import { withProjectLock } from './lock.js';
 import { recoverNetworkUnderLock, type StorageOptions } from './repository.js';
 
@@ -40,6 +40,7 @@ export async function readRuntime<T>(project: Project, key: string): Promise<T |
 }
 export async function writeRuntime<T>(project: Project, key: string, expectedRevision: string | null, value: T, options: StorageOptions = {}): Promise<void> {
   const path = valuePath(key, true); const text = serialize(value);
+  assertStorageSize(text, path); // Reject invalid requests before lock acquisition or pending recovery.
   await withProjectLock(project, async () => {
     await recoverNetworkUnderLock(project, options);
     const existing = await existingValue(project, path);

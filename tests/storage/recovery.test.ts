@@ -91,3 +91,24 @@ test('next_runtime_write_recovers_network_without_confirming_analysis', async ()
   expect(await readRuntime(p, 'sessions/recovered')).toEqual({ cursor: 1 });
   expect(await readRuntime(p, 'baselines')).toEqual(baseline);
 });
+
+
+test('oversized_transaction_never_publishes_an_unreadable_journal', async () => {
+  const p = await setup(); const before = await readSnapshot(p);
+  const baselineBytes = await readFile(join(p.runtimeDir, 'baselines.json'));
+  // 260 individually valid sub-64-KiB features exceed the aggregate 16-MiB journal bound.
+  const upserts = Array.from({ length: 260 }, (_, index) => feature(`large-${index}`, 'a'.repeat(65_000)));
+  const expected = { ...before.fingerprints, ...Object.fromEntries(upserts.map(value => [`network-spec/${value.id}.yaml`, null])) };
+  const requestPath = join(p.root, 'large-request.json');
+  await writeFile(requestPath, JSON.stringify({ expected, upserts, deletes: [], verifiedReferences: refs }));
+  const w = worker(p.root, 'file-update', { requestPath }, 'before-rename'); workers.push(w);
+  const outcome = await w.next();
+  // Pre-fix, stop at the first attempted network rename instead of writing hundreds of files.
+  if (outcome.stage) { w.child.kill('SIGKILL'); await w.done; }
+  expect(outcome.error?.code).toBe('storage_too_large');
+  const after = await readSnapshot(p);
+  expect(after.integrity).toBe('valid'); expect(after.revision).toBe(before.revision);
+  expect(await readFile(join(p.runtimeDir, 'baselines.json'))).toEqual(baselineBytes);
+  expect((await readdir(p.runtimeDir)).some(name => name.startsWith('journal.json'))).toBe(false);
+  expect((await readdir(p.networkDir)).sort()).toEqual(['_meta.yaml', 'alpha.yaml', 'beta.yaml']);
+}, 30_000);
