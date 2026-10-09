@@ -38,7 +38,7 @@ export async function readRuntime<T>(project: Project, key: string): Promise<T |
   const existing = await existingValue(project, valuePath(key));
   return existing === null ? null : existing.value as T;
 }
-export async function writeRuntime<T>(project: Project, key: string, expectedRevision: string | null, value: T, options: StorageOptions = {}): Promise<void> {
+export async function writeRuntime<T>(project: Project, key: string, expectedRevision: string | null, value: T, options: StorageOptions = {}, validate?: () => Promise<void>): Promise<void> {
   const path = valuePath(key, true); const text = serialize(value);
   assertStorageSize(text, path); // Reject invalid requests before lock acquisition or pending recovery.
   await withProjectLock(project, async () => {
@@ -46,6 +46,9 @@ export async function writeRuntime<T>(project: Project, key: string, expectedRev
     const existing = await existingValue(project, path);
     if ((existing === null ? null : runtimeRevision(existing.value)) !== expectedRevision) throw new NetworkError('conflict', 'Runtime revision changed', [key]);
     await atomicStorageWrite(project, path, text, async () => {
+      // Trusted internal Core guard only; never supplied/evaluated from MCP or JSON.
+      // Must not acquire locks, run Git, or invoke a model.
+      if (validate) await validate();
       if (await readStorage(project, path) !== (existing?.text ?? null)) throw new NetworkError('conflict', 'Runtime changed before replacement', [key]);
     });
   });

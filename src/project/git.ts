@@ -124,3 +124,22 @@ export async function readCommittedChanges(project: Project, fromHead: string | 
     return { status: 'unavailable', paths: [], diagnostics: [{ code: 'git_delta_unavailable', severity: 'warning', message: 'Committed change coverage could not be read' }] };
   }
 }
+
+export interface GitInventory {
+  status: 'available' | 'unavailable'; head: string | null; branch: string | null;
+  paths: string[]; submodules: string[]; gitDirectory: string | null; diagnostics: Diagnostic[];
+}
+/** Fixed inventory commands reuse the same proven filter/fsmonitor-safe invoker. */
+export async function readGitInventory(project: Project): Promise<GitInventory> {
+  try {
+    const { git, diagnostics } = await safeGit(project); const before = await identity(git);
+    const paths = nulPaths(await git(['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.']));
+    const entries = nulPaths(await git(['ls-files', '--stage', '-z', '--', '.']));
+    const submodules = entries.filter(entry => entry.startsWith('160000 ')).map(entry => entry.slice(entry.indexOf('\t') + 1));
+    const gitDirectory = await realpath((await git(['rev-parse', '--absolute-git-dir'])).trim());
+    const after = await identity(git);
+    if (before.head !== after.head || before.branch !== after.branch) throw new Error('Identity changed');
+    return { status: 'available', ...before, paths, submodules, gitDirectory, diagnostics };
+  } catch { return { status: 'unavailable', head: null, branch: null, paths: [], submodules: [], gitDirectory: null,
+    diagnostics: [{ code: 'git_inventory_unavailable', severity: 'warning', message: 'Git inventory unavailable; no filesystem fallback performed' }] }; }
+}
