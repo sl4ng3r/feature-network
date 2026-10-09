@@ -51,7 +51,7 @@ export async function verifyPackage(root = process.cwd()) {
   const codexRoot = join(root, 'codex-plugin');
   const codexFiles = await packageFiles(codexRoot);
   const codexAllowed = new Set(['.codex-plugin/plugin.json', ...[...allowed].filter(path => !['plugin.json', 'mcp.json', 'com.github.copilot/hooks/hooks.json'].includes(path))]);
-  if (codexFiles.some(path => !codexAllowed.has(path)) || [...codexAllowed].filter(path => path !== 'LICENSE').some(path => !codexFiles.includes(path))) throw new Error('unexpected_or_missing_package_file');
+  if (codexFiles.some(path => !codexAllowed.has(path)) || [...codexAllowed].some(path => !codexFiles.includes(path))) throw new Error('unexpected_or_missing_package_file');
   for (const path of codexFiles) if (/\/Users\/|\/home\/[^/]+\/|[A-Z]:\\Users\\/.test(await readFile(join(codexRoot, path), 'utf8'))) throw new Error('developer_path_in_package');
   const legacy = await json(join(codexRoot, '.codex-plugin/plugin.json'));
   const template = await readFile(join(root, 'packaging/codex-plugin.json'));
@@ -74,7 +74,9 @@ export async function verifyPackage(root = process.cwd()) {
   let rootLicense;
   try { rootLicense = await readFile(join(root, 'LICENSE')); }
   catch (error) { if (error.code !== 'ENOENT') throw error; } // local builds remain possible before a license choice.
-  if (rootLicense && hash(rootLicense) !== hash(await readFile(join(plugin, 'LICENSE')))) throw new Error('license_mismatch');
+  if (rootLicense) for (const distribution of [plugin, codexRoot]) {
+    if (hash(rootLicense) !== hash(await readFile(join(distribution, 'LICENSE')))) throw new Error('license_mismatch');
+  }
   return { status: 'verified', version: manifest.version, files: files.length, distributions: { portable: { status: 'verified', files: files.length }, codex: { status: 'verified', files: codexFiles.length } }, bundledPackages: notices.packages.map(({ name, version, license }) => ({ name, version, license })) };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

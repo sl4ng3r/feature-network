@@ -187,7 +187,7 @@ test('codex_distribution_keeps_legacy_entry_and_shared_runtime_without_portable_
   expect(checked.distributions).toMatchObject({ portable: { status: 'verified' }, codex: { status: 'verified' } });
 }, 20000);
 
-test.each(['plugin.json', 'dist/hook.mjs', 'skills/feature-network/SKILL.md'])('package_verifier_rejects_codex_distribution_tamper_%s', async path => {
+test.each(['plugin.json', 'dist/hook.mjs', 'skills/feature-network/SKILL.md', 'LICENSE'])('package_verifier_rejects_codex_distribution_tamper_%s', async path => {
   const temp = await tree(); roots.push(temp);
   for (const name of ['plugin', 'codex-plugin', 'packaging', 'tests/package/schemas', '.agents', '.github']) await cp(join(root, name), join(temp, name), { recursive: true });
   await cp(join(root, 'package.json'), join(temp, 'package.json')); await cp(join(root, 'LICENSE'), join(temp, 'LICENSE'));

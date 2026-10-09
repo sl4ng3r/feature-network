@@ -97,3 +97,23 @@ test('release_refuses_missing_plugin_license_even_with_source_license_present', 
   await expect(prepare()).rejects.toThrow(/ENOENT/);
   await cp(join(checkout, 'LICENSE'), join(checkout, 'plugin/LICENSE'));
 });
+
+// The portable and source MIT files remain intact: deleting only the generated
+// Codex license must block both public verification and release publication.
+test.each(['verification', 'release'])('%s_refuses_missing_codex_license_with_source_and_portable_present', async operation => {
+  const output = join(checkout, 'releases/feature-network-0.1.0');
+  await rm(output, { recursive: true, force: true });
+  const source = await readFile(join(checkout, 'LICENSE'));
+  expect(await readFile(join(checkout, 'plugin/LICENSE'))).toEqual(source);
+  await rm(join(checkout, 'codex-plugin/LICENSE'));
+  try {
+    const call = operation === 'verification'
+      ? exec(process.execPath, ['scripts/verify-package.mjs'], { cwd: checkout })
+      : prepare();
+    await expect(call).rejects.toThrow(/unexpected_or_missing_package_file/);
+    await expect(readFile(join(output, 'release-manifest.json'))).rejects.toMatchObject({ code: 'ENOENT' });
+  } finally {
+    await writeFile(join(checkout, 'codex-plugin/LICENSE'), source);
+    await rm(output, { recursive: true, force: true });
+  }
+});
