@@ -1,6 +1,6 @@
 # Cross-package replication: complete task success — 2026-10-10
 
-[Machine-readable results](complexity-monorepo-replication-2026-10-10.json) · [Initial screening](complexity-monorepo-2026-10-09.md) · [Protocol](../monorepo-study.md)
+[Machine-readable results](complexity-monorepo-replication-2026-10-10.json) · [Initial screening](complexity-monorepo-2026-10-09.md) · [YAML-only ablation](complexity-monorepo-yaml-ablation-2026-10-10.md) · [Protocol](../monorepo-study.md)
 
 Date: 2026-10-10. Requested model: `gpt-6-luna`, low reasoning effort; effective provider revision unobserved. This is a synthetic single-Git-root monorepo, not a test across separate repositories.
 
