@@ -4,7 +4,7 @@
 
 Lokales Open-Source-Plugin für Coding-Agenten: TypeScript/Node.js-Kern, STDIO-MCP, Skill und kleine Hook-Adapter. Erste Zielumgebungen sind Codex in der lokalen Mac-App, GitHub Copilot CLI und GitHub Copilot App. Claude Code folgt später.
 
-Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`, zur Nutzerprüfung und Wahl der Ausführungsmethode. Aktuell besteht das Projekt nur aus Entwurfsdokumentation; Produktcode, Build und Tests sind noch nicht vorhanden. Vor Produktcode sind Planreview und Wahl der Ausführungsmethode gemäß dem ausgewählten Brainstorming-Workflow erforderlich.
+Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-design.md`, schriftlich vom Nutzer am 2026-10-09 freigegeben und abschließend geprüft. Implementierungsplan: `docs/superpowers/plans/2026-10-09-featurenetwork-v1.md`; die Umsetzung erfolgt nach Planreview und gewählter Ausführung in einem isolierten Worktree. Der erste Implementierungsschritt stellt den YAML-Vertragskern (`src/model/`) mit abgeleiteten TypeScript-Typen und automatisierten Tests bereit. Speicherung, MCP, Hostadapter und vorgebautes Plugin-Paket folgen in den weiteren Tasks.
 
 ## Arbeitsregeln
 
@@ -35,4 +35,12 @@ FeatureNetwork besitzt derzeit keine eigene Authentifizierung. Falls später ein
 - `git diff --check`: Patch auf Whitespace-Fehler prüfen.
 - `git log -5 --oneline`: jüngste lokale Commits prüfen.
 
-Es gibt aktuell keine ausführbaren Produkt-, Build- oder Testbefehle. Entwurfsprüfung nicht als bestandenen Produkttest melden.
+Voraussetzung für Entwicklung und Laufzeit: Node.js 24 LTS (`.node-version`). Entwicklerabhängigkeiten mit `npm ci` installieren.
+
+- `npm test`: vollständige derzeit verfügbare Vitest-Suite.
+- `npm test -- tests/model/schema.test.ts`: YAML-Vertragsprüfung.
+- `npm run typecheck`: strikte TypeScript-Prüfung ohne Ausgabe.
+
+Die npm-Skripte `build`, `verify:package` und `bench:core` reservieren die Schnittstellen für spätere Tasks. Ihre Zieldateien existieren noch nicht; sie schlagen derzeit fehl und sind kein Build-, Paket- oder Performancenachweis. Es gibt noch keinen laufenden Dienst oder installierbares Plugin. Keine Live-Abnahme behaupten.
+
+Der Parser begrenzt jedes YAML-Dokument auf 65.536 UTF-8-Bytes, verwirft unbekannte Felder, doppelte Schlüssel, Aliase, Anker und explizite Tags und normalisiert optionale Listen. `_meta.yaml` erlaubt ausschließlich `schema: 1`, `coverage: partial` und optionale `areas` als beschreibende Hinweise; diese beweisen keine vollständige Abdeckung. Referenzpfade werden syntaktisch geprüft; Dateiexistenz und projektbezogene Pfadsicherheit werden erst in den Speicher-/Projekttasks implementiert.
