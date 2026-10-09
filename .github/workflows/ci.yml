@@ -19,7 +19,8 @@ jobs:
           package-manager-cache: false
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
-      - run: npm test
+      - name: Run npm test
+        run: node scripts/ci-test.mjs
       - run: npm run build
       - run: npm run verify:package
       - run: npm run release:prepare -- --version 0.1.0
