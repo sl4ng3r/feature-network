@@ -1,7 +1,8 @@
 import { afterEach, expect, test } from 'vitest';
 import { mkdir, readFile, writeFile, symlink, access } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
-import { planSetup, applySetup, quoteBash, quotePowerShell } from '../../src/adapters/setup.js';
+import { planSetup, readSetupConfig, applySetup, quoteBash, quotePowerShell } from '../../src/adapters/setup.js';
 import { cleanup, tree, exec } from '../project/helpers.js';
 const roots: string[] = [];
 const options = { pluginRoot: resolve('plugin'), nodePath: process.execPath };
@@ -63,8 +64,10 @@ test('parent_symlink_created_after_preview_conflicts', async () => {
 test('invalid_existing_config_error_does_not_echo_secret_contents', async () => {
   const root = await project(); await mkdir(join(root, '.codex'));
   const raw = 'token = SECRET_CONFIG_VALUE'; await writeFile(join(root, '.codex/config.toml'), raw);
-  try { await planSetup('codex', root, { '.codex/config.toml': raw, '.codex/hooks.json': null }, options); throw new Error('unexpected success'); }
-  catch (error) { expect(String(error)).not.toContain('SECRET_CONFIG_VALUE'); }
+  const proposed = planSetup('codex', root, { '.codex/config.toml': raw, '.codex/hooks.json': null }, options);
+  await expect(proposed).rejects.toMatchObject({ code: 'unsafe_config' });
+  const error = await proposed.catch(error => error);
+  expect(String(error)).not.toContain('SECRET_CONFIG_VALUE');
 });
 test('another_setup_lock_blocks_publication_without_overwriting_or_reclaiming_it', async () => {
   const root = await project(); await mkdir(join(root, '.codex'));
@@ -76,4 +79,49 @@ test('another_setup_lock_blocks_publication_without_overwriting_or_reclaiming_it
 test('plugin_source_symlink_escape_is_refused', async () => {
   const root = await project(); const pluginRoot = await project(); await symlink(join(options.pluginRoot, 'dist'), join(pluginRoot, 'dist'));
   await expect(planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, { ...options, pluginRoot })).rejects.toThrow();
+});
+
+const rawHash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
+test('BOM_configuration_fingerprint_hashes_exact_original_UTF8_bytes', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const original = Buffer.from('\ufeffmodel = "manual-Ü"\n'); await writeFile(join(root, '.codex/config.toml'), original);
+  const plan = await planSetup('codex', root, await readSetupConfig('codex', root), options);
+  expect(plan.files.find(file => file.path.endsWith('config.toml'))?.expectedHash).toBe(rawHash(original));
+});
+test('BOM_only_modification_after_preview_conflicts_before_publication', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const original = 'model = "manual"\n'; await writeFile(join(root, '.codex/config.toml'), original);
+  const plan = await planSetup('codex', root, await readSetupConfig('codex', root), options);
+  await writeFile(join(root, '.codex/config.toml'), '\ufeff' + original);
+  await expect(applySetup(plan)).rejects.toMatchObject({ code: 'setup_conflict' });
+  expect(await readFile(join(root, '.codex/config.toml'), 'utf8')).toBe('\ufeff' + original);
+  await expect(access(join(root, '.codex/hooks.json'))).rejects.toThrow();
+});
+test('applying_unchanged_BOM_TOML_preserves_every_original_byte', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const original = Buffer.from('\ufeff# keep CRLF and Ü\r\nmodel = "manual"\r\n');
+  await writeFile(join(root, '.codex/config.toml'), original);
+  const plan = await planSetup('codex', root, await readSetupConfig('codex', root), options); await applySetup(plan);
+  const updated = await readFile(join(root, '.codex/config.toml'));
+  expect(updated.subarray(0, original.length)).toEqual(original);
+});
+test('BOM_JSON_parsing_is_separate_from_raw_fingerprint_and_preserves_BOM', async () => {
+  const root = await project(); await mkdir(join(root, '.github/hooks'), { recursive: true });
+  const hookRaw = Buffer.from('\ufeff{"version":1,"hooks":{},"manual":"keep"}');
+  const mcpRaw = Buffer.from('\ufeff{"mcpServers":{"other":{"command":"manual"}}}');
+  await writeFile(join(root, '.github/hooks/feature-network.json'), hookRaw); await writeFile(join(root, '.mcp.json'), mcpRaw);
+  const config = await readSetupConfig('copilot', root);
+  expect(Buffer.from(config['.mcp.json']!)).toEqual(mcpRaw);
+  const plan = await planSetup('copilot', root, config, options);
+  expect(plan.files.map(file => file.expectedHash)).toEqual([rawHash(hookRaw), rawHash(mcpRaw)]);
+  await applySetup(plan);
+  const hooks = await readFile(join(root, '.github/hooks/feature-network.json'), 'utf8');
+  const mcp = await readFile(join(root, '.mcp.json'), 'utf8');
+  expect(hooks[0]).toBe('\ufeff'); expect(mcp[0]).toBe('\ufeff');
+  expect(JSON.parse(hooks.slice(1)).manual).toBe('keep'); expect(JSON.parse(mcp.slice(1)).mcpServers.other.command).toBe('manual');
+});
+test('invalid_UTF8_config_is_rejected_before_planning', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  await writeFile(join(root, '.codex/config.toml'), Buffer.from([0xef, 0xbb, 0xbf, 0xff]));
+  await expect(readSetupConfig('codex', root)).rejects.toThrow();
 });

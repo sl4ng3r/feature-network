@@ -38,7 +38,8 @@ async function readConfig(root: string, path: string): Promise<string | null> {
   try {
     const info = await file.stat(); if (!info.isFile() || info.size > maxConfigBytes) fail('unsafe_config');
     const bytes = await file.readFile(); if (bytes.byteLength > maxConfigBytes) fail('unsafe_config');
-    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    // Retain BOM in the raw text: valid UTF-8 must round-trip byte-for-byte for CAS.
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
   } finally { await file.close(); }
 }
 export async function readSetupConfig(host: SetupHost, root: string): Promise<Record<string, string | null>> {
@@ -49,7 +50,10 @@ function object(value: unknown): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) fail('unsafe_config');
   return value as Record<string, unknown>;
 }
-function json(raw: string | null): Record<string, unknown> { return raw === null ? {} : object(JSON.parse(raw)); }
+// Parsing may ignore the encoding marker; fingerprints and original content never do.
+const parseable = (raw: string): string => raw.startsWith('\ufeff') ? raw.slice(1) : raw;
+const preserveBom = (raw: string | null, output: string): string => (raw?.startsWith('\ufeff') ? '\ufeff' : '') + output;
+function json(raw: string | null): Record<string, unknown> { return raw === null ? {} : object(JSON.parse(parseable(raw))); }
 const formatted = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
 function hookConfig(host: SetupHost, node: string, script: string): Record<string, unknown> {
   const events = host === 'codex' ? ['SessionStart', 'UserPromptSubmit', 'Stop'] : ['sessionStart', 'userPromptSubmitted', 'agentStop'];
@@ -71,7 +75,7 @@ function mergeHooks(raw: string | null, additions: Record<string, unknown>): str
     // Exact existing generated entries are idempotent; manual entries remain untouched.
     merged[event] = [...old, ...(entries as unknown[]).filter(entry => !old.some(item => JSON.stringify(item) === JSON.stringify(entry)))];
   }
-  return formatted({ ...existing, ...(additions.version === 1 ? { version: 1 } : {}), hooks: merged });
+  return preserveBom(raw, formatted({ ...existing, ...(additions.version === 1 ? { version: 1 } : {}), hooks: merged }));
 }
 /** Pure proposal with fixed project targets; this does not grant installation consent. */
 async function createSetupPlan(host: SetupHost, project: string, existingConfig: Record<string, string | null>, trusted: SetupOptions): Promise<SetupPlan> {
@@ -99,18 +103,18 @@ async function createSetupPlan(host: SetupHost, project: string, existingConfig:
   let mcpAfter: string; let mcpPreview: string;
   const old = existingConfig[mcpTarget]!;
   if (host === 'codex') {
-    const config = old === null ? {} : parse(old); const servers = object(config.mcp_servers ?? {});
+    const config = old === null ? {} : parse(parseable(old)); const servers = object(config.mcp_servers ?? {});
     if (Object.hasOwn(servers, 'feature-network')) fail(); // Preserve manual policy; never replace it.
     mcpPreview = stringify({ mcp_servers: { 'feature-network': mcp } });
     mcpAfter = (old ?? '') + '\n' + mcpPreview;
-    parse(mcpAfter); // Reject inline-table / incompatible section extension.
+    parse(parseable(mcpAfter)); // Reject inline-table / incompatible section extension.
   } else {
     const config = json(old); const wrapped = old === null || Object.hasOwn(config, 'mcpServers');
     const servers = wrapped ? object(config.mcpServers ?? {}) : config;
     if (Object.hasOwn(servers, 'feature-network')) fail();
     const entry = { type: 'local', ...mcp, tools: ['network_context', 'network_impact', 'network_update', 'network_check', 'network_bootstrap'] };
     mcpPreview = formatted({ mcpServers: { 'feature-network': entry } });
-    mcpAfter = formatted(wrapped ? { ...config, mcpServers: { ...servers, 'feature-network': entry } } : { ...config, 'feature-network': entry });
+    mcpAfter = preserveBom(old, formatted(wrapped ? { ...config, mcpServers: { ...servers, 'feature-network': entry } } : { ...config, 'feature-network': entry }));
   }
   const internal: InternalPlan = { root, sources, files: [
     { path: hookTarget, before: existingConfig[hookTarget]!, after: mergeHooks(existingConfig[hookTarget]!, additions) },
