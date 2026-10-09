@@ -55,6 +55,9 @@ export async function writeRuntime<T>(project: Project, key: string, expectedRev
       if (validate) await validate();
       if (await readStorage(project, path) !== (existing?.text ?? null)) throw new NetworkError('conflict', 'Runtime changed before replacement', [key]);
     });
-    await publishReadCache(project, await stableCapture(project), options);
+    // The authoritative value is already committed. Both capture and cache
+    // publication are optional; never turn their failure into a failed write.
+    try { await publishReadCache(project, await stableCapture(project), options); }
+    catch { /* A later read rebuilds the disposable cache in memory. */ }
   });
 }

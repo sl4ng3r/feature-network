@@ -36,3 +36,16 @@ test.skipIf(process.platform === 'win32')('POSIX_parent_sync_IO_error_is_propaga
  const result=await child(`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';const orig=fs.promises.open;fs.promises.open=async(...args)=>{const h=await orig(...args);const sync=h.sync.bind(h);h.sync=async()=>{if((await h.stat()).isDirectory())throw Object.assign(new Error('io-error'),{code:'EIO'});return sync();};return h;};syncBuiltinESMExports();const {openProject}=await import('./src/project/root.ts');const p=await openProject(${JSON.stringify(p.root)});try{await (await import('./src/storage/journal.ts')).atomicStorageWrite(p,'.feature-network/probe.json','{}');process.stdout.write('unexpected-success');}catch(e){process.stdout.write(e.code);}`);
  expect(result.stdout).toBe('EIO');expect(result.killed).toBe(false);
 });
+
+test('postpublication_cache_capture_EIO_does_not_fail_committed_runtime_write_or_hide_stale_CAS', async()=>{
+ const p=await fixture(roots);
+ const result=await child(`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';let published=false;let injected=false;const rename=fs.promises.rename;const readdir=fs.promises.readdir;fs.promises.rename=async(...args)=>{await rename(...args);if(String(args[1]).replaceAll('\\\\','/').endsWith('/values/probe.json'))published=true;};fs.promises.readdir=async(...args)=>{if(published&&String(args[0]).replaceAll('\\\\','/').endsWith('/network-spec')){injected=true;throw Object.assign(new Error('injected-cache-capture'),{code:'EIO'});}return readdir(...args);};syncBuiltinESMExports();const {openProject}=await import('./src/project/root.ts');const {writeRuntime,readRuntime}=await import('./src/storage/runtime.ts');const p=await openProject(${JSON.stringify(p.root)});let outcome='resolved';try{await writeRuntime(p,'probe',null,{committed:true});}catch(e){outcome=e.code;}const saved=await readRuntime(p,'probe');let stale='unexpected-success';try{await writeRuntime(p,'probe',null,{committed:false});}catch(e){stale=e.code;}process.stdout.write(JSON.stringify({outcome,published,injected,saved,stale}));`);
+ expect(result.killed).toBe(false);expect(result.code).toBe(0);
+ expect(JSON.parse(result.stdout)).toEqual({outcome:'resolved',published:true,injected:true,saved:{committed:true},stale:'conflict'});
+});
+
+test('authoritative_runtime_publication_EIO_still_rejects_without_saved_value',async()=>{
+ const p=await fixture(roots);
+ const result=await child(`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';const rename=fs.promises.rename;fs.promises.rename=async(...args)=>{if(String(args[1]).replaceAll('\\\\','/').endsWith('/values/probe.json'))throw Object.assign(new Error('authoritative-write'),{code:'EIO'});return rename(...args);};syncBuiltinESMExports();const {openProject}=await import('./src/project/root.ts');const {writeRuntime,readRuntime}=await import('./src/storage/runtime.ts');const p=await openProject(${JSON.stringify(p.root)});let outcome='unexpected-success';try{await writeRuntime(p,'probe',null,{committed:true});}catch(e){outcome=e.code;}process.stdout.write(JSON.stringify({outcome,saved:await readRuntime(p,'probe')}));`);
+ expect(result.killed).toBe(false);expect(result.code).toBe(0);expect(JSON.parse(result.stdout)).toEqual({outcome:'EIO',saved:null});
+});

@@ -152,10 +152,15 @@ test('update_does_not_touch_project_data', async () => {
   expect(await readFile(join(f.project, '.codex/config.toml'), 'utf8')).toBe('model = "keep"');
 });
 test('missing_license_blocks_release_not_local_build', async () => {
-  const temp = await tree(); roots.push(temp);
-  for (const directory of ['src', 'scripts', 'plugin']) await cp(join(root, directory), join(temp, directory), { recursive: true });
-  await cp(join(root, 'node_modules'), join(temp, 'node_modules'), { recursive: true });
-  for (const name of ['package.json', 'package-lock.json']) await cp(join(root, name), join(temp, name));
-  await exec(process.execPath, ['scripts/build-plugin.mjs'], { cwd: temp });
-  await expect(exec(process.execPath, ['scripts/release.mjs', '--version', '0.1.0'], { cwd: temp })).rejects.toThrow(/license_required/);
-});
+  // This integration fixture copies actual dependencies and executes two CLIs.
+  // A framework timeout does not cancel fs.cp. Own its cleanup here so afterEach
+  // cannot remove the tree while an in-flight copy is still creating entries.
+  const temp = await tree();
+  try {
+    for (const directory of ['src', 'scripts', 'plugin']) await cp(join(root, directory), join(temp, directory), { recursive: true });
+    await cp(join(root, 'node_modules'), join(temp, 'node_modules'), { recursive: true });
+    for (const name of ['package.json', 'package-lock.json']) await cp(join(root, name), join(temp, name));
+    await exec(process.execPath, ['scripts/build-plugin.mjs'], { cwd: temp });
+    await expect(exec(process.execPath, ['scripts/release.mjs', '--version', '0.1.0'], { cwd: temp })).rejects.toThrow(/license_required/);
+  } finally { await cleanup(temp); }
+}, 30000);
