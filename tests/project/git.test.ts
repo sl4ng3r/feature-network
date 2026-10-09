@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { mkdir, writeFile, stat, rename, symlink, rm } from 'node:fs/promises';
+import { mkdir, writeFile, stat, rename, symlink, rm, readFile, chmod, appendFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { openProject } from '../../src/project/root.js';
 import { readGitState } from '../../src/project/git.js';
@@ -76,6 +76,93 @@ describe('git state', () => {
     expect(state.status).toBe('available'); expect(state.unstaged).toEqual(['sample.txt']);
     expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled', severity: 'warning' }));
     await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it.each(['fixture', 'foo=bar', 'Foo.Bar=Ü', 'trailing=', 'real\uFFFD=driver', 'quote"=back\\slash'])('suppresses_the_complete_valid_filter_key: %s', async driver => {
+    const root = await fresh(); await repo(root);
+    await writeFile(join(root, '.gitattributes'), `*.txt filter=${driver}\n`);
+    await writeFile(join(root, 'sample.txt'), 'before');
+    await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'fixture']);
+    await exec('git', ['-C', root, 'config', `filter.${driver}.clean`, 'touch FILTER_RAN; cat']);
+    await exec('git', ['-C', root, 'config', `filter.${driver}.required`, 'true']);
+    const configBefore = await readFile(join(root, '.git/config'));
+    await writeFile(join(root, 'sample.txt'), 'changed content');
+    // Prove the attributes genuinely select the driver, including escaped names.
+    await exec('git', ['-C', root, 'diff', '--name-only', '--', '.']);
+    expect((await stat(join(root, 'FILTER_RAN'))).isFile()).toBe(true);
+    await rm(join(root, 'FILTER_RAN'));
+    const state = await readGitState(await openProject(root));
+    expect(state.status).toBe('available'); expect(state.unstaged).toEqual(['sample.txt']);
+    expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled' }));
+    await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(await readFile(join(root, '.git/config'))).toEqual(configBefore);
+  });
+
+  it.each(['fixture', 'foo=bar'])('suppresses_process_filters_and_ambient_overrides: %s', async driver => {
+    const root = await fresh(); await repo(root);
+    await writeFile(join(root, '.gitattributes'), `*.txt filter=${driver}\n`);
+    await writeFile(join(root, 'sample.txt'), 'before');
+    await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'fixture']);
+    await exec('git', ['-C', root, 'config', `filter.${driver}.process`, 'touch PROCESS_RAN; exit 1']);
+    await exec('git', ['-C', root, 'config', `filter.${driver}.required`, 'true']);
+    await writeFile(join(root, 'sample.txt'), 'changed content');
+    await exec('git', ['-C', root, 'diff', '--name-only', '--', '.']).catch(() => {});
+    expect((await stat(join(root, 'PROCESS_RAN'))).isFile()).toBe(true);
+    await rm(join(root, 'PROCESS_RAN'));
+    const project = await openProject(root);
+    vi.stubEnv('GIT_CONFIG_COUNT', '1'); vi.stubEnv('GIT_CONFIG_KEY_0', `filter.${driver}.clean`);
+    vi.stubEnv('GIT_CONFIG_VALUE_0', 'touch AMBIENT_RAN; cat');
+    const state = await readGitState(project);
+    expect(state.status).toBe('available'); expect(state.unstaged).toEqual(['sample.txt']);
+    expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled' }));
+    await expect(stat(join(root, 'PROCESS_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(stat(join(root, 'AMBIENT_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(process.env.GIT_CONFIG_VALUE_0).toBe('touch AMBIENT_RAN; cat');
+  });
+
+  it('fails_closed_when_git_cannot_apply_separate_config_keys_and_values', async () => {
+    const root = await fresh(); await repo(root);
+    await writeFile(join(root, '.gitattributes'), '*.txt filter=foo=bar\n');
+    await writeFile(join(root, 'sample.txt'), 'before');
+    await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'fixture']);
+    await exec('git', ['-C', root, 'config', 'filter.foo=bar.clean', 'touch FILTER_RAN; cat']);
+    await exec('git', ['-C', root, 'config', 'core.fsmonitor', 'false']);
+    await writeFile(join(root, 'sample.txt'), 'changed content');
+    const realGit = (await exec('which', ['git'])).stdout.trim();
+    const executables = join(await fresh(), 'executables'); await mkdir(executables);
+    await writeFile(join(executables, 'git'), `#!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
+const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_CONFIG_')));
+const result = spawnSync(${JSON.stringify(realGit)}, process.argv.slice(2), { env });
+process.stdout.write(result.stdout ?? ''); process.stderr.write(result.stderr ?? '');
+process.exit(result.status ?? 1);
+`);
+    await chmod(join(executables, 'git'), 0o755);
+    vi.stubEnv('PATH', `${executables}:${process.env.PATH}`);
+    const state = await readGitState(await openProject(root));
+    await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(state.status).toBe('unavailable');
+    expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_unavailable' }));
+  });
+
+  it('fails_closed_for_filter_keys_that_cannot_be_decoded_losslessly', async () => {
+    const root = await fresh(); await repo(root);
+    const invalidName = Buffer.from([0x66, 0x6f, 0x6f, 0xff, 0x62, 0x61, 0x72]);
+    await writeFile(join(root, '.gitattributes'), Buffer.concat([Buffer.from('*.txt filter='), invalidName, Buffer.from('\n')]));
+    await writeFile(join(root, 'sample.txt'), 'before');
+    await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'fixture']);
+    await appendFile(join(root, '.git/config'), Buffer.concat([
+      Buffer.from('\n[filter "'), invalidName,
+      Buffer.from('"]\n clean = "touch FILTER_RAN; cat"\n required = true\n'),
+    ]));
+    await writeFile(join(root, 'sample.txt'), 'changed content');
+    await exec('git', ['-C', root, 'diff', '--name-only', '--', '.']);
+    expect((await stat(join(root, 'FILTER_RAN'))).isFile()).toBe(true);
+    await rm(join(root, 'FILTER_RAN'));
+    const state = await readGitState(await openProject(root));
+    await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(state.status).toBe('unavailable');
+    expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_unavailable' }));
   });
 
   it('does_not_follow_a_rebound_project_root', async () => {
