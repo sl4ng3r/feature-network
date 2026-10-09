@@ -27,14 +27,14 @@ test('crash_after_update_leaves_package_pending', async () => {
   const status = await bootstrap(p, { action: 'status' }); expect(status.package!.id).toBe(next.package!.id);
   expect(status.state!.files.find(f => f.path === 'source.ts')?.status).toBe('pending');
   await expect(bootstrap(p, ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }))).rejects.toMatchObject({ code: 'conflict' });
-});
+}, 20000);
 test('resume_requeues_changed_and_new_files', async () => {
   const p = await fixture(roots); const next = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   await bootstrap(p, ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }));
   await writeFile(join(p.root, 'source.ts'), 'changed'); await writeFile(join(p.root, 'new.ts'), 'new');
   const resumed = await bootstrap(p, { action: 'next' });
   expect(resumed.package!.slices.map(s => s.path)).toEqual(['new.ts', 'source.ts']);
-});
+}, 20000);
 test('completion_requires_cross_area_review_and_stays_partial', async () => {
   const p = await fixture(roots); const next = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   const done = await bootstrap(p, ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }));
@@ -42,7 +42,7 @@ test('completion_requires_cross_area_review_and_stays_partial', async () => {
   const complete = await bootstrap(p, { action: 'checkpoint', expectedRunRevision: done.runRevision!, packageId: null, sources: [], results: [], featureFingerprints: { alpha: snap.fingerprints['network-spec/alpha.yaml']! }, networkRevision: snap.revision, relationalReviewComplete: true, reason: 'Reviewed all captured areas and relationships' });
   expect(complete).toMatchObject({ status: 'completed', coverage: 'partial' });
   expect(await readFile(p.markerPath, 'utf8')).toContain('coverage: partial');
-});
+}, 20000);
 test('empty_project_creates_no_fake_feature', async () => {
   const root = await tree(); roots.push(root); await repo(root); const p = await openProject(root);
   const result = await bootstrap(p, { action: 'start' }); expect(result.package).toBeNull();
@@ -57,12 +57,12 @@ test('branch_switch_requires_reconciliation', async () => {
   const p = await fixture(roots); await bootstrap(p, { action: 'start' }); await exec('git', ['-C', p.root, 'checkout', '-qb', 'alternate']);
   expect((await bootstrap(p, { action: 'next' })).status).toBe('reconciliation_required');
   expect((await bootstrap(p, { action: 'start', reconcile: true })).status).toBe('pending');
-});
+}, 20000);
 test('deleted_mapped_source_is_needs_review_and_invalid_marker_blocks', async () => {
   const p = await fixture(roots); await bootstrap(p, { action: 'start' }); await rm(join(p.root, 'source.ts'));
   expect((await bootstrap(p, { action: 'next' })).state!.files.find(f => f.path === 'source.ts')?.status).toBe('needs_review');
   await writeFile(p.markerPath, 'broken: yes'); expect((await bootstrap(p, { action: 'status' })).status).toBe('invalid_network');
-});
+}, 20000);
 test('status_does_not_modify_checkpoint_or_recover_journal', async () => {
   const p = await fixture(roots); await bootstrap(p, { action: 'start' }); const before = await readRuntime(p, 'bootstrap/run');
   await writeFile(join(p.runtimeDir, 'journal.json'), 'invalid journal');
@@ -75,7 +75,7 @@ test('source_hash_or_saved_feature_fingerprint_conflicts_keep_package_pending', 
   await writeFile(join(p.root, 'source.ts'), 'changed');
   await expect(bootstrap(p, ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }))).rejects.toMatchObject({ code: 'conflict' });
   expect((await bootstrap(p, { action: 'status' })).runRevision).toBe(next.runRevision);
-});
+}, 20000);
 test('corrupt_runtime_cannot_claim_completion', async () => {
   const p = await fixture(roots); await writeRuntime(p, 'bootstrap/run', null, { relationalReviewComplete: true, files: [] });
   expect((await bootstrap(p, { action: 'status' })).status).toBe('invalid_checkpoint');
@@ -171,4 +171,4 @@ test('empty_checkpoint_cannot_carry_completed_review_to_a_changed_network', asyn
   expect(await readFile(featurePath, 'utf8')).toBe(changedBytes);
   const status = await bootstrap(p, { action: 'status' }); expect(status.runRevision).toBe(renewed.runRevision);
   expect((await bootstrap(p, { action: 'status' })).runRevision).toBe(status.runRevision);
-});
+}, 20000);

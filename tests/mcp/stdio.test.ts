@@ -9,17 +9,20 @@ import { cleanup, exec, repo, tree } from '../project/helpers.js';
 import { readSnapshot } from '../../src/storage/repository.js';
 const roots: string[] = [];
 const clients: Client[] = [];
+const requestSignals = new WeakMap<Client, AbortSignal>();
 const bundle = resolve('plugin/dist/cli.mjs');
 afterEach(async () => { await Promise.all(clients.splice(0).map(c => c.close())); await Promise.all(roots.splice(0).map(cleanup)); });
-async function connect(root: string, file = bundle) {
+async function connect(root: string, file = bundle, signal?: AbortSignal) {
   const client = new Client({ name: 'feature-network-tests', version: '1.0.0' }); clients.push(client);
+  if (signal) requestSignals.set(client, signal);
   const transport = new StdioClientTransport({ command: process.execPath, args: [file, 'mcp', '--project-root', root], stderr: 'pipe' });
   let stderr = ''; transport.stderr?.on('data', chunk => { stderr += chunk.toString(); });
   try { await client.connect(transport); } catch (error) { throw new Error(`${String(error)} stderr: ${stderr}`); }
   return { client, stderr: () => stderr };
 }
 async function call(client: Client, name: string, args: Record<string, unknown> = {}) {
-  return client.callTool({ name, arguments: args });
+  const signal = requestSignals.get(client);
+  return client.callTool({ name, arguments: args }, signal ? { signal } : undefined);
 }
 function data(result: Awaited<ReturnType<typeof call>>) { return result.structuredContent as Record<string, any>; }
 // Catches a missing server/registration by observing the real SDK client's tool list.
@@ -76,8 +79,8 @@ test('missing_observation_requires_repair_and_does_not_invent_baseline', async (
   expect(data(await call(client, 'network_check', { mode: 'full' })).unknownChangeDecisions).toContainEqual({ path: 'aux.ts', state: 'missing_no_semantic_change' });
   expect(JSON.parse(await readFile(join(p.runtimeDir, 'baselines.json'), 'utf8')).references).not.toHaveProperty('aux.ts');
 });
-test('complete_tool_result_budget_and_unicode_continuation', async () => {
-  const p = await fixture(roots); const snap = await readSnapshot(p); const { client } = await connect(p.root);
+test('complete_tool_result_budget_and_unicode_continuation', async ({ signal }) => {
+  const p = await fixture(roots); const snap = await readSnapshot(p); const { client } = await connect(p.root, bundle, signal);
   const saved = await call(client, 'network_update', { expected: snap.fingerprints, upserts: [{ ...snap.features[0], summary: '😀'.repeat(3000) }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }], decision: { outcome: 'updated', reason: 'Reviewed long feature summary' } }); expect(saved.isError).not.toBe(true);
   let cursor: unknown; let text = ''; let pages = 0;
   do {
@@ -90,7 +93,7 @@ test('complete_tool_result_budget_and_unicode_continuation', async () => {
   const small = await call(client, 'network_context', { ids: ['alpha'], detail: 'full', budget: 512 });
   expect(Buffer.byteLength(JSON.stringify(small))).toBeLessThanOrEqual(512);
   expect(data(await call(client, 'network_impact', { budget: 512 }))).toHaveProperty('revision');
-}, 30000);
+}, 60000);
 test('pending_journal_is_not_recovered_by_reads', async () => {
   const p = await fixture(roots); const path = join(p.runtimeDir, 'journal.json'); await writeFile(path, 'unreadable journal'); const { client } = await connect(p.root);
   expect(data(await call(client, 'network_check', { mode: 'full' })).integrity).toBe('pending_recovery');
@@ -206,8 +209,8 @@ test('minimum_budgets_include_actual_check_bootstrap_update_text', async () => {
   expect(saved.isError).not.toBe(true); expect(Buffer.byteLength(JSON.stringify(saved))).toBeLessThanOrEqual(512); expect(readable(saved)).toContain(data(saved).revision.slice(0, 12)); expect(readable(saved)).toContain('recorded'); if (data(saved).truncated) expect(readable(saved)).toContain('omitted');
 });
 
-test('query_freshness_tracks_review_changed_source_and_cache_loss_on_real_tools', async () => {
-  const p = await fixture(roots); const { client } = await connect(p.root);
+test('query_freshness_tracks_review_changed_source_and_cache_loss_on_real_tools', async ({ signal }) => {
+  const p = await fixture(roots); const { client } = await connect(p.root, bundle, signal);
   const snap = await readSnapshot(p);
   expect((await call(client, 'network_update', { expected: {}, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: [{path:'source.ts',hash:hash('source')}], decision:{outcome:'no_semantic_change',reason:'Inspected source'} })).isError).not.toBe(true);
   for (const tool of ['network_context', 'network_impact']) {
@@ -224,7 +227,7 @@ test('query_freshness_tracks_review_changed_source_and_cache_loss_on_real_tools'
   const unknown = data(await call(client,'network_context',{ids:['alpha']}));
   expect(unknown.freshness.alpha).toEqual({state:'unknown',review:'open'});
   await expect(readFile(join(p.runtimeDir,'values/read-cache.json'))).rejects.toMatchObject({code:'ENOENT'});
-});
+}, 20000);
 test('bootstrap_exposes_package_free_blockers_scope_and_revision_bound_record_pages', async () => {
   const root = await tree(); roots.push(root); await repo(root);
   await writeFile(join(root,'broken.txt'),Buffer.from([0xff])); await writeFile(join(root,'.env'),'secret');

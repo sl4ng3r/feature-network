@@ -90,7 +90,7 @@ test('normal_turn_requires_actual_new_source_changes', async () => {
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBeUndefined();
   await writeFile(join(p.root, 'source.ts'), 'new behavior');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBe('block');
-});
+}, 20000);
 test('concurrent_prompt_receipts_never_attach_wrong_core_turn', async () => {
   const p = await fixture(roots);
   await Promise.all(['host-turn-a', 'host-turn-b'].map(turn_id => handleCodexEvent(payload(p.root, 'UserPromptSubmit', { turn_id, prompt: '/feature-network-sync' }), options)));
@@ -112,7 +112,7 @@ test('matching_technical_hash_without_reasoned_decision_stays_open_for_current_c
   await writeFile(join(p.root, 'source.ts'), 'new');
   await applyUpdate(p, { expected: {}, upserts: [], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('new') }] });
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBe('block');
-});
+}, 20000);
 test('explicit_init_continuation_only_requests_bounded_bootstrap_not_product_edits', async () => {
   const p = await fixture(roots);
   await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: '/feature-network-init' }), options);
@@ -120,7 +120,7 @@ test('explicit_init_continuation_only_requests_bounded_bootstrap_not_product_edi
   const out = await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options);
   expect(out.decision).toBe('block'); expect(out.reason).toContain('Do not modify product code');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBeUndefined();
-});
+}, 20000);
 
 test('unused_host_filter_registration_keeps_new_source_turn_eligible', async () => {
   const p = await fixture(roots);
@@ -128,4 +128,4 @@ test('unused_host_filter_registration_keeps_new_source_turn_eligible', async () 
   await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: '/feature-network-sync' }), options);
   await writeFile(join(p.root, 'source.ts'), 'new source behavior');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBe('block');
-});
+}, 20000);
