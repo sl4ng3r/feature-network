@@ -9,7 +9,7 @@ const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
 beforeAll(async () => {
   checkout = await tree();
   for (const directory of ['src', 'scripts', 'tests', 'demo', 'bench', 'plugin', 'packaging', 'docs', '.github', '.agents', 'node_modules']) await cp(resolve(directory), join(checkout, directory), { recursive: true });
-  for (const name of ['package.json', 'package-lock.json', '.gitignore', '.node-version', 'tsconfig.json', 'vitest.config.ts', 'LICENSE', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md']) await cp(resolve(name), join(checkout, name));
+  for (const name of ['package.json', 'package-lock.json', '.gitignore', '.gitattributes', '.node-version', 'tsconfig.json', 'vitest.config.ts', 'LICENSE', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md']) await cp(resolve(name), join(checkout, name));
   await writeFile(join(checkout, 'AGENTS.md'), 'LOCAL ONLY /Users/private/developer');
   await mkdir(join(checkout, 'tests/private-fixtures')); await writeFile(join(checkout, 'tests/private-fixtures/excluded.txt'), 'PRIVATE_FIXTURE');
   await repo(checkout); await exec('git', ['-C', checkout, '-c', 'core.autocrlf=false', 'add', '.']);
@@ -41,6 +41,7 @@ test('local_release_contains_matching_committed_source_prebuilt_plugin_checksums
   expect(manifest.sourceTree).toBe((await exec('git', ['-C', checkout, 'rev-parse', 'HEAD^{tree}'])).stdout.trim());
   const entries = untar(archive);
   expect(entries.has('feature-network-0.1.0/source/package-lock.json')).toBe(true);
+  expect(entries.has('feature-network-0.1.0/source/.gitattributes')).toBe(true);
   expect(entries.has('feature-network-0.1.0/source/bench/core.ts')).toBe(true);
   expect(entries.has('feature-network-0.1.0/source/bench/comparison.ts')).toBe(true);
   expect(entries.has('feature-network-0.1.0/source/docs/validation/benchmark-protocol.md')).toBe(true);

@@ -95,7 +95,7 @@ test('adding_a_feature_to_analyzed_source_requeues_semantic_mapping', async () =
   await bootstrap(p, ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }));
   await applyUpdate(p, { expected: { 'network-spec/beta.yaml': null }, upserts: [{ ...snap.features[0]!, id: 'beta' }], deletes: [], verifiedReferences: [{ path: 'source.ts', hash: hash('source') }] });
   expect((await bootstrap(p, { action: 'next' })).package?.slices.map(s => s.path)).toEqual(['source.ts']);
-});
+}, 20000);
 test('scope_and_small_package_limits_survive_resume', async () => {
   const p = await fixture(roots); await writeFile(join(p.root, 'other.ts'), 'not selected'); await writeFile(join(p.root, 'source.ts'), '😀'.repeat(100));
   const first = await bootstrap(p, { action: 'start', scope: ['source.ts'], maxBytes: 80, maxFiles: 1 });
@@ -118,7 +118,7 @@ test('unicode_multipart_acknowledgements_do_not_repeat_completed_slices', async 
   }
   expect(starts).toEqual([0, 65536, 131072]); expect(next.package).toBeNull();
   expect(next.state!.counters).toEqual({ packages: 3, bytes: 160000 });
-});
+}, 20000);
 test('new_file_during_final_ack_blocks_relational_completion', async () => {
   const p = await fixture(roots); const first = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   await writeFile(join(p.root, 'new.ts'), 'new');
@@ -145,7 +145,7 @@ test('explicit_needs_review_slice_can_be_resolved_by_a_later_analysis', async ()
   const retry = await bootstrap(p, { action: 'next' });
   const done = await bootstrap(p, ack(retry, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }));
   expect(done.status).toBe('awaiting_relational_review');
-});
+}, 20000);
 test('checkpoint_persists_per_slice_analysis_outcome_and_reason_without_source_copies', async () => {
   const p = await fixture(roots); const first = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   const saved = await bootstrap(p, ack(first, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! }));

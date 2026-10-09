@@ -1,0 +1,2 @@
+# Keep source/package hashes stable across platforms; binary detection remains automatic.
+* text=auto eol=lf

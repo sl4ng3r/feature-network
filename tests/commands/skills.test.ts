@@ -3,14 +3,17 @@ import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 
 const names = ['init', 'status', 'show', 'impact', 'check', 'sync'] as const;
+function skillManifest(text: string, name: string) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]+)$/.exec(text);
+  expect(match, `${name} needs parseable frontmatter and a nonempty body`).not.toBeNull();
+  return parse(match![1]!);
+}
 async function registration(name: string) {
   const root = new URL(`../../plugin/skills/${name}/`, import.meta.url);
   let text: string;
   try { text = await readFile(new URL('SKILL.md', root), 'utf8'); }
   catch { expect.fail(`${name} skill registration is missing`); }
-  const match = /^---\n([\s\S]*?)\n---\n([\s\S]+)$/.exec(text);
-  expect(match, `${name} needs parseable frontmatter and a nonempty body`).not.toBeNull();
-  return { manifest: parse(match![1]!), openai: parse(await readFile(new URL('agents/openai.yaml', root), 'utf8')) };
+  return { manifest: skillManifest(text, name), openai: parse(await readFile(new URL('agents/openai.yaml', root), 'utf8')) };
 }
 function menuEntry(value: Awaited<ReturnType<typeof registration>>) {
   return { name: value.manifest.name, description: value.openai.interface.short_description,
@@ -50,4 +53,14 @@ describe('native skill registrations (not live host acceptance)', () => {
     expect(manifest).not.toHaveProperty('allow_implicit_invocation');
     expect(openai).not.toHaveProperty('disable-model-invocation');
   });
+});
+
+// YAML permits CRLF line breaks; the contract checker must not reject a
+// valid Markdown registration merely because Git converted its line endings.
+it.each(['\n', '\r\n'])('frontmatter_accepts_valid_line_breaks_%j', async newline => {
+  const text = await readFile(new URL('../../plugin/skills/feature-network-init/SKILL.md', import.meta.url), 'utf8');
+  const manifest = skillManifest(text.replace(/\r?\n/g, newline), 'feature-network-init');
+  expect(manifest.name).toBe('feature-network-init');
+  expect(manifest['user-invocable']).toBe(true);
+  expect(manifest['disable-model-invocation']).toBe(true);
 });
