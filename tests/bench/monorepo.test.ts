@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -29,6 +29,9 @@ function evaluate(app: string, manifestPath: string) {
     checks: { id: string; status: string }[];
   } };
 }
+
+// Real generated-filesystem, SQLite/oracle-process and MCP integration.
+describe('benchmark fixture integration', { timeout: 20000 }, () => {
 
 test('seeded layout is repeatable, sparse, and distributed without a central graph', () => {
   const a = fixture(); const b = fixture();
@@ -137,16 +140,16 @@ test('fatal import reports missing checks rather than a complete denominator', (
   expect(report.notRun).toBeGreaterThan(0);
 });
 
-test('MCP impact reaches every related package through paths of at least five edges', async () => {
+test('MCP impact reaches every related package through paths of at least five edges', async ({ signal }) => {
   const { app, manifest } = fixture();
   const client = new Client({ name: 'monorepo-test', version: '1' });
   const transport = new StdioClientTransport({ command: process.execPath,
     args: [resolve('plugin/dist/cli.mjs'), 'mcp', '--project-root', app], stderr: 'pipe' });
   try {
-    await client.connect(transport);
+    await client.connect(transport, { signal, timeout: 15000 });
     const result = await client.callTool({ name: 'network_impact', arguments: {
       ids: ['profile'], direction: 'both', depth: 8, detail: 'summary', limit: 100, budget: 64000,
-    } });
+    } }, { signal, timeout: 15000 });
     const data = result.structuredContent as { integrity: string; items: { id: string }[] };
     expect(result.isError).not.toBe(true);
     expect(data.integrity).toBe('valid');
@@ -161,4 +164,6 @@ test('generator refuses invalid geometry and overwrites', () => {
   const { app } = fixture();
   expect(spawnSync(process.execPath, [generator, '2', '24', '77', app]).status).not.toBe(0);
   expect(spawnSync(process.execPath, [generator, '0', '24', '77', join(tmpdir(), 'fn-monorepo-invalid')]).status).not.toBe(0);
+});
+
 });

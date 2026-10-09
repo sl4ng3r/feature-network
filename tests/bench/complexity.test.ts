@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -18,6 +18,9 @@ function fixture(size = 24, related = 5, seed = 11) {
   const manifest = JSON.parse(execFileSync(process.execPath, [generator, String(size), String(related), String(seed), app], { encoding: 'utf8' }));
   return { root, app, manifest };
 }
+
+// Real generated-filesystem, SQLite/oracle-process and MCP integration.
+describe('benchmark fixture integration', { timeout: 20000 }, () => {
 
 test('deterministic fixture separates profile descendants from unrelated features', () => {
   const { app, manifest } = fixture();
@@ -80,13 +83,13 @@ test('blanket field spread fails because independent source records carry privat
   expect(result.checks.some((check: { id: string; status: string }) => check.id.startsWith('independent_projection:') && check.status === 'failed')).toBe(true);
 });
 
-test('generated network is valid and impact reaches exactly the profile descendants', async () => {
+test('generated network is valid and impact reaches exactly the profile descendants', async ({ signal }) => {
   const { app, manifest } = fixture();
   const client = new Client({ name: 'complexity-test', version: '1' });
   const transport = new StdioClientTransport({ command: process.execPath, args: [resolve('plugin/dist/cli.mjs'), 'mcp', '--project-root', app], stderr: 'pipe' });
   try {
-    await client.connect(transport);
-    const result = await client.callTool({ name: 'network_impact', arguments: { query: 'profile', direction: 'both', depth: 8, detail: 'summary', limit: 20, budget: 20000 } });
+    await client.connect(transport, { signal, timeout: 15000 });
+    const result = await client.callTool({ name: 'network_impact', arguments: { query: 'profile', direction: 'both', depth: 8, detail: 'summary', limit: 20, budget: 20000 } }, { signal, timeout: 15000 });
     const data = result.structuredContent as { integrity: string; items: { id: string }[]; };
     expect(result.isError).not.toBe(true);
     expect(data.integrity).toBe('valid');
@@ -98,4 +101,6 @@ test('fixture size and output constraints reject invalid or overwritten cases', 
   const { app } = fixture();
   expect(spawnSync(process.execPath, [generator, '24', '5', '11', app], { encoding: 'utf8' }).status).not.toBe(0);
   expect(spawnSync(process.execPath, [generator, '2', '3', '11', join(tmpdir(), 'invalid-fn-case')], { encoding: 'utf8' }).status).not.toBe(0);
+});
+
 });

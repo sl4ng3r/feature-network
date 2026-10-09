@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { Client } from '@modelcontextprotocol/client';
 import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -25,6 +25,9 @@ function oracleRun(app: string, manifestPath: string) {
   const run = spawnSync(process.execPath, [oracle, app, manifestPath], { encoding: 'utf8' });
   return { status: run.status, result: JSON.parse(run.stdout) as { status: string; checks: { id: string; status: string }[] } };
 }
+
+// Real generated-filesystem, SQLite/oracle-process and MCP integration.
+describe('benchmark fixture integration', { timeout: 20000 }, () => {
 
 test('deterministic generator creates five real contract families and separate independent lookalikes', () => {
   const first = fixture();
@@ -135,17 +138,17 @@ test('backup restore rejects an unknown version before changing persisted rows',
   expect(run.result.checks.some(check => check.id === `backup:${id}` && check.status === 'failed')).toBe(true);
 });
 
-test.each([[24, 12, 44], [64, 40, 55], [128, 96, 66]])('network spec and impact are valid for %i contracts', async (size, related, seed) => {
+test.for([[24, 12, 44], [64, 40, 55], [128, 96, 66]])('network spec and impact are valid for %i contracts', async ([size, related, seed], { signal }) => {
   const { app, manifest } = fixture(size, related, seed);
   const client = new Client({ name: 'fanout-test', version: '1' });
   const transport = new StdioClientTransport({ command: process.execPath,
     args: [resolve('plugin/dist/cli.mjs'), 'mcp', '--project-root', app], stderr: 'pipe' });
   try {
-    await client.connect(transport);
+    await client.connect(transport, { signal, timeout: 15000 });
     const result = await client.callTool({ name: 'network_impact', arguments: {
       ids: ['profile'], direction: 'both', depth: manifest.tier === 'large' ? 2 : 1,
       detail: 'summary', limit: 100, budget: 64000,
-    } });
+    } }, { signal, timeout: 15000 });
     const data = result.structuredContent as { integrity: string; items: { id: string }[] };
     expect(result.isError).not.toBe(true);
     expect(data.integrity).toBe('valid');
@@ -158,4 +161,6 @@ test('generator refuses invalid geometry and refuses to overwrite a fixture', ()
   expect(spawnSync(process.execPath, [generator, '30', '10', '11', app]).status).not.toBe(0);
   expect(spawnSync(process.execPath, [generator, '15', '4', '11', join(tmpdir(), 'fn-fanout-invalid')]).status).not.toBe(0);
   expect(readFileSync(join(app, 'network-spec/profile.yaml'), 'utf8')).toContain('id: profile');
+});
+
 });
