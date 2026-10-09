@@ -3,3 +3,6 @@ dist/
 coverage/
 .feature-network/
 *.tsbuildinfo
+plugin/LICENSE
+releases/
+.feature-network-build-*/

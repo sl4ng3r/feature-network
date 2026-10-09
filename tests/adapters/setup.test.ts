@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { afterEach, beforeAll, expect, test } from 'vitest';
 import { mkdir, readFile, writeFile, symlink, access } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
@@ -6,6 +6,7 @@ import { planSetup, readSetupConfig, applySetup, quoteBash, quotePowerShell } fr
 import { cleanup, tree, exec } from '../project/helpers.js';
 const roots: string[] = [];
 const options = { pluginRoot: resolve('plugin'), nodePath: process.execPath };
+beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function project() { const root = await tree(); roots.push(root); return root; }
 test('setup_preserves_unrelated_config', async () => {
@@ -36,9 +37,12 @@ test('parent_symlink_escape is refused', async () => {
   const root = await project(); const other = await project(); await symlink(other, join(root, '.codex'));
   await expect(planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, options)).rejects.toThrow();
 });
-test('quoted_paths_on_bash_and_powershell', async () => {
+test.skipIf(process.platform === 'win32')('quoted_paths_on_bash_POSIX_execution', async () => {
   const value = "path with space/it's;$HOME`touch BAD`$(echo bad)";
   expect((await exec('/bin/bash', ['-c', `printf '%s' ${quoteBash(value)}`])).stdout).toBe(value);
+});
+test('quoted_paths_on_powershell_contract', () => {
+  const value = "path with space/it's;$HOME`touch BAD`$(echo bad)";
   expect(quotePowerShell(value)).toBe("'path with space/it''s;$HOME`touch BAD`$(echo bad)'");
 });
 test('config_values_and_manual_hook_settings_are_preserved_but_not_previewed', async () => {

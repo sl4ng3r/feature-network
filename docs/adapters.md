@@ -34,14 +34,14 @@ The host `stop_hook_active: false` guard and an atomic local receipt CAS jointly
 
 ## Setup boundaries
 
-Dry-run reads only these fixed project configuration targets:
+Project fallback dry-run reads only these fixed configuration targets (Codex native mode writes only config.toml and reads hooks.json solely for duplicate-handler checks):
 
 - Codex: `.codex/hooks.json`, `.codex/config.toml`.
 - Copilot: `.github/hooks/feature-network.json`, `.mcp.json`.
 
 The preview gives exact absolute target paths, SHA-256 fingerprints of the original raw contents (`null` for absent), and **additions only**. It never prints unrelated configuration values. Runtime, plugin and project paths are generated from the local installation; never commit these local plans to a public package. Generated MCP commands carry one explicit root. Bash and PowerShell arguments are individually quoted. Bash commands are process-tested with spaces, apostrophes and metacharacters; PowerShell quoting has a contract test, not a Windows/PowerShell execution claim.
 
-The trusted library API is `planSetup(host, projectRoot, existingRawConfig, {pluginRoot, nodePath})`. Planning is not installation consent. An integration may call `applySetup(plan)` only after concrete approval of that exact preview. The plan is an immutable, opaque, same-process capability; serialized/forged/mutated plans cannot authorize writes. The CLI intentionally exposes only dry-run, not apply or arbitrary config paths. It never modifies user/global/employer configuration, host trust settings or plugin installation state.
+Public install steps and receipt boundaries: `docs/installation.md`. The trusted library API is `planSetup(host, projectRoot, existingRawConfig, {pluginRoot, nodePath})`. Planning is not installation consent. An integration may call `applySetup(plan)` only after concrete approval of that exact preview. The plan is an immutable, opaque, same-process capability; serialized/forged/mutated plans cannot authorize writes. The CLI exposes dry-run and explicit `--approve-and-apply <receipt>`. Apply replans from actual files and compares the receipt before using the opaque same-process plan; serialized plans and arbitrary config paths are never accepted. `--native-plugin` is Codex-only and proposes only its fixed MCP target, using native hooks after separate host trust review; exact duplicate project handlers from the same bundle block setup. It never modifies user/global/employer configuration, host trust settings or plugin installation state.
 
 The apply operation checks every original content again, rejects changed sources/targets and symlink escape, stages files beside the targets, and publishes with per-file atomic rename. Temporary target locks reject competing setup without waiting or reclaiming ambiguous owners. Existing TOML bytes/comments are preserved by appending a parser-validated new section; JSON preserves unrelated settings/keys. An existing FeatureNetwork MCP entry is rejected for manual review rather than overwritten. Parser diagnostics are redacted. Configuration reads are limited to 1 MiB.
 

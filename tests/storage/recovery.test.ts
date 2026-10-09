@@ -11,7 +11,12 @@ afterEach(async () => { for (const w of workers.splice(0)) { w.child.kill('SIGKI
 async function setup(init = true) { const root = await tree(); roots.push(root); await writeFile(join(root, 'source.ts'), 'source'); const p = await openProject(root); if (init) await applyUpdate(p, initial()); return p; }
 async function crash(root: string, request: unknown, phase: string) {
   const w = worker(root, 'update', request, phase); workers.push(w);
-  expect(await w.next()).toEqual({ stage: phase }); w.child.kill('SIGKILL'); expect((await w.done).signal).toBe('SIGKILL');
+  expect(await w.next()).toEqual({ stage: phase }); expect(w.child.kill('SIGKILL')).toBe(true);
+  const outcome = await w.done; // Resolves only after the real child exit event.
+  expect(w.child.exitCode !== null || w.child.signalCode !== null).toBe(true);
+  if (process.platform === 'win32') expect(outcome.signal === 'SIGKILL' || (Number.isInteger(outcome.code) && outcome.code !== 0)).toBe(true);
+  else expect(outcome.signal).toBe('SIGKILL');
+  expect(outcome.stderr).toBe('');
 }
 const empty = () => ({ expected: {}, upserts: [], deletes: [], verifiedReferences: [] });
 for (const phase of ['before-rename', 'after-rename']) {

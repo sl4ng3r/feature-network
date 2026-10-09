@@ -51,7 +51,7 @@ test('setup_dry_run_real_entry_offline_bundle_preserves_disk_and_redacts_existin
   const context = await run(join(installed, 'dist/hook.mjs'), ['--host', 'codex'], '{}'); expect(context.code).toBe(0);
 });
 
-test('portable_codex_and_generated_project_hook_commands_consume_quoted_paths', async () => {
+test.skipIf(process.platform === 'win32')('portable_codex_and_generated_project_hook_commands_consume_quoted_paths_POSIX', async () => {
   const root = await tree(); roots.push(root); const installed = join(root, "plugin it's;$HOME`bad`$(bad)"); await mkdir(installed);
   await cp(resolve('plugin/dist'), join(installed, 'dist'), { recursive: true });
   const p = await fixture(roots); const input = JSON.stringify({ session_id: 'redacted', cwd: p.root, hook_event_name: 'SessionStart' });
@@ -70,3 +70,20 @@ test('stdin_that_never_finishes_cannot_block_agent_indefinitely', async () => {
   const code = await new Promise<number | null>(done => child.on('close', done));
   expect(code).toBe(0); expect(Date.now() - begin).toBeLessThan(8000); expect(JSON.parse(stdout)).toEqual({}); expect(stderr).toContain('hook_timeout');
 }, 10000);
+
+// PowerShell 7 defaults to UTF-8 output; explicitly bind native pipe encoding.
+// Primary encoding contract: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-7.5
+// This is a genuine Windows execution test, not a portable quoting equality claim.
+test.skipIf(process.platform !== 'win32')('generated_copilot_powershell_hook_runs_real_Node_bundle_on_Windows', async () => {
+  const root = await tree(); roots.push(root); const installed = join(root, "plugin it's;$SAFE"); await mkdir(installed);
+  await cp(resolve('plugin/dist'), join(installed, 'dist'), { recursive: true });
+  const p = await fixture(roots);
+  const dry = await run(join(installed, 'dist/cli.mjs'), ['setup', '--host', 'copilot', '--project-root', p.root, '--dry-run'], '');
+  expect(dry.code).toBe(0); const preview = JSON.parse(dry.stdout);
+  const command = JSON.parse(preview.files[0].content).hooks.sessionStart[0].powershell;
+  const input = JSON.stringify({ sessionId: 'synthetic-session', timestamp: 1791540000000, cwd: p.root, source: 'startup' });
+  const literal = "'" + input.replaceAll("'", "''") + "'";
+  const script = '$OutputEncoding = [System.Text.UTF8Encoding]::new($false); ' + literal + ' | ' + command + '; exit $LASTEXITCODE';
+  const out = await run('-NoProfile', ['-NonInteractive', '-Command', script], '', 'pwsh');
+  expect(out.code).toBe(0); expect(out.stderr).toBe(''); expect(JSON.parse(out.stdout).additionalContext).toContain('last_known');
+});

@@ -1,4 +1,40 @@
 import { build } from 'esbuild';
-import { mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, readdir, rename, rm, unlink, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const json = async path => JSON.parse(await readFile(path, 'utf8'));
+if (Number(process.versions.node.split('.')[0]) !== 24) throw new Error('node_24_required');
+const staging = await mkdtemp('.feature-network-build-'); let nextFile = 0;
+try {
 await mkdir('plugin/dist', { recursive: true });
-await build({ entryPoints: { cli: 'src/cli.ts', hook: 'src/adapters/hook-main.ts' }, outdir: 'plugin/dist', outExtension: { '.js': '.mjs' }, bundle: true, platform: 'node', target: 'node24', format: 'esm', sourcemap: false, legalComments: 'eof', banner: { js: "import { createRequire as __fnCreateRequire } from 'node:module'; const require = __fnCreateRequire(import.meta.url);" } });
+const result = await build({ entryPoints: { cli: 'src/cli.ts', hook: 'src/adapters/hook-main.ts' }, outdir: 'plugin/dist', outExtension: { '.js': '.mjs' }, bundle: true, platform: 'node', target: 'node24', format: 'esm', sourcemap: false, legalComments: 'eof', metafile: true, write: false, banner: { js: "import { createRequire as __fnCreateRequire } from 'node:module'; const require = __fnCreateRequire(import.meta.url);" } });
+// The metafile identifies actually bundled packages, including transitive libraries.
+const packageRoots = new Set();
+for (const input of Object.keys(result.metafile.inputs).filter(path => path.startsWith('node_modules/'))) {
+  let directory = dirname(input);
+  while (directory.startsWith('node_modules')) {
+    try { const metadata = await json(join(directory, 'package.json')); if (metadata.name && metadata.version) { packageRoots.add(directory); break; } directory = dirname(directory); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; directory = dirname(directory); }
+  }
+}
+const packages = [];
+for (const directory of [...packageRoots].sort()) {
+  const metadata = await json(join(directory, 'package.json'));
+  const names = await readdir(directory);
+  const licenseFile = names.find(name => /^licen[sc]e(?:\.(?:md|txt))?$/i.test(name));
+  if (!licenseFile || !metadata.license) throw new Error(`missing_dependency_license: ${metadata.name}`);
+  packages.push({ name: metadata.name, version: metadata.version, license: metadata.license, text: await readFile(join(directory, licenseFile), 'utf8') });
+}
+packages.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+async function publish(path, data) {
+  const temp = join(staging, String(nextFile++)); await writeFile(temp, data); await rename(temp, path);
+}
+for (const output of result.outputFiles) await publish(output.path, output.contents);
+await publish('plugin/dist/third-party-notices.json', JSON.stringify({ format: 1, packages }, null, 2) + '\n');
+try { await publish('plugin/LICENSE', await readFile('LICENSE')); }
+catch (error) { if (error.code !== 'ENOENT') throw error; await unlink('plugin/LICENSE').catch(() => {}); }
+const sources = Object.fromEntries(await Promise.all([...new Set([...Object.keys(result.metafile.inputs), 'scripts/build-plugin.mjs', 'package.json', 'package-lock.json'])].sort().map(async path => [path, hash(await readFile(path))])));
+const artifacts = Object.fromEntries(await Promise.all(['cli.mjs', 'hook.mjs', 'third-party-notices.json'].map(async name => [name, hash(await readFile(join('plugin/dist', name)))])));
+await publish('plugin/dist/build-info.json', JSON.stringify({ format: 1, version: (await json('package.json')).version, target: 'node24', esbuild: (await json('node_modules/esbuild/package.json')).version, sources, artifacts }, null, 2) + '\n');
+} finally { await rm(staging, { recursive: true, force: true }); }

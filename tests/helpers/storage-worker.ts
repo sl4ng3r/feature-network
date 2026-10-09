@@ -38,7 +38,7 @@ export async function runWorker(): Promise<void> {
   const originalRename = fs.promises.rename;
   let intercepted = false;
   fs.promises.rename = async (source, destination) => {
-    const target = String(destination);
+    const target = String(destination).replaceAll('\\', '/');
     const match = !intercepted && ((phase === 'before-baseline' && target.endsWith('/baselines.json'))
       || (['before-rename', 'after-rename'].includes(phase!) && target.includes('/network-spec/')));
     if (match) { intercepted = true; if (phase !== 'after-rename') await pause(phase!); }
@@ -49,7 +49,7 @@ export async function runWorker(): Promise<void> {
   let reads = 0;
   fs.promises.open = async (...args: Parameters<typeof fs.promises.open>) => {
     const handle = await originalOpen(...args);
-    if (String(args[0]).endsWith('/network-spec/alpha.yaml') && phase?.startsWith('external-')) {
+    if (String(args[0]).replaceAll('\\', '/').endsWith('/network-spec/alpha.yaml') && phase?.startsWith('external-')) {
       const read = handle.readFile.bind(handle);
       handle.readFile = (async (...readArgs: Parameters<typeof handle.readFile>) => {
         const value = await read(...readArgs); reads++;

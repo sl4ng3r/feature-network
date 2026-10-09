@@ -20,13 +20,20 @@ describe('git state', () => {
     const head = (await exec('git', ['-C', root, 'rev-parse', 'HEAD'])).stdout.trim();
     await exec('git', ['-C', root, 'mv', 'old Ü.ts', 'renamed Ü.ts']);
     await writeFile(join(root, 'edit.ts'), 'after');
-    await writeFile(join(root, 'new\nÜ file.ts'), 'new');
+    const newPath = 'new Ü file.ts';
+    await writeFile(join(root, newPath), 'new');
     await writeFile(join(root, 'ignored'), 'ignored');
     const state = await readGitState(await openProject(root));
     expect(state.status).toBe('available'); expect(state.head).toBe(head);
     expect(state.staged).toEqual(['old Ü.ts', 'renamed Ü.ts']);
     expect(state.unstaged).toEqual(['edit.ts']);
-    expect(state.untracked).toEqual(['new\nÜ file.ts']);
+    expect(state.untracked).toEqual([newPath]);
+  });
+
+  // Windows filesystem names cannot contain newline; keep the NUL parser regression on POSIX.
+  it.skipIf(process.platform === 'win32')('preserves_newline_inside_NUL_delimited_path_POSIX_fixture', async () => {
+    const root = await fresh(); await repo(root); await writeFile(join(root, 'new\nÜ file.ts'), 'new');
+    expect((await readGitState(await openProject(root))).untracked).toEqual(['new\nÜ file.ts']);
   });
 
   it('reads_unborn_repository_and_scopes_to_nested_project', async () => {
@@ -120,7 +127,7 @@ describe('git state', () => {
     expect(process.env.GIT_CONFIG_VALUE_0).toBe('touch AMBIENT_RAN; cat');
   });
 
-  it('fails_closed_when_git_cannot_apply_separate_config_keys_and_values', async () => {
+  it.skipIf(process.platform === 'win32')('fails_closed_when_git_cannot_apply_separate_config_keys_and_values_POSIX_shebang', async () => {
     const root = await fresh(); await repo(root);
     await writeFile(join(root, '.gitattributes'), '*.txt filter=foo=bar\n');
     await writeFile(join(root, 'sample.txt'), 'before');

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "feature-network",
+  "version": "0.1.0",
+  "description": "Local, versioned feature memory with evidence-linked code references and bounded impact queries.",
+  "author": { "name": "Alexander Stroll" },
+  "repository": "https://github.com/sl4ng3r/feature-network",
+  "license": "MIT",
+  "keywords": ["features", "code-memory", "impact", "local"],
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks/hooks.json",
+      "interface": {
+        "displayName": "FeatureNetwork",
+        "shortDescription": "Local feature memory for coding projects",
+        "developerName": "Alexander Stroll",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"]
+      }
+    },
+    "com.github.copilot": {}
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "feature-network-local",
+  "owner": { "name": "Alexander Stroll" },
+  "metadata": { "description": "Local FeatureNetwork package", "version": "0.1.0" },
+  "plugins": [{ "name": "feature-network", "source": "./plugin", "version": "0.1.0", "license": "MIT" }]
+}
