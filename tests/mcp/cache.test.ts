@@ -1,5 +1,6 @@
 import { describe, afterEach, expect, test, vi } from 'vitest';
-import { Client } from '@modelcontextprotocol/client';
+import { Client, SdkErrorCode } from '@modelcontextprotocol/client';
+import type { Server } from '@modelcontextprotocol/server';
 import { readFile, rm, writeFile, utimes } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as schema from '../../src/model/schema.js';
@@ -11,15 +12,37 @@ import { cleanup } from '../project/helpers.js';
 
 const roots:string[]=[];
 const clients:Client[]=[];
-const servers:Array<{close():Promise<void>}>=[];
+const servers:Server[]=[];
 afterEach(async()=>{vi.restoreAllMocks();await Promise.all(clients.splice(0).map(client=>client.close()));await Promise.all(servers.splice(0).map(server=>server.close()));await Promise.all(roots.splice(0).map(cleanup));});
 async function connect(p:Awaited<ReturnType<typeof fixture>>,signal:AbortSignal){
- const a:any={start:async()=>{},close:async()=>{},send:async(message:any)=>queueMicrotask(()=>b.onmessage?.(message))};
- const b:any={start:async()=>{},close:async()=>{},send:async(message:any)=>queueMicrotask(()=>a.onmessage?.(message))};
+ let closed=false;
+ const close=async()=>{if(closed)return;closed=true;try{a.onclose?.();}finally{b.onclose?.();}};
+ const send=(peer:any,message:any)=>{if(closed)throw new Error('test_transport_closed');queueMicrotask(()=>{if(!closed)peer.onmessage?.(message);});};
+ const a:any={start:async()=>{},close,send:async(message:any)=>send(b,message)};
+ const b:any={start:async()=>{},close,send:async(message:any)=>send(a,message)};
  const {createServer}=await import('../../src/mcp/server.js');const server=createServer(p);servers.push(server);await server.connect(a);const client=new Client({name:'cache-test',version:'1'});clients.push(client);await client.connect(b,{signal,timeout:15000});return client;
 }
 // Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
 describe('repository integration', { timeout: 20000 }, () => {
+test('closing_transport_rejects_pending_SDK_request_and_aborts_server_handler',async({signal})=>{
+ const p=await fixture(roots);const client=await connect(p,signal);const server=servers.at(-1)!;
+ const started=Promise.withResolvers<AbortSignal>();const cleanupRequest=new AbortController();
+ server.setRequestHandler('tools/call',async(_request,context)=>{
+  started.resolve(context.mcpReq.signal);
+  await new Promise<void>(resolve=>context.mcpReq.signal.addEventListener('abort',()=>resolve(),{once:true}));
+  return {content:[]};
+ });
+ const pending=client.callTool({name:'held-test-request',arguments:{}},{signal:AbortSignal.any([signal,cleanupRequest.signal]),timeout:15000}).then(result=>result,error=>error);
+ try{
+  const handlerSignal=await started.promise;
+  expect(handlerSignal.aborted).toBe(false);
+  const transport=client.transport!;
+  await client.close();
+  expect(handlerSignal.aborted).toBe(true);
+  expect(await pending).toMatchObject({code:SdkErrorCode.ConnectionClosed});
+  await transport.close();await client.close();await server.close(); // Shared close remains idempotent.
+ }finally{cleanupRequest.abort();await pending;}
+});
 test('real_MCP_reuses_parsing_and_index_entries_then_refreshes_same_length_manual_edit',async({signal})=>{
  const p=await fixture(roots);const client=await connect(p,signal);const parse=vi.spyOn(schema,'parseFeature');const refresh=vi.spyOn(indexes,'refreshIndex');
  const call=()=>client.callTool({name:'network_context',arguments:{ids:['alpha']}},{signal});
