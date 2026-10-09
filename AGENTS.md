@@ -39,8 +39,11 @@ Voraussetzung für Entwicklung und Laufzeit: Node.js 24 LTS (`.node-version`). E
 
 - `npm test`: vollständige derzeit verfügbare Vitest-Suite.
 - `npm test -- tests/model/schema.test.ts`: YAML-Vertragsprüfung.
+- `npm test -- tests/project`: Projektbindung, Pfadsicherheit und echte Git-Fixtures.
 - `npm run typecheck`: strikte TypeScript-Prüfung ohne Ausgabe.
 
 Die npm-Skripte `build`, `verify:package` und `bench:core` reservieren die Schnittstellen für spätere Tasks. Ihre Zieldateien existieren noch nicht; sie schlagen derzeit fehl und sind kein Build-, Paket- oder Performancenachweis. Es gibt noch keinen laufenden Dienst oder installierbares Plugin. Keine Live-Abnahme behaupten.
 
 Der Parser begrenzt jedes YAML-Dokument auf 65.536 UTF-8-Bytes, verwirft unbekannte Felder, doppelte Schlüssel, Aliase, Anker und explizite Tags und normalisiert optionale Listen. `_meta.yaml` erlaubt ausschließlich `schema: 1`, `coverage: partial` und optionale `areas` als beschreibende Hinweise; diese beweisen keine vollständige Abdeckung. Referenzpfade werden syntaktisch geprüft; Dateiexistenz und projektbezogene Pfadsicherheit werden erst in den Speicher-/Projekttasks implementiert.
+
+`src/project/` bindet explizite Roots ohne Dateianlage, kanonisiert sichere Referenzpfade (auch fehlende) und begrenzt Hook-Discovery auf den nächsten `.git`-Checkout. Symlink-Verzeichnisse für Speicherung und symlinkte Marker werden abgewiesen. Git-State verwendet feste Argumentlisten, NUL-getrennte Pfade und relative Projektpfade; fehlendes Git ergibt `status: unavailable` mit Diagnose statt einer Clean-State-Zusage. Repository-Filter und fsmonitor werden beim Lesen deaktiviert; gefilterte Dateien erhalten eine sichtbare Prüfgrenze. Referenzexistenz, ausgeschlossene fachliche Referenzbereiche und Schreibzielrichtlinien bleiben Aufgabe der Speicher-/Freshness-Verbraucher.
