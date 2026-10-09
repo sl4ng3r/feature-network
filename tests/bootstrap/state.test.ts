@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { bootstrap, type BootstrapResult } from '../../src/bootstrap/state.js';
@@ -7,6 +7,7 @@ import { tree, repo, cleanup, exec } from '../project/helpers.js';
 import { openProject } from '../../src/project/root.js';
 import { readSnapshot, applyUpdate } from '../../src/storage/repository.js';
 import { readRuntime, writeRuntime } from '../../src/storage/runtime.js';
+
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 function ack(result: BootstrapResult, networkRevision: string, featureFingerprints: Record<string, string> = {}) {
@@ -14,6 +15,8 @@ function ack(result: BootstrapResult, networkRevision: string, featureFingerprin
     sources: [...new Map(result.package!.slices.map(s => [s.path, { path: s.path, hash: s.fileHash }])).values()], featureFingerprints,
     results: result.package!.slices.map(s => ({ path: s.path, startByte: s.startByte, endByte: s.endByte, featureIds: Object.keys(featureFingerprints), outcome: 'analyzed' as const, reason: 'Reviewed actual source and saved feature mapping' })) };
 }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('checkpoint_conflict_preserves_progress', async () => {
   const p = await fixture(roots); const next = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
   const request = ack(next, snap.revision, { alpha: snap.fingerprints['network-spec/alpha.yaml']! });
@@ -172,3 +175,5 @@ test('empty_checkpoint_cannot_carry_completed_review_to_a_changed_network', asyn
   const status = await bootstrap(p, { action: 'status' }); expect(status.runRevision).toBe(renewed.runRevision);
   expect((await bootstrap(p, { action: 'status' })).runRevision).toBe(status.runRevision);
 }, 20000);
+
+});

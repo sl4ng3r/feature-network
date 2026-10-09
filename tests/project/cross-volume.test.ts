@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { describe, afterEach, expect, test, vi } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, win32 } from 'node:path';
 import { readSnapshot } from '../../src/storage/repository.js';
@@ -31,6 +31,8 @@ async function setup() {
   return { project, options: { excludedReferenceRoots: [topology.pluginRoot] } };
 }
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('cross_volume_absolute_relative_result_preserves_source_snapshot_and_current_change', async () => {
   expect(win32.relative('D:\\installed-plugin', 'C:\\project\\source.ts')).toBe('C:\\project\\source.ts');
   const { project, options } = await setup();
@@ -48,4 +50,6 @@ test('cross_volume_plugin_installation_captures_and_continues_actual_source_turn
   await writeFile(join(project.root, 'source.ts'), 'changed source');
   const stopped = await handleCodexEvent({ ...event, hook_event_name: 'Stop', stop_hook_active: false }, trusted);
   expect(stopped.decision).toBe('block');
+});
+
 });

@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { bootstrap } from '../../src/bootstrap/state.js';
@@ -6,7 +6,10 @@ import { applyUpdate } from '../../src/storage/repository.js';
 import { parseFeature } from '../../src/model/schema.js';
 import { cleanup } from '../../tests/project/helpers.js';
 import { demoProject, readSnapshot, sourceHashes } from './helpers.js';
+
 const roots: string[] = []; afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('empty_network_initialization_is_only_a_protocol_test_with_prescribed_answers', async () => {
   const project = await demoProject(roots, 'empty-network'); const before = await readSnapshot(project); expect(before.integrity).toBe('not_initialized');
   const sourceBefore = await readFile(join(project.root, 'src/profile.ts'));
@@ -21,3 +24,5 @@ test('empty_network_initialization_is_only_a_protocol_test_with_prescribed_answe
   const done = await bootstrap(project, { action: 'checkpoint', expectedRunRevision: reconciled.runRevision!, packageId: null, networkRevision: saved.revision, sources: [], results: [], featureFingerprints: fingerprints, relationalReviewComplete: true, reason: 'Prescribed synthetic relation oracle; no actual host agent analysis claimed.' });
   expect(done).toMatchObject({ status: 'completed', coverage: 'partial' }); expect(await readFile(join(project.root, 'src/profile.ts'))).toEqual(sourceBefore);
 }, 20000);
+
+});

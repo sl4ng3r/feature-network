@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { handleCodexEvent } from '../../src/adapters/codex.js';
@@ -7,11 +7,14 @@ import { cleanup, tree, repo, exec } from '../project/helpers.js';
 import { bootstrap } from '../../src/bootstrap/state.js';
 import { applyUpdate } from '../../src/storage/repository.js';
 import { readTurn } from '../../src/freshness/session.js';
+
 const roots: string[] = [];
 const options = { pluginRoot: resolve('plugin') };
 const turn = '10000000-0000-4000-8000-000000000001';
 const payload = (cwd: string, event: string, extra = {}) => ({ session_id: 'redacted-session', turn_id: turn, cwd, hook_event_name: event, ...extra });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('session_start_is_compact and last_known', async () => {
   const p = await fixture(roots); const out = await handleCodexEvent(payload(p.root, 'SessionStart', { source: 'startup' }), options);
   expect(out.hookSpecificOutput?.additionalContext).toContain('last_known');
@@ -52,7 +55,7 @@ test('subdirectory_launch_is_bound_correctly and missing marker is hint only', a
 });
 test('unknown_hook_event_is_safe', async () => {
   expect(await handleCodexEvent(payload('/not-existing/private', 'Unrecognized', { prompt: 'SECRET' }), options)).toEqual({});
-});
+}, 5000);
 test('pending_recovery blocks prompt/stop and does not mutate journal', async () => {
   const p = await fixture(roots); await writeFile(join(p.runtimeDir, 'journal.json'), '{');
   await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: '/feature-network-sync' }), options);
@@ -129,3 +132,5 @@ test('unused_host_filter_registration_keeps_new_source_turn_eligible', async () 
   await writeFile(join(p.root, 'source.ts'), 'new source behavior');
   expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBe('block');
 }, 20000);
+
+});

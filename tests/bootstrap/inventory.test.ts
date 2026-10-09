@@ -1,13 +1,16 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { mkdir, writeFile, symlink, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { inventory } from '../../src/bootstrap/inventory.js';
 import { openProject } from '../../src/project/root.js';
 import { cleanup, tree, repo, exec } from '../project/helpers.js';
 import { hash } from '../freshness/fixture.js';
+
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function setup() { const root = await tree(); roots.push(root); await repo(root); return openProject(root); }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('excludes_secrets_dependencies_binary_subrepos', async () => {
   const p = await setup();
   for (const [path, text] of Object.entries({ 'src/a.ts': 'source', '.env': 'SECRET=hidden', 'node_modules/a.ts': 'dep', 'build/out.js': 'built', 'image.png': '\0binary', 'nested/a.ts': 'nested' })) { await mkdir(join(p.root, path, '..'), { recursive: true }); await writeFile(join(p.root, path), text); }
@@ -47,4 +50,6 @@ test('tracked_submodule_is_an_explicit_excluded_area', async () => {
   const head = (await exec('git', ['-C', p.root, 'rev-parse', 'HEAD'])).stdout.trim();
   await exec('git', ['-C', p.root, 'update-index', '--add', '--cacheinfo', `160000,${head},submodule`]);
   expect((await inventory(p)).files.find(f => f.path === 'submodule')).toMatchObject({ status: 'excluded', reason: 'nested_repository' });
+});
+
 });

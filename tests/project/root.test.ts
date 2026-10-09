@@ -8,6 +8,8 @@ const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function fresh() { const root = await tree(); roots.push(root); return root; }
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 describe('project binding', () => {
   it('binds_explicit_root_before_initialization_without_writes', async () => {
     const root = await fresh();
@@ -75,4 +77,6 @@ describe('project binding', () => {
     await marker(inner, 'schema: 99\ncoverage: partial\n');
     await expect(discoverHookProject(inner)).rejects.toMatchObject({ code: 'invalid_schema' });
   });
+});
+
 });

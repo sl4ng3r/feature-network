@@ -1,10 +1,11 @@
 import { parse } from 'smol-toml';
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { spawn } from 'node:child_process';
 import { cp, mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fixture } from '../freshness/fixture.js';
 import { cleanup, tree, exec } from '../project/helpers.js';
+
 const roots: string[] = [];
 const cli = resolve('plugin/dist/cli.mjs'); const hook = resolve('plugin/dist/hook.mjs');
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
@@ -15,6 +16,8 @@ async function run(path: string, args: string[], input: string, executable = pro
     child.on('error', reject); child.on('close', code => resolveRun({ stdout, stderr, code })); child.stdin.on('error', () => {}); child.stdin.end(input);
   });
 }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('real_bundle_host_json_protocol_and_concurrent_stop_processes', async () => {
   const p = await fixture(roots); const events = JSON.parse(await readFile(resolve('tests/adapters/fixtures/host-events.json'), 'utf8'));
   const event = (index: number) => ({ ...events.codex[index], cwd: p.root });
@@ -91,4 +94,6 @@ test.skipIf(process.platform !== 'win32')('generated_copilot_powershell_hook_run
   const script = '$OutputEncoding = [System.Text.UTF8Encoding]::new($false); ' + literal + ' | ' + command + '; exit $LASTEXITCODE';
   const out = await run('-NoProfile', ['-NonInteractive', '-Command', script], '', 'pwsh');
   expect(out.code).toBe(0); expect(out.stderr).toBe(''); expect(JSON.parse(out.stdout).additionalContext).toContain('last_known');
+});
+
 });

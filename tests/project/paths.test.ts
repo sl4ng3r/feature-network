@@ -9,6 +9,8 @@ const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function fresh() { const root = await tree(); roots.push(root); return root; }
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 describe('project paths', () => {
   it.each(['../outside', '/etc/passwd', 'C:\\Windows\\file', 'C:relative', '\\\\server\\share', 'src\\..\\outside', 'src/../outside', '', '.', 'src//file', 'src/./file', 'a\u0000b'])('rejects_absolute_traversal_and_external_symlinks: %s', async path => {
     const project = await openProject(await fresh());
@@ -51,4 +53,6 @@ describe('project paths', () => {
     await symlink(await fresh(), join(root, 'network-spec'));
     await expect(resolveProjectPath(project, 'network-spec/_meta.yaml')).rejects.toMatchObject({ code: 'unsafe_path' });
   });
+});
+
 });

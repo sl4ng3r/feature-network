@@ -9,6 +9,8 @@ const roots: string[] = [];
 afterEach(async () => { vi.unstubAllEnvs(); await Promise.all(roots.splice(0).map(cleanup)); });
 async function fresh() { const root = await tree(); roots.push(root); return root; }
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 describe('git state', () => {
   it('reads_head_and_nul_safe_staged_unstaged_untracked_paths', async () => {
     const root = await fresh(); await repo(root);
@@ -230,4 +232,6 @@ it('committed_delta_is_relative_and_never_runs_malicious_filters', async () => {
   expect(delta.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled' }));
   await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(stat(join(root, 'PROCESS_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
 });

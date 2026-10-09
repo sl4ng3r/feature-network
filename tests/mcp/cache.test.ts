@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { describe, afterEach, expect, test, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/client';
 import { readFile, rm, writeFile, utimes } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -8,16 +8,21 @@ import { checkNetwork } from '../../src/freshness/check.js';
 import { startTurn } from '../../src/freshness/session.js';
 import { fixture } from '../freshness/fixture.js';
 import { cleanup } from '../project/helpers.js';
+
 const roots:string[]=[];
-afterEach(async()=>{vi.restoreAllMocks();await Promise.all(roots.splice(0).map(cleanup));});
-async function connect(p:Awaited<ReturnType<typeof fixture>>){
+const clients:Client[]=[];
+const servers:Array<{close():Promise<void>}>=[];
+afterEach(async()=>{vi.restoreAllMocks();await Promise.all(clients.splice(0).map(client=>client.close()));await Promise.all(servers.splice(0).map(server=>server.close()));await Promise.all(roots.splice(0).map(cleanup));});
+async function connect(p:Awaited<ReturnType<typeof fixture>>,signal:AbortSignal){
  const a:any={start:async()=>{},close:async()=>{},send:async(message:any)=>queueMicrotask(()=>b.onmessage?.(message))};
  const b:any={start:async()=>{},close:async()=>{},send:async(message:any)=>queueMicrotask(()=>a.onmessage?.(message))};
- const {createServer}=await import('../../src/mcp/server.js');const server=createServer(p);await server.connect(a);const client=new Client({name:'cache-test',version:'1'});await client.connect(b);return client;
+ const {createServer}=await import('../../src/mcp/server.js');const server=createServer(p);servers.push(server);await server.connect(a);const client=new Client({name:'cache-test',version:'1'});clients.push(client);await client.connect(b,{signal,timeout:15000});return client;
 }
-test('real_MCP_reuses_parsing_and_index_entries_then_refreshes_same_length_manual_edit',async()=>{
- const p=await fixture(roots);const client=await connect(p);const parse=vi.spyOn(schema,'parseFeature');const refresh=vi.spyOn(indexes,'refreshIndex');
- const call=()=>client.callTool({name:'network_context',arguments:{ids:['alpha']}});
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
+test('real_MCP_reuses_parsing_and_index_entries_then_refreshes_same_length_manual_edit',async({signal})=>{
+ const p=await fixture(roots);const client=await connect(p,signal);const parse=vi.spyOn(schema,'parseFeature');const refresh=vi.spyOn(indexes,'refreshIndex');
+ const call=()=>client.callTool({name:'network_context',arguments:{ids:['alpha']}},{signal});
  await call();const count=parse.mock.calls.length;await call();expect(parse.mock.calls.length).toBe(count);
  expect(refresh).toHaveBeenCalled();
  const firstIndex=refresh.mock.calls.at(-1)![0];expect(refresh.mock.results.at(-1)!.value.entries.get('alpha')).toBe(firstIndex.entries.get('alpha'));
@@ -58,17 +63,19 @@ test('cache_bindings_do_not_cross_project_exclusions_or_mask_source_changes',asy
  expect((await checkNetwork(other,'full',undefined,{excludedReferenceRoots:[other.root]})).integrity).toBe('invalid');
 });
 
-test('scoped_queries_keep_shared_reference_review_and_open_missing_decisions',async()=>{
+test('scoped_queries_keep_shared_reference_review_and_open_missing_decisions',async({signal})=>{
  const p=await fixture(roots);const {applyUpdate,readSnapshot}=await import('../../src/storage/repository.js');
  const {confirmReferences}=await import('../../src/freshness/references.js');
  const snap=await readSnapshot(p);const alpha=snap.features[0]!;
  const update=await applyUpdate(p,{expected:{'network-spec/beta.yaml':null},upserts:[{...alpha,id:'beta'}],deletes:[],verifiedReferences:[{path:'source.ts',hash:(await import('../freshness/fixture.js')).hash('source')}]});
  await confirmReferences(p,[{path:'source.ts',hash:(await import('../freshness/fixture.js')).hash('source')}],{networkRevision:update.revision,outcome:'no_semantic_change',reason:'Reviewed both associations'});
- const client=await connect(p);const refs=await import('../../src/freshness/references.js');const inspect=vi.spyOn(refs,'inspectReference');
- const current:any=(await client.callTool({name:'network_context',arguments:{ids:['alpha'],limit:1}})).structuredContent;
+ const client=await connect(p,signal);const refs=await import('../../src/freshness/references.js');const inspect=vi.spyOn(refs,'inspectReference');
+ const current:any=(await client.callTool({name:'network_context',arguments:{ids:['alpha'],limit:1}},{signal})).structuredContent;
  expect(current.freshness).toEqual({alpha:{state:'current',review:'recorded'}});expect(inspect).toHaveBeenCalledTimes(1);
  await rm(join(p.runtimeDir,'values/freshness/decisions.json'));
- const missing:any=(await client.callTool({name:'network_impact',arguments:{ids:['alpha']}})).structuredContent;
+ const missing:any=(await client.callTool({name:'network_impact',arguments:{ids:['alpha']}},{signal})).structuredContent;
  expect(missing.freshness.alpha).toEqual({state:'current',review:'open'});
  await client.close();
+});
+
 });

@@ -1,14 +1,17 @@
-import { afterEach, beforeAll, expect, test } from 'vitest';
+import { describe, afterEach, beforeAll, expect, test } from 'vitest';
 import { mkdir, readFile, writeFile, symlink, access } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { planSetup, readSetupConfig, applySetup, quoteBash, quotePowerShell } from '../../src/adapters/setup.js';
 import { cleanup, tree, exec } from '../project/helpers.js';
+
 const roots: string[] = [];
 const options = { pluginRoot: resolve('plugin'), nodePath: process.execPath };
 beforeAll(async () => { await exec(process.execPath, ['scripts/build-plugin.mjs']); });
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function project() { const root = await tree(); roots.push(root); return root; }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('setup_preserves_unrelated_config', async () => {
   const root = await project(); await mkdir(join(root, '.codex'));
   const original = 'model = "manual-model"\n# keep my comment\n[mcp_servers.other]\ncommand = "manual"\n';
@@ -44,7 +47,7 @@ test.skipIf(process.platform === 'win32')('quoted_paths_on_bash_POSIX_execution'
 test('quoted_paths_on_powershell_contract', () => {
   const value = "path with space/it's;$HOME`touch BAD`$(echo bad)";
   expect(quotePowerShell(value)).toBe("'path with space/it''s;$HOME`touch BAD`$(echo bad)'");
-});
+}, 5000);
 test('config_values_and_manual_hook_settings_are_preserved_but_not_previewed', async () => {
   const root = await project(); await mkdir(join(root, '.github/hooks'), { recursive: true });
   const manual = JSON.stringify({ version: 1, hooks: { sessionStart: [{ type: 'command', bash: 'manual SECRET_SETTING' }] } });
@@ -128,4 +131,6 @@ test('invalid_UTF8_config_is_rejected_before_planning', async () => {
   const root = await project(); await mkdir(join(root, '.codex'));
   await writeFile(join(root, '.codex/config.toml'), Buffer.from([0xef, 0xbb, 0xbf, 0xff]));
   await expect(readSetupConfig('codex', root)).rejects.toThrow();
+});
+
 });

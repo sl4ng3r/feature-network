@@ -1,10 +1,11 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fixture } from '../freshness/fixture.js';
 import { cleanup } from '../project/helpers.js';
+
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 const loader = `import {registerHooks} from 'node:module'; registerHooks({resolve(s,c,n){if(!c.parentURL?.includes('/node_modules/')&&s.startsWith('.')&&s.endsWith('.js'))s=s.slice(0,-3)+'.ts';return n(s,c)}});`;
@@ -16,6 +17,8 @@ async function child(code: string) {
     proc.on('error', reject); proc.on('exit', code => { clearTimeout(timer); done({ code, stdout, killed }); });
   });
 }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 for (const target of ['reference', 'network', 'config', 'inventory']) test.skipIf(process.platform === 'win32')(`static_FIFO_${target}_is_rejected_without_blocking`, async () => {
   const p = await fixture(roots); let path = join(p.root, 'source.ts');
   if (target === 'network') path = join(p.networkDir, 'alpha.yaml');
@@ -48,4 +51,6 @@ test('authoritative_runtime_publication_EIO_still_rejects_without_saved_value',a
  const p=await fixture(roots);
  const result=await child(`import fs from 'node:fs';import {syncBuiltinESMExports} from 'node:module';const rename=fs.promises.rename;fs.promises.rename=async(...args)=>{if(String(args[1]).replaceAll('\\\\','/').endsWith('/values/probe.json'))throw Object.assign(new Error('authoritative-write'),{code:'EIO'});return rename(...args);};syncBuiltinESMExports();const {openProject}=await import('./src/project/root.ts');const {writeRuntime,readRuntime}=await import('./src/storage/runtime.ts');const p=await openProject(${JSON.stringify(p.root)});let outcome='unexpected-success';try{await writeRuntime(p,'probe',null,{committed:true});}catch(e){outcome=e.code;}process.stdout.write(JSON.stringify({outcome,saved:await readRuntime(p,'probe')}));`);
  expect(result.killed).toBe(false);expect(result.code).toBe(0);expect(JSON.parse(result.stdout)).toEqual({outcome:'EIO',saved:null});
+});
+
 });

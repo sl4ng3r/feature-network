@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { cleanup } from '../../tests/project/helpers.js';
@@ -8,8 +8,11 @@ import { applyUpdate } from '../../src/storage/repository.js';
 import { confirmReferences } from '../../src/freshness/references.js';
 import { checkNetwork } from '../../src/freshness/check.js';
 import { demoProject, readSnapshot, coverageGaps, sourceHashes } from './helpers.js';
+
 const roots: string[] = []; afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 const fields = ['id', 'displayName', 'locale']; const check = 'Roundtrip id, displayName, locale through SQLite backup and restore.';
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('profile_impact_includes_backup_and_restore', async () => {
   const project = await demoProject(roots); const snap = await readSnapshot(project); expect(snap.integrity).toBe('valid');
   const result = queryImpact(buildIndex(snap), { ids: ['user-profile'] });
@@ -44,4 +47,6 @@ test('stale_or_missing_relation_is_reported_as_coverage_gap', async () => {
   expect(coverageGaps(missing, fields, check)).toContain('restore: unreachable');
   // Structurally valid snapshots alone do not establish semantic coverage.
   expect(missing.integrity).toBe('valid');
+});
+
 });

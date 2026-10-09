@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -10,8 +10,11 @@ import * as emptyBackup from '../scenarios/empty-network/src/backup.js';
 import * as emptyRestore from '../scenarios/empty-network/src/restore.js';
 import { tree, cleanup } from '../../tests/project/helpers.js';
 import { coverageGaps, demoProject, readSnapshot } from './helpers.js';
+
 const roots: string[] = []; const databases: DatabaseSync[] = [];
 afterEach(async () => { databases.splice(0).forEach(db => db.close()); await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 for (const [name, profile, backup, restore] of [['pre-locale', beforeProfile, beforeBackup, beforeRestore], ['empty-network', emptyProfile, emptyBackup, emptyRestore]] as const) {
   test(`${name}_is_an_executable_pre_extension_sqlite_baseline`, async () => {
     const root = await tree(); roots.push(root); const source = profile.openProfileDb(join(root, 'source.sqlite')); const target = profile.openProfileDb(join(root, 'target.sqlite')); databases.push(source, target);
@@ -27,4 +30,6 @@ test('initialization_and_extension_baselines_share_identical_source_bytes', asyn
   const before = await demoProject(roots, 'pre-locale'); const snap = await readSnapshot(before);
   expect(snap.integrity).toBe('valid'); expect(coverageGaps(snap, ['id', 'displayName'], 'Roundtrip id, displayName through SQLite backup and restore.')).toEqual([]);
   expect(coverageGaps(snap, ['id', 'displayName', 'locale'], 'Roundtrip id, displayName, locale through SQLite backup and restore.')).not.toEqual([]);
+});
+
 });

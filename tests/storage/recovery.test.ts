@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { writeFile, readFile, rename, symlink, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { openProject } from '../../src/project/root.js';
@@ -6,6 +6,7 @@ import { applyUpdate, readSnapshot } from '../../src/storage/repository.js';
 import { readRuntime } from '../../src/storage/runtime.js';
 import { cleanup, tree } from '../project/helpers.js';
 import { feature, initial, refs, worker, type Worker } from '../helpers/storage-worker.js';
+
 const roots: string[] = []; const workers: Worker[] = [];
 afterEach(async () => { for (const w of workers.splice(0)) { w.child.kill('SIGKILL'); await w.done; } await Promise.all(roots.splice(0).map(cleanup)); });
 async function setup(init = true) { const root = await tree(); roots.push(root); await writeFile(join(root, 'source.ts'), 'source'); const p = await openProject(root); if (init) await applyUpdate(p, initial()); return p; }
@@ -19,6 +20,8 @@ async function crash(root: string, request: unknown, phase: string) {
   expect(outcome.stderr).toBe('');
 }
 const empty = () => ({ expected: {}, upserts: [], deletes: [], verifiedReferences: [] });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 for (const phase of ['before-rename', 'after-rename']) {
   test(`read_with_journal_does_not_recover_and_crash_recovers_on_next_write_${phase}`, async () => {
     const p = await setup(); const snap = await readSnapshot(p); const baseline = await readRuntime(p, 'baselines');
@@ -97,7 +100,6 @@ test('next_runtime_write_recovers_network_without_confirming_analysis', async ()
   expect(await readRuntime(p, 'baselines')).toEqual(baseline);
 });
 
-
 test('oversized_transaction_never_publishes_an_unreadable_journal', async () => {
   const p = await setup(); const before = await readSnapshot(p);
   const baselineBytes = await readFile(join(p.runtimeDir, 'baselines.json'));
@@ -126,4 +128,6 @@ test('missing_guard_rechecks_after_capture_under_lock_and_prevents_any_update_on
   await writeFile(join(p.root, 'notes.md'), 'recreated while updater holds lock'); w.child.send('continue');
   expect((await w.next()).error?.code).toBe('conflict');
   expect(await readFile(join(p.networkDir, 'alpha.yaml'))).toEqual(alpha); expect(await readRuntime(p, 'baselines')).toEqual(before);
+});
+
 });

@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { describe, afterEach, expect, test, vi } from 'vitest';
 import { mkdir, readFile, rm, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { checkNetwork } from '../../src/freshness/check.js';
@@ -7,8 +7,11 @@ import { readRuntime } from '../../src/storage/runtime.js';
 import { openProject } from '../../src/project/root.js';
 import { fixture } from './fixture.js';
 import { cleanup, tree } from '../project/helpers.js';
+
 const roots: string[] = [];
 afterEach(async () => { vi.unstubAllEnvs(); await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('fresh_clone_starts_unknown', async () => {
   const p = await fixture(roots); await rm(join(p.runtimeDir, 'baselines.json'));
   const result = await checkNetwork(p, 'full'); expect(result.references).toContainEqual(expect.objectContaining({ path: 'source.ts', state: 'unknown' }));
@@ -58,4 +61,6 @@ test('corrupt_decision_cache_does_not_turn_matching_baseline_into_completed_revi
   const result = await checkNetwork(p, 'full');
   expect(result.openDecisions).toContainEqual(expect.objectContaining({ path: 'source.ts', reason: 'decision_missing' }));
   expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: 'invalid_decisions' }));
+});
+
 });

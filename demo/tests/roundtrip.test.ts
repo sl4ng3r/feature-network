@@ -1,14 +1,17 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
 import { tree, cleanup } from '../../tests/project/helpers.js';
 import { openProfileDb, saveProfile } from '../src/profile.js';
 import { createBackup } from '../src/backup.js';
 import { restoreBackup } from '../src/restore.js';
+
 const roots: string[] = []; const databases: DatabaseSync[] = [];
 afterEach(async () => { databases.splice(0).forEach(db => db.close()); await Promise.all(roots.splice(0).map(cleanup)); });
 async function database(name = 'profile.sqlite') { const root = await tree(); roots.push(root); const db = openProfileDb(join(root, name)); databases.push(db); return { db, path: join(root, name) }; }
 function rows(db: DatabaseSync) { return db.prepare('SELECT * FROM profiles ORDER BY id').all().map(row => ({ ...row })); }
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('persistent_profile_roundtrip', async () => {
   const source = await database(); saveProfile(source.db, { id: 'synthetic-1', displayName: 'Demo Ada' });
   const backup = JSON.parse(JSON.stringify(createBackup(source.db))); expect(backup).toMatchObject({ formatVersion: 1, schemaVersion: 2 });
@@ -57,4 +60,6 @@ test('unsupported_schema_is_rejected_without_data_changes', async () => {
   const untouched = new DatabaseSync(path); databases.push(untouched);
   expect(untouched.prepare('SELECT value FROM sentinel').get()?.value).toBe('synthetic keep');
   expect(untouched.prepare('PRAGMA user_version').get()?.user_version).toBe(99);
+});
+
 });

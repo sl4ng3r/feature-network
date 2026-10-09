@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { readFile, writeFile, rm, symlink, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { inspectReference, confirmReferences } from '../../src/freshness/references.js';
@@ -6,8 +6,11 @@ import { readSnapshot } from '../../src/storage/repository.js';
 import { readRuntime } from '../../src/storage/runtime.js';
 import { fixture, hash } from './fixture.js';
 import { cleanup } from '../project/helpers.js';
+
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('unchanged_semantics_can_confirm_without_yaml_write', async () => {
   const p = await fixture(roots); const path = join(p.networkDir, 'alpha.yaml'); const bytes = await readFile(path);
   await writeFile(join(p.root, 'source.ts'), 'source // comment'); const snap = await readSnapshot(p);
@@ -129,4 +132,6 @@ test('missing_acknowledgements_reject_mapped_secrets_install_aliases_and_danglin
   await rm(join(p.root, 'source.ts'));
   await expect(confirmReferences(p, [{ path: 'source.ts', state: 'missing' }], decision)).rejects.toBeDefined();
   expect(await readRuntime(p, 'freshness/decisions')).toBeNull();
+});
+
 });

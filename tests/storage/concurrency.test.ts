@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hostname } from 'node:os';
@@ -6,11 +6,14 @@ import { openProject } from '../../src/project/root.js';
 import { applyUpdate, readSnapshot } from '../../src/storage/repository.js';
 import { cleanup, tree } from '../project/helpers.js';
 import { feature, initial, refs, worker, type Worker } from '../helpers/storage-worker.js';
+
 const roots: string[] = []; const workers: Worker[] = [];
 afterEach(async () => { for (const w of workers.splice(0)) { w.child.kill('SIGKILL'); await w.done; } await Promise.all(roots.splice(0).map(cleanup)); });
 async function setup() { const root = await tree(); roots.push(root); await writeFile(join(root, 'source.ts'), 'source'); const p = await openProject(root); await applyUpdate(p, initial()); return p; }
 const start = (...args: Parameters<typeof worker>) => { const w = worker(...args); workers.push(w); return w; };
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('read_during_write_never_mixes_states', async () => {
   const p = await setup(); const before = await readSnapshot(p);
   const writer = start(p.root, 'update', { expected: before.fingerprints, upserts: [feature('alpha', 'New'), feature('beta', 'New')], deletes: [], verifiedReferences: refs }, 'after-rename');
@@ -80,3 +83,5 @@ test('incomplete_owner_identity_is_never_reclaimed', async () => {
   await expect(readSnapshot(p)).rejects.toMatchObject({ code: 'lock_busy' });
   expect(JSON.parse(await readFile(join(p.runtimeDir, 'lock'), 'utf8')).pid).toBe(dead.child.pid);
 }, 6000);
+
+});

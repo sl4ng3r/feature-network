@@ -1,12 +1,15 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { writeFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fixture } from '../freshness/fixture.js';
 import { cleanup } from '../project/helpers.js';
 import { readSnapshot } from '../../src/storage/repository.js';
 import { writeRuntime } from '../../src/storage/runtime.js';
+
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('hook_runtime_write_rejects_journal_found_under_lock_without_recovery', async () => {
   const p = await fixture(roots); const snap = await readSnapshot(p);
   const journal = JSON.stringify({ version: 1, before: snap.fingerprints, changes: {} });
@@ -25,4 +28,6 @@ test('journal_created_while_hook_waits_for_lock_is_not_recovered', async () => {
   });
   expect(await pending).toMatchObject({ code: 'pending_recovery' });
   expect(await readFile(join(p.runtimeDir, 'journal.json'), 'utf8')).toBe(journal);
+});
+
 });

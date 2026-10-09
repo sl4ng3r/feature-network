@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest';
+import { describe, afterEach, expect, test } from 'vitest';
 import { mkdir, readFile, writeFile, readdir, symlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -20,6 +20,8 @@ async function setup() {
 const refs = [{ path: 'source.ts', hash: hash('source') }];
 const initial = () => ({ expected: { 'network-spec/_meta.yaml': null, 'network-spec/alpha.yaml': null }, upserts: [feature()], deletes: [], verifiedReferences: refs, initialize: true });
 
+// Real filesystem/Git/process integration: finite hosted-runner budget; unit defaults stay unchanged.
+describe('repository integration', { timeout: 20000 }, () => {
 test('uninitialized_read_does_not_create_paths', async () => {
   const project = await setup();
   expect((await readSnapshot(project)).integrity).toBe('not_initialized');
@@ -180,7 +182,6 @@ test('invalid_runtime_values_are_diagnosed_without_overwriting', async () => {
   }
 });
 
-
 test('oversized_runtime_write_preserves_existing_readable_value', async () => {
   const project = await setup(); const original = { cursor: 1 };
   await writeRuntime(project, 'sessions/bounded', null, original);
@@ -206,4 +207,6 @@ test('expected_network_revision_detects_new_feature_added_after_agent_read', asy
   const before = await readRuntime(project, 'baselines');
   await expect(applyUpdate(project, { expected: snap.fingerprints, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: refs })).rejects.toMatchObject({ code: 'conflict' });
   expect(await readRuntime(project, 'baselines')).toEqual(before);
+});
+
 });
