@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-09",
+  "scope": "Authorized synthetic pre-locale demo; read-only Codex CLI diagnostic, not Desktop acceptance",
+  "sourceRevision": "b5087e24fd098cd3f938e0eae97edcb4c32d391c",
+  "pluginVersion": "0.1.0",
+  "cliVersion": "0.162.0-alpha.17.2",
+  "desktopBundleVersion": "26.1002.52244",
+  "provider": null,
+  "effectiveModel": null,
+  "installedFilesVerified": 23,
+  "globalPluginEnabled": false,
+  "demoPluginEnabled": true,
+  "projectTrusted": true,
+  "hooksTrusted": false,
+  "hookTrustBypass": false,
+  "sandbox": "read-only",
+  "sourceAndNetworkFilesUnchanged": 8,
+  "persistentRuntimeFiles": [
+    ".gitignore"
+  ],
+  "runtimeBookkeeping": "Snapshot reads acquire temporary cooperative locks; the runtime ignore marker remains. No baseline, cache, session or checkpoint file was published.",
+  "toolCalls": [
+    {
+      "server": "feature-network",
+      "tool": "network_context",
+      "arguments": {
+        "limit": 10
+      },
+      "status": "completed"
+    },
+    {
+      "server": "feature-network",
+      "tool": "network_impact",
+      "arguments": {
+        "ids": [
+          "user-profile"
+        ],
+        "direction": "both",
+        "depth": 2,
+        "detail": "full"
+      },
+      "status": "completed"
+    },
+    {
+      "server": "feature-network",
+      "tool": "network_check",
+      "arguments": {
+        "mode": "full"
+      },
+      "status": "completed"
+    }
+  ],
+  "networkRevision": "7818764ec34a6b26239c8546778c86144a7201b91da4edfd9734cee260dd45a2",
+  "coverage": "partial",
+  "featureFreshness": "unknown",
+  "featureReviews": "open",
+  "openReferenceDecisions": 4,
+  "usage": {
+    "input_tokens": 107122,
+    "cached_input_tokens": 101504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1111,
+    "reasoning_output_tokens": 304
+  },
+  "artifactHashes": {
+    "installation-state.json": "ea5df57582d8ff9da41b5ee9dfe7d887bb16b88bf23eb12e6d5d5a6a3f0c002e",
+    "demo-trust.json": "3f6e4df0b98663e8a54bab8c6bf951f142f713724777ece0910c566991fd8bec",
+    "smoke-events.jsonl": "f8befc79ba12ac757c4c09a3ea8509b0601d63c737672281951f594bd2ec1e44",
+    "trusted-smoke-events.jsonl": "78ea04f41ea0d052d7cc60d59cfb860a4027230d8ca21debc583f7f8030395e9",
+    "mcp-smoke-events.jsonl": "0fe477d8eec446f0ef5f31427de0951d17656aa93c8d07df9c8eaece5a1d0a40",
+    "mcp-smoke-run.json": "36ef1505695e07f856ab259ec20ec2c3787f7ccb0e421c6dfd118615c1226c69"
+  },
+  "limitations": [
+    "Desktop computer use was denied; no alternate GUI automation used",
+    "Explicit commands were not injected into the CLI diagnostic; native slash-menu discovery remains unverified",
+    "The configured model hint is not evidence of the effective session model/provider",
+    "Only three read tools were invoked; bootstrap/update were not exercised",
+    "No semantic source analysis, SQLite task, hook lifecycle, sync or comparative benchmark was executed",
+    "Copilot CLI and Copilot App remain untested"
+  ]
+}
