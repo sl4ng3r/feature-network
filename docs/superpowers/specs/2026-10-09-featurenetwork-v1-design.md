@@ -24,6 +24,7 @@ Verbindliche Entscheidungen aus dem Gespräch:
 - FeatureNetwork benötigt keinen eigenen Cloud-Dienst und keinen eigenen KI-API-Schlüssel.
 - Kern und Plugins werden als Open Source über ein öffentliches Git-Repository für andere Nutzer bereitgestellt. Installation und Beiträge dürfen keine persönliche Entwicklerumgebung voraussetzen.
 - V1 enthält einen expliziten Plugin-Einstieg `feature-network-init`, der das fachliche Gedächtnis für ein bestehendes Projekt schrittweise aus Code, Tests und vorhandener Dokumentation aufbaut und unterbrochene Analysen fortsetzt.
+- Die sechs sichtbaren Nutzerbefehle sind `feature-network-init`, `feature-network-status`, `feature-network-show`, `feature-network-impact`, `feature-network-check` und `feature-network-sync`. Ihre Bedienung erfordert weder Feature-IDs noch Codesymbole.
 - Testgetriebene Umsetzung, automatisierte Tests für fachliche Wirkung, Speicherung, Konsistenz und Integrationen.
 
 FeatureNetwork selbst überträgt keine Repository-Inhalte an einen eigenen externen Dienst. Inhalte, die es dem gewählten Coding-Agenten liefert, unterliegen weiterhin dessen normalem Datenverarbeitungsmodell und den Regeln der Arbeitsumgebung.
@@ -148,7 +149,7 @@ Der Kern baut im Speicher auf:
 
 Die Suche verwendet Unicode-normalisierte, kleingeschriebene Begriffe und eine deterministische Rangfolge: explizite IDs vor Begriffstreffern, konkrete Pfadzuordnungen vor schwachen Texttreffern. Gleichstände werden stabil nach ID sortiert. V1 benötigt weder Embeddings noch einen Thesaurus.
 
-Eine freie Nutzeranfrage kann fachlich relevante Begriffe auslassen oder anders benennen. Der Skill lässt den Agenten passende Feature-IDs bestimmen und bei schwachen Treffern nachprüfen. Keine Treffer bedeuten unbekannte Abdeckung, nicht keine Auswirkungen. Neue und nicht zugeordnete Dateien werden separat angezeigt.
+Eine freie Nutzeranfrage kann fachlich relevante Begriffe auslassen oder anders benennen. Der Skill lässt den bereits laufenden Agenten passende Suchbegriffe und Feature-IDs bestimmen. Bei einem Entwicklungsauftrag werden schwache Treffer durch gezielte Codeprüfung ergänzt. Der reine Anzeigebefehl `show` bleibt dagegen beim vorhandenen Netzwerk und meldet fehlende beziehungsweise mehrdeutige Treffer. Keine Treffer bedeuten unbekannte Abdeckung, nicht keine Auswirkungen. Neue und nicht zugeordnete Dateien werden separat angezeigt.
 
 Feature-Dateien werden bei Erstzugriff geladen. Änderungen werden über lokale Fingerprints erkannt und nur für betroffene Dateien neu eingelesen; die Indizes werden entsprechend ersetzt. Vor Schreibzugriffen wird der tatsächliche Inhalt erneut geprüft. Hooks verwenden einen ableitbaren lokalen Cache, um wiederholtes Parsing in kurzen Prozessen zu vermeiden. Ein fehlender oder ungültiger Cache wird neu aufgebaut.
 
@@ -164,10 +165,10 @@ Der Server läuft lokal über STDIO. Diagnoseausgaben gehen an STDERR; STDOUT bl
 
 | Werkzeug | Eingabe | Ergebnis |
 | --- | --- | --- |
-| `network_context` | Anfrage, optionale IDs und Pfade, Detailstufe, Budget | Rangfolge, Summaries oder Kernpunkte, Coverage- und Aktualitätshinweise |
+| `network_context` | Optionale Anfrage, IDs und Pfade, Detailstufe, Budget und Seitenoffset | Rangfolge, Summaries oder Kernpunkte, Coverage- und Aktualitätshinweise; ohne Suchargumente eine paginierte Übersicht |
 | `network_impact` | Ausgangs-IDs/Pfade, Richtung, Tiefe und Budget | Potenziell betroffene Features mit erklärbaren Pfaden |
 | `network_update` | Erwarteter Stand, Upserts/Löschungen und überprüfte Referenzstände | Validierter Änderungssatz oder Konflikt; keine versteckten Commits |
-| `network_check` | Strukturprüfung und optionaler Session-/Änderungsbezug | Fehler, Warnungen, offene Prüfungen, unbekannte Dateien |
+| `network_check` | Modus `summary` oder `full`, optionaler Session-/Änderungsbezug | Im Summary-Modus gespeicherte Zähler und bekannte offene Prüfungen; im Full-Modus zusätzlich frische Struktur-/Referenzprüfung und unbekannte Änderungsdateien |
 | `network_bootstrap` | Aktion `start`, `next`, `checkpoint` oder `status`; optionale Bereichseingrenzung und Analysegrenzen | Dateiinventar, nächste begrenzte Analyseaufgabe oder gespeicherter Fortschritt; keine eigene Modellanalyse |
 
 `network_context` liefert zunächst IDs und Summaries; für ausgewählte Features werden Kernpunkte und Referenzen nachgeladen. Das Werkzeug bietet zusätzlich die Möglichkeit, einzelne umfangreiche Ergebnisse mit einem Offset fortzusetzen.
@@ -182,7 +183,7 @@ Agenten übergeben die beim Lesen erhaltenen Inhaltsfingerprints für alle verä
 
 Der Kern validiert den gesamten geplanten Endzustand, insbesondere neue oder gelöschte Beziehungsziele. Ein gemeinsam bearbeiteter Änderungssatz wird unter einem kurzen exklusiven Netzwerkschreiblock ausgeführt. Laufzeitdaten bleiben nach Projekt und Session getrennt.
 
-Dateien werden zuerst temporär geschrieben. Ein kleines lokales Journal hält erwartete Ausgangsfingerprints und neue Inhalte fest. Einzelne Ersetzungen erfolgen per atomarem Rename. Vor dem nächsten Zugriff wird ein unterbrochener Änderungssatz unter Lock vervollständigt, sofern alle Dateien noch entweder dem erwarteten Ausgangs- oder Zielstand entsprechen. Bei zwischenzeitlicher manueller Änderung wird `pending_recovery` gemeldet und nichts blind überschrieben. Tool-Leser sehen einen zusammenhängenden Zustand, weil sie eine offene Transaktion zuerst behandeln.
+Dateien werden zuerst temporär geschrieben. Ein kleines lokales Journal hält erwartete Ausgangsfingerprints und neue Inhalte fest. Einzelne Ersetzungen erfolgen per atomarem Rename. Vor dem nächsten schreibenden Zugriff wird ein unterbrochener Änderungssatz unter Lock vervollständigt, sofern alle Dateien noch entweder dem erwarteten Ausgangs- oder Zielstand entsprechen. Bei zwischenzeitlicher manueller Änderung wird `pending_recovery` gemeldet und nichts blind überschrieben. Rein lesende Nutzerbefehle melden eine offene Transaktion, statt selbst eine schreibende Wiederherstellung auszuführen oder einen inkonsistenten Zustand als gültig auszugeben.
 
 Manuelle Bearbeitung der YAML-Dateien bleibt möglich. Sie nimmt nicht am Tool-Lock teil; unerwartete Veränderungen müssen deshalb beim Speichern beziehungsweise bei Wiederherstellung als Konflikt behandelt werden. Der Kern verspricht keine atomare Transaktion für externe Editoren oder Git-Operationen.
 
@@ -204,6 +205,43 @@ Die automatische Pflege ist ein angeleiteter und überprüfter Agentenablauf. Ho
 
 Das Release enthält einen gemeinsamen vorgebauten Node-Kern und MCP-Server, portable Skills/MCP-Konfiguration sowie kleine Hostadapter. Nutzer müssen beim Agentenstart weder TypeScript kompilieren noch Pakete aus dem Internet nachladen.
 
+### Sichtbare Nutzerbefehle und Bedienung
+
+Alle Nutzerbefehle verwenden das Präfix `feature-network-`. Das Plugin registriert sie als benannte Skills mit kurzen verständlichen Metadaten und ergänzt nötige Hostspezifika in den Adaptern. In der lokalen Codex-Mac-App sollen sie nach Eingabe von `/feature-net` gemeinsam im nativen Vorschlagsmenü erscheinen. Die Befehle sind zusätzliche Einstiegsmöglichkeiten für Kontrolle und Transparenz; normale Entwicklungsaufträge verwenden die Kontextabfrage und Netzwerkpflege weiterhin automatisch.
+
+| Nutzerbefehl | Kurzbeschreibung für das Vorschlagsmenü | Verhalten und MCP-Zuordnung |
+| --- | --- | --- |
+| `/feature-network-init` | Fachliches Gedächtnis aus dem Projekt aufbauen oder fortsetzen. | Explizite Codeanalyse in begrenzten Paketen über `network_bootstrap`, Speicherung über `network_update`; keine Produktcodeänderungen. |
+| `/feature-network-status` | Überblick über Gedächtnis, Analysefortschritt und offene Prüfungen anzeigen. | `network_check` im Modus `summary` und `network_bootstrap status`; keine neue Codeanalyse oder Fortschrittsänderung. |
+| `/feature-network-show` | Gespeichertes Wissen zu einem Feature anzeigen — beschreiben oder aus der Übersicht auswählen. | `network_context` für Suche, Übersicht und Details; keine Codeanalyse oder Netzwerkaktualisierung. |
+| `/feature-network-impact` | Mögliche Auswirkungen einer beschriebenen Änderung untersuchen. | Natürliche Beschreibung über `network_context` zuordnen, danach `network_impact`; Ergebnis mit Beziehungspfaden und Prüfhinweisen, keine Umsetzung oder Aktualisierung. |
+| `/feature-network-check` | Gedächtnis auf Konsistenz und mögliche Veralterung prüfen. | `network_check` im Modus `full`; meldet Befunde ohne Reparatur, Feature-Schreibzugriff oder fachliche Neubestätigung. |
+| `/feature-network-sync` | Gedächtnis gezielt mit geändertem Code abgleichen und aktualisieren. | Frische Prüfung, gezielte Codelektüre durch den Agenten, anschließend `network_update`; kein impliziter vollständiger Neuaufbau. |
+
+Status und Anzeige dürfen wegwerfbare Leseindizes nutzen, verändern aber keine Feature-Dateien, Analysecheckpoints oder bestätigten Referenzbaselines. `status` bezeichnet gespeicherte Aktualitätshinweise als zuletzt bekannt; es behauptet keine frisch geprüfte Codeaktualität. `check` darf technische Prüfergebnisse speichern, aber keine zuvor geänderte Referenz ohne fachliche Prüfung als bestätigt markieren. Eine schreibende Wiederherstellung offener Transaktionen wird nicht heimlich durch einen lesenden Nutzerbefehl ausgeführt: Solche Befehle melden stattdessen `pending_recovery`.
+
+`sync` bearbeitet standardmäßig die gegenüber vorhandenen Prüfständen geänderten Referenzen und aktuell unbekannten Änderungsdateien; eine natürlich beschriebene Eingrenzung kann den Bereich verkleinern. Dateien ohne verlässliche Baseline bleiben als unklar markiert und werden nur im ausdrücklich ausgewählten Bereich analysiert. Fachliche Erweiterung, Präzisierung oder Verkleinerung kann Kernpunkte und Beziehungen verändern. Unveränderte fachliche Ergebnisse erzeugen keine kosmetischen YAML-Änderungen. Die bestehende Konfliktprüfung und das Bewahren manueller Arbeit gelten uneingeschränkt.
+
+### Feature-Anzeige ohne technische Vorkenntnisse
+
+Der Nutzer muss keine Feature-ID oder Codesymbole kennen. Die folgenden Eingaben sind gleichberechtigte Einstiegsmöglichkeiten:
+
+```text
+/feature-network-show Benutzerprofil
+/feature-network-show alles zur Wiederherstellung
+/feature-network-show
+```
+
+Der laufende Agent übersetzt natürliche Beschreibungen in Suchbegriffe für das gespeicherte Netzwerk. Eine exakte Feature-ID ist ein optionaler direkter Treffer; ein Code-Symbol ist keine notwendige Eingabe. Der Agent darf Angaben aus dem vorhandenen Gespräch zur Suchzuordnung verwenden, aber kein nicht gespeichertes Feature als gefunden darstellen.
+
+- **Eindeutiger passender Treffer:** Das Feature direkt mit Summary, Kernpunkten, Referenzen und Beziehungen anzeigen. Hypothesen und bekannte Aktualitätsgrenzen bleiben sichtbar.
+- **Mehrdeutige Suche:** Höchstens fünf passende Kandidaten mit verständlicher Summary zur Auswahl anbieten. Die Antwort des Nutzers kann sich auf Beschreibung oder Auswahlnummer beziehen. Bei größeren Treffermengen die Suche eingrenzen oder weitere Kandidaten nachladen; keine willkürliche Auswahl.
+- **Ohne Suchargument:** Eine kompakte Übersicht mit höchstens zehn IDs und Summaries pro Seite zeigen. Details werden erst nach Auswahl geladen. Bei leerem Netzwerk auf den Initialisierungsbefehl verweisen.
+- **Breite thematische Anfrage:** Mehrere passende Features dürfen als kompakte Übersicht erscheinen; vollständige Detailtexte erst gezielt nachladen. Eine thematische Anfrage muss nicht künstlich auf ein einziges Feature reduziert werden.
+- **Kein belastbarer Treffer:** Die Wissenslücke erklären und zu einer anderen Beschreibung beziehungsweise `init` oder `sync` führen. `show` beginnt keine automatische Codeanalyse und erfindet keine Inhalte.
+
+Das Plugin baut keinen eigenen Auswahl-Editor. Vorschlagsmenü und Befehlserkennung kommen vom Host; Feature-Auswahl und Eingrenzung können im normalen Gespräch erfolgen. Es gibt in v1 keine zusätzlichen Befehle zum manuellen Anlegen, Löschen oder Fortsetzen einzelner Features. `init` übernimmt Wiederaufnahme; Hilfe und Beispiele stehen in den Befehlsbeschreibungen und der README.
+
 Bevorzugte Struktur:
 
 ```text
@@ -212,6 +250,11 @@ plugin/
   mcp.json
   skills/feature-network/SKILL.md
   skills/feature-network-init/SKILL.md
+  skills/feature-network-status/SKILL.md
+  skills/feature-network-show/SKILL.md
+  skills/feature-network-impact/SKILL.md
+  skills/feature-network-check/SKILL.md
+  skills/feature-network-sync/SKILL.md
   dist/
   hooks/hooks.json
   com.github.copilot/hooks/hooks.json
@@ -323,13 +366,21 @@ Automatisierte Tests prüfen Dateiinventar und Ausschlüsse, paketweise Verarbei
 
 Ein agentengeführter Abnahmelauf beginnt mit der Demo ohne `network-spec/` und muss Profil, Backup und Restore mit nutzbaren Zusammenhängen erfassen. Der Sollvergleich stammt aus den fachlichen Demo-Verträgen. Reine Tests mit vorgegebenen Modellantworten beweisen nur das Protokoll und die Fortschrittsverwaltung, nicht die Qualität echter Codeanalyse.
 
-### Hostadapter und Live-Nachweise
+### Hostadapter
 
 Automatisierte Vertragstests prüfen echte dokumentierte Payloadformen, Ausgaben, Hostunterschiede, Projektbindung, Shell-Quoting, Start aus Unterverzeichnissen und maximale einmalige Fortsetzung. Pakettests prüfen Manifeste, mitgelieferte ausführbare Dateien und fehlende Runtime-Abhängigkeiten.
 
+### Nutzerbefehle
+
+Automatisierte Tests prüfen die Registrierung und vollständigen Metadaten aller sechs Befehle sowie ihre MCP-Zuordnung. Die Anzeige wird mit natürlichen Begriffen ohne Kenntnis einer ID, exakten IDs, leeren Suchargumenten, thematischen Mehrfachtreffern, Mehrdeutigkeit, fehlenden Treffern und paginierten Übersichten geprüft. Eindeutigkeit der rein deterministischen Trefferzuordnung und Qualität einer tatsächlichen agentengeführten sprachlichen Zuordnung werden getrennt beurteilt.
+
+Für `status`, `show`, `impact` und `check` prüfen Tests, dass Feature-Dateien, bestätigte Referenzstände und Checkpoints unverändert bleiben und keine Codeanalyse startet. `check` darf Fingerprints zur Feststellung der Veralterung lesen; das ist keine fachliche Analyse. Ein offenes Schreibjournal führt in diesen Befehlen zu einem transparenten Hinweis. `sync` erhält eigene Tests für zielgerichtete Analyse, Erhalt manueller Kernpunkte, Konflikte, Entfernung belegbar entfallener Aussagen und unveränderte Wiederholung.
+
+### Live-Abnahme der Befehle
+
 Für jede der drei Zielumgebungen wird ein separater Nachweis geführt: Version, Installation, MCP-Erreichbarkeit, Skill-Aktivierung, Hook-Auslösung, expliziter Initialisierungsaufruf einschließlich Wiederaufnahme und Profil-/Backup-/Restore-Auftrag. Automatisierte Adaptertests werden als solche bezeichnet. Live-Nachweise bleiben offen, bis sie in der jeweiligen Oberfläche tatsächlich erbracht wurden; fehlende Umgebung oder Berechtigung wird als konkrete Einschränkung dokumentiert.
 
-Für die lokale Codex-Mac-App umfasst der Live-Test außerdem: Plugin installieren und aktivieren, `/feature-net` im Composer eingeben, den Initialisierungseintrag mit Beschreibung finden und auswählen, den Auftrag absenden und den tatsächlichen Start des Initialisierungsablaufs nachweisen. Ein bestandener MCP- oder Skill-Dateitest allein belegt keine erfolgreiche Auffindbarkeit im Slash-Menü. Für Copilot CLI und App werden Vorschlagsliste und Aufrufmodell ebenfalls in der tatsächlichen Oberfläche geprüft.
+Für die lokale Codex-Mac-App umfasst der Live-Test außerdem: Plugin installieren und aktivieren, `/feature-net` im Composer eingeben, alle sechs Befehlseinträge mit verständlicher Beschreibung finden und auswählen, den Auftrag absenden und den tatsächlichen Ablauf nachweisen. Für `show` werden insbesondere natürliche Suche, mehrdeutige Auswahl und die Übersicht ohne Argument getestet. Ein bestandener MCP- oder Skill-Dateitest allein belegt keine erfolgreiche Auffindbarkeit im Slash-Menü. Für Copilot CLI und App werden Vorschlagsliste und Aufrufmodell ebenfalls in der tatsächlichen Oberfläche geprüft.
 
 ## 14. Performance und Vergleich
 
@@ -355,4 +406,5 @@ Diese Spezifikation wird zuerst schriftlich geprüft. Nach Freigabe folgt ein ei
 - Copilot-Prompt-Hooks werden nicht wie Codex-Prompt-Hooks behandelt; App-Support wird separat geprüft.
 - Initialisierung ganzer Bestandsprojekte gehört zu v1; Bearbeitungsstatus, Wiederaufnahme und Grenzen der fachlichen Coverage sind ausdrücklich getrennt. Weitergehende AST-/Parallelisierungsoptimierungen folgen später.
 - Öffentliche Git-Verteilung, Release-Pakete und Installationen durch andere Nutzer sind vorgesehen; tatsächliche Veröffentlichung und Lizenzwahl sind separate Schritte.
+- Die sechs freigegebenen Nutzerbefehle, ihre lesenden beziehungsweise schreibenden Wirkungen und die Feature-Anzeige ohne ID-/Symbolkenntnis sind festgelegt.
 - Es gibt keine Platzhalter für das Kernverhalten und keine Behauptung bereits bestandener Produkt- oder Live-Tests.
