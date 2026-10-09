@@ -198,3 +198,11 @@ test('runtime_size_boundary_counts_encoded_utf8_bytes_including_json', async () 
   await expect(writeRuntime(project, 'sessions/boundary', runtimeRevision(exact), { text: text + 'a' })).rejects.toMatchObject({ code: 'storage_too_large' });
   expect((await readRuntime<{ text: string }>(project, 'sessions/boundary'))?.text === text).toBe(true);
 });
+
+test('expected_network_revision_detects_new_feature_added_after_agent_read', async () => {
+  const project = await setup(); await applyUpdate(project, initial()); const snap = await readSnapshot(project);
+  await writeFile(join(project.networkDir, 'beta.yaml'), await readFile(join(project.networkDir, 'alpha.yaml'), 'utf8').then(text => text.replace('id: alpha', 'id: beta')));
+  const before = await readRuntime(project, 'baselines');
+  await expect(applyUpdate(project, { expected: snap.fingerprints, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: refs })).rejects.toMatchObject({ code: 'conflict' });
+  expect(await readRuntime(project, 'baselines')).toEqual(before);
+});

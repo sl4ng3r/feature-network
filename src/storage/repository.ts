@@ -21,6 +21,7 @@ export interface Snapshot {
 }
 export interface UpdateRequest {
   expected: Record<string, Fingerprint | null>;
+  expectedRevision?: Fingerprint;
   upserts: Feature[];
   deletes: string[];
   verifiedReferences: VerifiedReference[];
@@ -40,7 +41,7 @@ function inside(root: string, path: string): boolean {
   const suffix = relative(root, path); return suffix === '' || (!suffix.startsWith(`..${sep}`) && suffix !== '..' && !suffix.startsWith(sep));
 }
 /** Canonical exclusions are checked before opening source bytes, including aliases. */
-async function referenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
+export async function readReferenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
   const absolute = await resolveProjectPath(project, path);
   const excluded = [resolve(project.root, '.git'), project.networkDir, project.runtimeDir];
   for (const root of options.excludedReferenceRoots ?? []) {
@@ -81,7 +82,7 @@ async function validate(project: Project, contents: Contents, options: StorageOp
     }
     for (const reference of featureReferences(feature)) {
       if (checked.has(reference.path)) continue; checked.add(reference.path);
-      try { await referenceHash(project, reference.path, options); } catch (error) { diagnostics.push(diagnostic(error, reference.path)); }
+      try { await readReferenceHash(project, reference.path, options); } catch (error) { diagnostics.push(diagnostic(error, reference.path)); }
     }
   }
   return { features, diagnostics };
@@ -125,7 +126,7 @@ async function verifiedHashes(project: Project, references: VerifiedReference[],
   const hashes: Record<string, string> = Object.create(null);
   for (const reference of references) {
     if (!/^[a-f0-9]{64}$/.test(reference.hash) || (Object.hasOwn(hashes, reference.path) && hashes[reference.path] !== reference.hash)) throw new NetworkError('invalid_update', 'Invalid reference hash', [reference.path]);
-    if (await referenceHash(project, reference.path, options) !== reference.hash) throw new NetworkError('conflict', 'Verified reference changed', [reference.path]);
+    if (await readReferenceHash(project, reference.path, options) !== reference.hash) throw new NetworkError('conflict', 'Verified reference changed', [reference.path]);
     hashes[reference.path] = reference.hash;
   }
   return hashes;
@@ -151,7 +152,7 @@ async function carryReferences(project: Project, beforeRevision: string, feature
   const surviving = new Set(features.flatMap(featureReferences).map(reference => reference.path));
   for (const [path, hash] of Object.entries(prior.references)) {
     if (typeof hash !== 'string' || !/^[a-f0-9]{64}$/.test(hash) || !surviving.has(path)) continue;
-    try { if (await referenceHash(project, path, options) === hash) carried[path] = hash; }
+    try { if (await readReferenceHash(project, path, options) === hash) carried[path] = hash; }
     catch { /* Missing, unsafe or unreadable references remain unconfirmed. */ }
   }
   return carried;
@@ -160,6 +161,9 @@ export async function applyUpdate(project: Project, request: UpdateRequest, opti
   const result = await withProjectLock(project, async () => {
     const recovered = await recoverNetworkUnderLock(project, options);
     const before = await stableCapture(project); const expected = fingerprints(before); const after = { ...before };
+    if (request.expectedRevision !== undefined && request.expectedRevision !== revision(before)) {
+      throw new NetworkError('conflict', 'Complete network revision changed since it was read');
+    }
     const changes: Record<string, string | null> = {};
     for (const [path, hash] of Object.entries(request.expected)) {
       if (path !== marker && !/^network-spec\/[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.yaml$/.test(path)) throw new NetworkError('invalid_update', 'Expected fingerprint path is invalid', [path]);

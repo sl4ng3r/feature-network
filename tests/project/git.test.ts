@@ -190,3 +190,24 @@ process.exit(result.status ?? 1);
     expect(state.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_unavailable' }));
   });
 });
+
+it('committed_delta_is_relative_and_never_runs_malicious_filters', async () => {
+  const { readCommittedChanges } = await import('../../src/project/git.js');
+  const root = await fresh(); await repo(root); await mkdir(join(root, 'inner'));
+  await writeFile(join(root, 'inner/.gitattributes'), '*.txt filter=foo=bar\n');
+  await writeFile(join(root, 'inner/sample.txt'), 'before'); await writeFile(join(root, 'outside.ts'), 'before');
+  await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'before']);
+  const before = (await exec('git', ['-C', root, 'rev-parse', 'HEAD'])).stdout.trim();
+  await writeFile(join(root, 'inner/sample.txt'), 'after'); await writeFile(join(root, 'outside.ts'), 'after');
+  await exec('git', ['-C', root, 'add', '.']); await exec('git', ['-C', root, 'commit', '-qm', 'after']);
+  const after = (await exec('git', ['-C', root, 'rev-parse', 'HEAD'])).stdout.trim();
+  await exec('git', ['-C', root, 'config', 'filter.foo=bar.clean', 'touch FILTER_RAN; cat']);
+  await exec('git', ['-C', root, 'config', 'filter.foo=bar.process', 'touch PROCESS_RAN; exit 1']);
+  await exec('git', ['-C', root, 'config', 'filter.foo=bar.required', 'true']);
+  await writeFile(join(root, 'inner/sample.txt'), 'dirty');
+  const delta = await readCommittedChanges(await openProject(join(root, 'inner')), before, after);
+  expect(delta.status).toBe('available'); expect(delta.paths).toEqual(['sample.txt']);
+  expect(delta.diagnostics).toContainEqual(expect.objectContaining({ code: 'git_filters_disabled' }));
+  await expect(stat(join(root, 'FILTER_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(stat(join(root, 'PROCESS_RAN'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
