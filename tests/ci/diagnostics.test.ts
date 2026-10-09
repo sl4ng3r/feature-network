@@ -29,7 +29,7 @@ test('nonzero_test_exit_keeps_stdout_stderr_and_emits_escaped_actual_failure', a
   const result = await run(f);
   expect(result.code).toBe(7); expect(result.signal).toBeNull();
   expect(result.stdout).toBe('actual stdout\n'); expect(result.stderr).toContain('failure 100%\r\n::notice::actual child line\n');
-  const annotation = result.stderr.split('\n').find(line => line.startsWith('::error::'))!;
+  const annotation = result.stderr.split('\n').find(line => line.startsWith('::error'))!;
   expect(annotation).toContain('exit=7; signal=none');
   expect(annotation).toContain('failure 100%25%0D%0A::notice::actual child line%0A');
   expect((await captured(f)).toString('utf8')).toContain('failure 100%\r\n::notice::actual child line\n');
@@ -50,8 +50,25 @@ test('large_failure_output_retains_a_bounded_complete_UTF8_tail_and_annotation',
   const log = await captured(f); expect(log.byteLength).toBeLessThanOrEqual(65536);
   expect(log.toString('utf8')).not.toContain('discarded prefix'); expect(log.toString('utf8')).toContain('final failure marker');
   expect(() => new TextDecoder('utf8', { fatal: true }).decode(log)).not.toThrow();
-  const annotation = result.stderr.split('\n').find(line => line.startsWith('::error::'))!;
-  expect(Buffer.byteLength(annotation)).toBeLessThan(50000); expect(annotation).toContain('final failure marker%0A');
+  const annotations = result.stderr.split('\n').filter(line => line.startsWith('::error'));
+  const messages = annotations.map(line => line.slice(line.indexOf('::', 2) + 2)
+    .replaceAll('%0D', '\r').replaceAll('%0A', '\n').replaceAll('%25', '%'));
+  // GitHub's check-run API retains only the first 4096 decoded UTF8 bytes.
+  const serverMessages = messages.map(message => Buffer.from(message).subarray(0, 4096).toString('utf8'));
+  expect({
+    oversized: messages.some(message => Buffer.byteLength(message) >= 4096),
+    finalMarkerSurvives: serverMessages.join('').includes('final failure marker'),
+  }).toEqual({ oversized: false, finalMarkerSurvives: true });
+  expect(annotations.length).toBeGreaterThan(1); expect(annotations.length).toBeLessThanOrEqual(25);
+  for (const [index, annotation] of annotations.entries()) {
+    expect(annotation).toContain(`::error title=Vitest diagnostics part ${index + 1}/${annotations.length}::`);
+    expect(Buffer.byteLength(annotation)).toBeLessThan(50000);
+    expect(messages[index]).toContain(`Vitest failed: exit=3; signal=none; part=${index + 1}/${annotations.length}\n`);
+    expect(() => new TextDecoder('utf8', { fatal: true }).decode(Buffer.from(messages[index]!))).not.toThrow();
+  }
+  const retainedTail = serverMessages.map(message => message.slice(message.indexOf('\n') + 1)).join('');
+  expect(retainedTail).toBe(log.toString('utf8'));
+  expect(annotations.at(-1)).toContain('final failure marker%0A');
 });
 
 test('test_process_termination_reports_actual_signal_and_remains_a_failure', async () => {
@@ -75,6 +92,6 @@ test('interleaved_streams_preserve_split_UTF8_in_diagnostics_and_raw_forwarding'
   const log = await captured(f);
   expect(() => new TextDecoder('utf8', { fatal: true }).decode(log)).not.toThrow();
   expect(log.toString('utf8')).toContain('😀'); expect(log.toString('utf8')).toContain('interleaved stderr\n');
-  const annotation = result.stderr.split('\n').find(line => line.startsWith('::error::'))!;
+  const annotation = result.stderr.split('\n').find(line => line.startsWith('::error'))!;
   expect(annotation).toContain('😀'); expect(annotation).not.toContain('�');
 });
