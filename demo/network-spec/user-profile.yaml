@@ -1,0 +1,11 @@
+schema: 1
+id: user-profile
+summary: Stores synthetic profiles in local SQLite.
+key_points:
+  - "Persistent fields: id, displayName, locale."
+  - sessionHint is transient and is never persisted.
+code:
+  - path: src/profile.ts
+    symbol: saveProfile
+  - path: src/migrations.ts
+    symbol: migrate

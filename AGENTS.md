@@ -18,7 +18,7 @@ Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-desi
 
 ## Datenhaltung und Betrieb
 
-`network-spec/` enthält Git-versionierte YAML-Dateien mit kurzer Summary, Kernpunkten, Codereferenzen und gerichteten Beziehungen. `.feature-network/` ist für Git-ignorierte lokale Caches, Sessiondaten und Wiederherstellungsjournale vorgesehen. Der Kern benötigt keine Datenbank, Cloud oder eigene KI-API. Die geplante Demo verwendet lokal SQLite.
+`network-spec/` enthält Git-versionierte YAML-Dateien mit kurzer Summary, Kernpunkten, Codereferenzen und gerichteten Beziehungen. `.feature-network/` ist für Git-ignorierte lokale Caches, Sessiondaten und Wiederherstellungsjournale vorgesehen. Der Kern benötigt keine Datenbank, Cloud oder eigene KI-API. Die Demo unter `demo/` verwendet echte lokale SQLite-Dateien (Node 24 `node:sqlite`), transaktionale Schema-1/2-Migrationen und einen separat versionierten JSON-Backupvertrag. `demo/scenarios/empty-network/` und `pre-locale/` bewahren ausführbare Ausgangsstände vor der Locale-Erweiterung; Sollnetzwerk-/Protokolltests ersetzen keine Live-Agentenabnahme.
 
 V1 enthält den expliziten Skill-/Command-Einstieg `feature-network-init` zum Aufbau des Gedächtnisses ganzer Bestandsprojekte. Analyse erfolgt durch den laufenden Agenten in begrenzten Paketen; lokale Checkpoints ermöglichen Wiederaufnahme. Technisch abgeschlossene Inventarisierung beweist keine vollständige fachliche Coverage. Bestehende Features und manuelle Kernpunkte bewahren; keine Produktcode- oder Datenbankänderungen durch den Initialisierungsbefehl.
 
@@ -48,6 +48,7 @@ Voraussetzung für Entwicklung und Laufzeit: Node.js 24 LTS (`.node-version`). E
 - `npm test -- tests/mcp/stdio.test.ts`: echter separater SDK-v2-Serverprozess, Konflikte, Checkpoints, Budgetgrenzen und kopiertes Offline-Bundle.
 - `npm run build`: `scripts/build-plugin.mjs` bündelt CLI und Laufzeitbibliotheken nach `plugin/dist/cli.mjs`.
 - `node plugin/dist/cli.mjs mcp --project-root <root>`: explizit gebundener STDIO-MCP-Prozess; Node.js 24 LTS erforderlich.
+- `npm test -- demo/tests tests/query tests/bootstrap`: echte Profil-/Backup-/Restore-Roundtrips, getrenntes synthetisches Netzwerkorakel und Bootstrap-Protokoll.
 - `npm run typecheck`: strikte TypeScript-Prüfung ohne Ausgabe.
 
 Die npm-Skripte `verify:package` und `bench:core` reservieren Schnittstellen für spätere Tasks; ihre Zieldateien existieren noch nicht. Der Core-/MCP-Build ist verfügbar, das vollständige Plugin-/Releasepaket noch nicht. Keine Host-Live-Abnahme behaupten.

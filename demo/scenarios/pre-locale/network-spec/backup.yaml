@@ -1,0 +1,19 @@
+schema: 1
+id: backup
+summary: Serializes persistent SQLite profiles to versioned JSON.
+key_points:
+  - "Persistent fields: id, displayName."
+  - JSON formatVersion is independent of SQLite schemaVersion.
+  - sessionHint is excluded.
+code:
+  - path: src/backup.ts
+    symbol: createBackup
+relations:
+  - to: user-profile
+    type: reads
+    status: evidenced
+    evidence:
+      - path: src/backup.ts
+      - path: src/profile.ts
+    when: Persistent profile fields change.
+    check: "Roundtrip id, displayName through SQLite backup and restore."

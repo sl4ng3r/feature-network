@@ -1,0 +1,26 @@
+schema: 1
+id: restore
+summary: Replaces SQLite profiles atomically from a validated JSON backup.
+key_points:
+  - "Persistent fields: id, displayName."
+  - Invalid restore preserves all existing rows.
+code:
+  - path: src/restore.ts
+    symbol: restoreBackup
+relations:
+  - to: backup
+    type: reads
+    status: evidenced
+    evidence:
+      - path: src/restore.ts
+      - path: src/backup.ts
+    when: JSON backup contract changes.
+    check: "Roundtrip id, displayName through SQLite backup and restore."
+  - to: user-profile
+    type: writes
+    status: evidenced
+    evidence:
+      - path: src/restore.ts
+      - path: src/profile.ts
+    when: Persistent profile fields change.
+    check: "Roundtrip id, displayName through SQLite backup and restore."
