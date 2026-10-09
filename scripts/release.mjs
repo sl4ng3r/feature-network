@@ -32,17 +32,18 @@ try {
   const verification = await verifyPackage();
   const tracked = git('ls-files', '-z').split('\0').filter(Boolean);
   // Public source allowlist deliberately excludes local AGENTS, planning history and runtime data.
-  const source = tracked.filter(path => /^(src\/|scripts\/|tests\/|demo\/|bench\/|docs\/validation\/|\.github\/|\.agents\/plugins\/|docs\/(?:installation|adapters|mcp)\.md$|(?:README|CONTRIBUTING|LICENSE|CHANGELOG)\.md$|LICENSE$|package(?:-lock)?\.json$|tsconfig\.json$|vitest\.config\.ts$|\.node-version$|\.gitignore$)/.test(path) && !/(?:^|\/)(?:private-fixtures|\.feature-network|\.env(?:\.[^/]+)?)(?:\/|$)/.test(path));
+  const source = tracked.filter(path => /^(src\/|scripts\/|packaging\/codex-plugin\.json$|tests\/|demo\/|bench\/|docs\/validation\/|\.github\/|\.agents\/plugins\/|docs\/(?:installation|adapters|mcp)\.md$|(?:README|CONTRIBUTING|LICENSE|CHANGELOG)\.md$|LICENSE$|package(?:-lock)?\.json$|tsconfig\.json$|vitest\.config\.ts$|\.node-version$|\.gitignore$)/.test(path) && !/(?:^|\/)(?:private-fixtures|\.feature-network|\.env(?:\.[^/]+)?)(?:\/|$)/.test(path));
   const entries = new Map();
   for (const path of source) {
     if (path.split('/').includes('..') || /(?:^|\/)(?:\.env|\.feature-network|node_modules)(?:\/|$)/.test(path) || !(await lstat(path)).isFile()) throw new Error('unsafe_source_file');
     entries.set('source/' + path, execFileSync('git', ['show', `${revision}:${path}`], { maxBuffer: 32 * 1024 * 1024 }));
   }
   // Canonical package source is also present in the development/source tree.
-  for (const path of await packageFiles('plugin')) {
-    const bytes = await readFile(join('plugin', path)); entries.set('plugin/' + path, bytes);
-    if (!path.startsWith('dist/') && path !== 'LICENSE') entries.set('source/plugin/' + path, execFileSync('git', ['show', `${revision}:plugin/${path}`], { maxBuffer: 1024 * 1024 }));
+  for (const distribution of ['plugin', 'codex-plugin']) for (const path of await packageFiles(distribution)) {
+    const bytes = await readFile(join(distribution, path)); entries.set(distribution + '/' + path, bytes);
+    if (distribution === 'plugin' && !path.startsWith('dist/') && path !== 'LICENSE') entries.set('source/plugin/' + path, execFileSync('git', ['show', `${revision}:plugin/${path}`], { maxBuffer: 1024 * 1024 }));
   }
+  for (const path of ['.agents/plugins/marketplace.json', '.github/plugin/marketplace.json']) entries.set(path, execFileSync('git', ['show', `${revision}:${path}`]));
   const checksums = Object.fromEntries([...entries].sort(([a], [b]) => a.localeCompare(b, 'en')).map(([path, bytes]) => [path, hash(bytes)]));
   const manifest = { format: 1, version, sourceRevision: revision, sourceTree: git('rev-parse', 'HEAD^{tree}').trim(), checksums };
   entries.set('release-manifest.json', Buffer.from(JSON.stringify(manifest, null, 2) + '\n'));

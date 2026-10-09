@@ -6,3 +6,4 @@ coverage/
 plugin/LICENSE
 releases/
 .feature-network-build-*/
+codex-plugin/

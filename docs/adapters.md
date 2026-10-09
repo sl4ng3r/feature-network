@@ -1,12 +1,12 @@
 # Lifecycle adapters and reviewed project setup
 
-Requires Node.js 24 LTS. `npm run build` creates offline, dependency-bundled `plugin/dist/cli.mjs` and `plugin/dist/hook.mjs`. Runtime never downloads packages or calls a model API. The CLI retains its five MCP tools and explicit immutable project binding.
+Requires Node.js 24 LTS. `npm run build` creates offline, dependency-bundled `{plugin,codex-plugin}/dist/cli.mjs` and `dist/hook.mjs` from one build. Codex uses the separate legacy-only `codex-plugin/.codex-plugin/plugin.json` entry point; Copilot retains the portable `plugin/plugin.json`. See [installation](installation.md) for the version-bound discovery evidence and trust boundary. Runtime never downloads packages or calls a model API. The CLI retains its five MCP tools and explicit immutable project binding.
 
 ```sh
 node plugin/dist/cli.mjs mcp --project-root /path/to/project
-node plugin/dist/cli.mjs hook --host codex < event.json
+node codex-plugin/dist/cli.mjs hook --host codex < event.json
 node plugin/dist/cli.mjs hook --host copilot --event sessionStart < event.json
-node plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --dry-run
+node codex-plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --dry-run
 node plugin/dist/cli.mjs setup --host copilot --project-root /path/to/project --dry-run
 ```
 
@@ -26,7 +26,7 @@ The host `stop_hook_active: false` guard and an atomic local receipt CAS jointly
 
 | Surface | Implemented contract | Evidence still required |
 | --- | --- | --- |
-| Codex local Mac app | SessionStart/UserPromptSubmit/Stop shapes, Core/host identity binding and single continuation; portable plugin hooks use documented `PLUGIN_ROOT` | Installed app, trust review, native menu and real model behavior (Task 12) |
+| Codex local Mac app | SessionStart/UserPromptSubmit/Stop shapes, Core/host identity binding and single continuation; separate legacy compatibility plugin hooks use documented `PLUGIN_ROOT` | Installed app, trust review, native menu and real model behavior (Task 12) |
 | Copilot CLI | SessionStart context and explicit Skill/MCP workflow; command prompt output correctly ignored | Actual CLI installation; documented stdin lacks a reliable turn ID, so agentStop returns no block decision |
 | Copilot App | No inferred hook capability | Separate live investigation and acceptance (Task 12); CLI/cloud/VS Code documentation does not establish App support |
 

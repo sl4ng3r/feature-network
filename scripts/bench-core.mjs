@@ -11,7 +11,7 @@ try {
   const outfile = resolve(temporary, 'core.mjs');
   const built = await build({ entryPoints: ['bench/core.ts'], outfile, bundle: true, platform: 'node', format: 'esm', target: 'node24', logLevel: 'silent', metafile: true });
   const invocation = `import { runCoreBenchmark } from ${JSON.stringify(pathToFileURL(outfile).href)}; process.stdout.write(JSON.stringify(runCoreBenchmark(), null, 2) + '\\n');`;
-  const measured = JSON.parse(execFileSync(process.execPath, ['--expose-gc', '--input-type=module', '-e', invocation], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }));
+  const measured = JSON.parse(execFileSync(process.execPath, ['--expose-gc', '--input-type=module', '-e', invocation], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 120_000, killSignal: 'SIGKILL' }));
   let sourceRevision = null; let sourceTree = null; let workingTreeDirty = null;
   try {
     // An exported source directory inside some other checkout is NOT that checkout's HEAD.

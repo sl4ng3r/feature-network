@@ -1,0 +1,12 @@
+{
+  "name": "feature-network",
+  "version": "0.1.0",
+  "description": "Local, versioned feature memory with evidence-linked code references and bounded impact queries.",
+  "author": {
+    "name": "Alexander Stroll"
+  },
+  "repository": "https://github.com/sl4ng3r/feature-network",
+  "license": "MIT",
+  "hooks": "./hooks/hooks.json",
+  "skills": "./skills"
+}

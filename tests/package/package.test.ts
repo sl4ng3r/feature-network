@@ -13,7 +13,7 @@ const json = async (path: string) => JSON.parse(await readFile(path, 'utf8'));
 afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
 async function fixture() {
   const temp = await realpath(await tree()); roots.push(temp);
-  const installed = join(temp, "plugin it's;$SAFE"); await cp(join(root, 'plugin'), installed, { recursive: true });
+  const installed = join(temp, "plugin it's;$SAFE"); await cp(join(root, 'codex-plugin'), installed, { recursive: true });
   const project = join(temp, 'project'); await mkdir(project);
   const cli = join(installed, 'dist/cli.mjs');
   return { temp, installed, project, cli };
@@ -42,7 +42,7 @@ test('manifest_and_mcp_validate_against_official_schemas', async () => {
   expect(manifest.extensions['com.openai'].hooks).toBe('./hooks/hooks.json');
   // No portable project-root variable exists: activation needs reviewed project setup.
   expect((await json(join(root, 'plugin/mcp.json'))).mcpServers).toEqual({});
-  expect((await json(join(root, '.agents/plugins/marketplace.json'))).plugins[0].source).toEqual({ source: 'local', path: './plugin' });
+  expect((await json(join(root, '.agents/plugins/marketplace.json'))).plugins[0].source).toEqual({ source: 'local', path: './codex-plugin' });
   expect((await json(join(root, '.github/plugin/marketplace.json'))).plugins[0].source).toBe('./plugin');
 });
 test('all_skill_and_hook_paths_exist', async () => {
@@ -126,9 +126,10 @@ test('native_receipt_binds_read_only_duplicate_hook_guard_bytes', async () => {
   expect(await readdir(join(f.project, '.codex'))).toEqual(['hooks.json']);
 });
 test('same_sources_produce_same_artifacts', async () => {
-  const before = await Promise.all(['cli.mjs', 'hook.mjs', 'build-info.json', 'third-party-notices.json'].map(name => readFile(join(root, 'plugin/dist', name))));
+  const paths = ['plugin', 'codex-plugin'].flatMap(distribution => ['cli.mjs', 'hook.mjs', 'build-info.json', 'third-party-notices.json'].map(name => join(root, distribution, 'dist', name)));
+  const before = await Promise.all(paths.map(path => readFile(path)));
   await exec(process.execPath, ['scripts/build-plugin.mjs']);
-  const after = await Promise.all(['cli.mjs', 'hook.mjs', 'build-info.json', 'third-party-notices.json'].map(name => readFile(join(root, 'plugin/dist', name))));
+  const after = await Promise.all(paths.map(path => readFile(path)));
   expect(after).toEqual(before);
 }, 20000);
 test('package_contains_no_developer_paths_runtime_or_private_fixtures', async () => {
@@ -145,7 +146,7 @@ test('update_does_not_touch_project_data', async () => {
   await mkdir(join(f.project, 'network-spec')); await mkdir(join(f.project, '.feature-network'));
   await writeFile(join(f.project, 'network-spec/manual.yaml'), 'manual bytes'); await writeFile(join(f.project, '.feature-network/session.json'), 'runtime bytes');
   await mkdir(join(f.project, '.codex')); await writeFile(join(f.project, '.codex/config.toml'), 'model = "keep"');
-  await cp(join(root, 'plugin'), f.installed, { recursive: true });
+  await cp(join(root, 'codex-plugin'), f.installed, { recursive: true });
   expect(await readFile(join(f.project, 'network-spec/manual.yaml'), 'utf8')).toBe('manual bytes');
   expect(await readFile(join(f.project, '.feature-network/session.json'), 'utf8')).toBe('runtime bytes');
   expect(await readFile(join(f.project, '.codex/config.toml'), 'utf8')).toBe('model = "keep"');
@@ -156,10 +157,50 @@ test('missing_license_blocks_release_not_local_build', async () => {
   // cannot remove the tree while an in-flight copy is still creating entries.
   const temp = await tree();
   try {
-    for (const directory of ['src', 'scripts', 'plugin']) await cp(join(root, directory), join(temp, directory), { recursive: true });
+    for (const directory of ['src', 'scripts', 'plugin', 'packaging']) await cp(join(root, directory), join(temp, directory), { recursive: true });
     await cp(join(root, 'node_modules'), join(temp, 'node_modules'), { recursive: true });
     for (const name of ['package.json', 'package-lock.json']) await cp(join(root, name), join(temp, name));
     await exec(process.execPath, ['scripts/build-plugin.mjs'], { cwd: temp });
     await expect(exec(process.execPath, ['scripts/release.mjs', '--version', '0.1.0'], { cwd: temp })).rejects.toThrow(/license_required/);
   } finally { await cleanup(temp); }
 }, 30000);
+
+// Removing the legacy entry point, adding a portable root manifest or drifting
+// shared hook/runtime bytes would lose native Codex hook discovery.
+test('codex_distribution_keeps_legacy_entry_and_shared_runtime_without_portable_precedence', async () => {
+  await exec(process.execPath, ['scripts/build-plugin.mjs']);
+  expect(await readdir(root)).toContain('codex-plugin');
+  const paths = await files(join(root, 'codex-plugin'));
+  expect(paths).toContain('.codex-plugin/plugin.json');
+  expect(paths).not.toContain('plugin.json');
+  expect(paths).not.toContain('mcp.json');
+  expect(paths.filter(path => path.endsWith('/SKILL.md'))).toHaveLength(7);
+  const manifest = await json(join(root, 'codex-plugin/.codex-plugin/plugin.json'));
+  expect(manifest).toMatchObject({ name: 'feature-network', version: '0.1.0', hooks: './hooks/hooks.json', skills: './skills', license: 'MIT' });
+  for (const path of ['dist/cli.mjs', 'dist/hook.mjs', 'dist/build-info.json', 'dist/third-party-notices.json', 'hooks/hooks.json', 'LICENSE']) {
+    expect(await readFile(join(root, 'codex-plugin', path))).toEqual(await readFile(join(root, 'plugin', path)));
+  }
+  const f = await fixture();
+  const hook = spawnSync(process.execPath, [join(f.installed, 'dist/hook.mjs'), '--host', 'codex'], { input: '{}', encoding: 'utf8', timeout: 8000 });
+  expect(hook.status).toBe(0); expect(JSON.parse(hook.stdout)).toEqual({});
+  const checked = JSON.parse((await exec(process.execPath, ['scripts/verify-package.mjs'])).stdout);
+  expect(checked.distributions).toMatchObject({ portable: { status: 'verified' }, codex: { status: 'verified' } });
+}, 20000);
+
+test.each(['plugin.json', 'dist/hook.mjs', 'skills/feature-network/SKILL.md'])('package_verifier_rejects_codex_distribution_tamper_%s', async path => {
+  const temp = await tree(); roots.push(temp);
+  for (const name of ['plugin', 'codex-plugin', 'packaging', 'tests/package/schemas', '.agents', '.github']) await cp(join(root, name), join(temp, name), { recursive: true });
+  await cp(join(root, 'package.json'), join(temp, 'package.json')); await cp(join(root, 'LICENSE'), join(temp, 'LICENSE'));
+  await writeFile(join(temp, 'codex-plugin', path), '{}');
+  await expect(exec(process.execPath, [join(root, 'scripts/verify-package.mjs')], { cwd: temp })).rejects.toThrow(/unexpected_or_missing_package_file|distribution_mismatch/);
+});
+
+test('package_verifier_requires_shared_skill_source_fingerprint_before_release', async () => {
+  const temp = await tree(); roots.push(temp);
+  for (const name of ['plugin', 'codex-plugin', 'packaging', 'tests/package/schemas', '.agents', '.github']) await cp(join(root, name), join(temp, name), { recursive: true });
+  await cp(join(root, 'package.json'), join(temp, 'package.json'));
+  const info = await json(join(temp, 'plugin/dist/build-info.json'));
+  delete info.sources['plugin/skills/feature-network/SKILL.md'];
+  for (const distribution of ['plugin', 'codex-plugin']) await writeFile(join(temp, distribution, 'dist/build-info.json'), JSON.stringify(info));
+  await expect(exec(process.execPath, [join(root, 'scripts/verify-package.mjs')], { cwd: temp })).rejects.toThrow(/missing_build_source/);
+});

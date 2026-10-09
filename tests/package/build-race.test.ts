@@ -36,8 +36,10 @@ await import(${JSON.stringify(pathToFileURL(resolve('scripts/build-plugin.mjs'))
       child.once('error', reject); child.once('exit', () => reject(new Error('build exited before instrumented boundary: ' + stderr)));
     });
     expect(boundary.temporaryWritten).toBeTruthy();
-    const baseline = (await files(resolve('plugin'))).filter(path => !/\.tmp-\d+$/.test(path));
-    const installed = join(temp, 'offline-plugin'); await cp(resolve('plugin'), installed, { recursive: true });
-    expect(await files(installed)).toEqual(baseline);
+    for (const distribution of ['plugin', 'codex-plugin']) {
+      const baseline = await files(resolve(distribution));
+      const installed = join(temp, distribution); await cp(resolve(distribution), installed, { recursive: true });
+      expect(await files(installed)).toEqual(baseline);
+    }
   } finally { if (child.connected) child.send('resume'); expect(await done).toBe(0); expect(stderr).toBe(''); }
 }, 20000);

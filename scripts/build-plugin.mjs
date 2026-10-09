@@ -28,13 +28,34 @@ for (const directory of [...packageRoots].sort()) {
 }
 packages.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 async function publish(path, data) {
-  const temp = join(staging, String(nextFile++)); await writeFile(temp, data); await rename(temp, path);
+  const temp = join(staging, String(nextFile++)); await writeFile(temp, data); await mkdir(dirname(path), { recursive: true }); await rename(temp, path);
 }
-for (const output of result.outputFiles) await publish(output.path, output.contents);
-await publish('plugin/dist/third-party-notices.json', JSON.stringify({ format: 1, packages }, null, 2) + '\n');
-try { await publish('plugin/LICENSE', await readFile('LICENSE')); }
-catch (error) { if (error.code !== 'ENOENT') throw error; await unlink('plugin/LICENSE').catch(() => {}); }
-const sources = Object.fromEntries(await Promise.all([...new Set([...Object.keys(result.metafile.inputs), 'scripts/build-plugin.mjs', 'package.json', 'package-lock.json'])].sort().map(async path => [path, hash(await readFile(path))])));
-const artifacts = Object.fromEntries(await Promise.all(['cli.mjs', 'hook.mjs', 'third-party-notices.json'].map(async name => [name, hash(await readFile(join('plugin/dist', name)))])));
-await publish('plugin/dist/build-info.json', JSON.stringify({ format: 1, version: (await json('package.json')).version, target: 'node24', esbuild: (await json('node_modules/esbuild/package.json')).version, sources, artifacts }, null, 2) + '\n');
+// One build supplies both formats; temporary writes remain outside either package.
+const outputs = new Map(result.outputFiles.map(output => [output.path.endsWith('cli.mjs') ? 'cli.mjs' : 'hook.mjs', output.contents]));
+outputs.set('third-party-notices.json', Buffer.from(JSON.stringify({ format: 1, packages }, null, 2) + '\n'));
+const shared = new Map();
+async function collect(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = directory + '/' + entry.name;
+    if (entry.isDirectory()) await collect(path);
+    else if (entry.isFile()) shared.set(path, await readFile(path));
+    else throw new Error('invalid_package_source');
+  }
+}
+await collect('plugin/skills');
+shared.set('plugin/hooks/hooks.json', await readFile('plugin/hooks/hooks.json'));
+const codexManifest = await readFile('packaging/codex-plugin.json');
+let license;
+try { license = await readFile('LICENSE'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+const sourcePaths = [...new Set([...Object.keys(result.metafile.inputs), 'scripts/build-plugin.mjs', 'package.json', 'package-lock.json', 'packaging/codex-plugin.json', 'plugin/plugin.json', 'plugin/mcp.json', 'plugin/com.github.copilot/hooks/hooks.json', ...shared.keys(), ...(license ? ['LICENSE'] : [])])].sort();
+const sources = Object.fromEntries(await Promise.all(sourcePaths.map(async path => [path, hash(shared.get(path) ?? (path === 'packaging/codex-plugin.json' ? codexManifest : path === 'LICENSE' ? license : await readFile(path)))])));
+const artifacts = Object.fromEntries([...outputs].map(([name, bytes]) => [name, hash(bytes)]));
+outputs.set('build-info.json', Buffer.from(JSON.stringify({ format: 1, version: (await json('package.json')).version, target: 'node24', esbuild: (await json('node_modules/esbuild/package.json')).version, sources, artifacts }, null, 2) + '\n'));
+for (const distribution of ['plugin', 'codex-plugin']) {
+  for (const [name, bytes] of outputs) await publish(join(distribution, 'dist', name), bytes);
+  if (license) await publish(join(distribution, 'LICENSE'), license);
+  else await unlink(join(distribution, 'LICENSE')).catch(error => { if (error.code !== 'ENOENT') throw error; });
+}
+for (const [path, bytes] of shared) await publish(join('codex-plugin', path.slice('plugin/'.length)), bytes);
+await publish('codex-plugin/.codex-plugin/plugin.json', codexManifest);
 } finally { await rm(staging, { recursive: true, force: true }); }

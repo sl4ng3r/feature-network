@@ -2,23 +2,23 @@
 
 Local feature memory for coding agents. Git-versioned YAML describes features, code references and evidenced or hypothetical relations. Five project-bound STDIO-MCP tools supply bounded context, impact queries, updates, freshness checks and resumable initialization. The running agent performs semantic analysis; FeatureNetwork calls no model API, cloud or telemetry service.
 
-**Prerequisite: Node.js 24 LTS, installed separately.** The prebuilt `plugin/` directory bundles its JavaScript dependencies and runs offline without `npm`, TypeScript or `node_modules`. Docker Compose and Deploy Cockpit are intentionally outside this plugin's scope. License: MIT; bundled dependency notices accompany the artifact.
+**Prerequisite: Node.js 24 LTS, installed separately.** The prebuilt `codex-plugin/` (Codex compatibility) and `plugin/` (Copilot portable) directories bundle their JavaScript dependencies and run offline without `npm`, TypeScript or `node_modules`. Docker Compose and Deploy Cockpit are intentionally outside this plugin's scope. License: MIT; bundled dependency notices accompany the artifact.
 
 ## Install and activate
 
 Use the prebuilt plugin from a separately authorized release archive, extract it to a stable local location, and follow [installation](docs/installation.md). Local release preparation currently creates an unpublished archive; this repository does not claim a public release exists.
 
-Installing the native plugin loads seven skills. Its portable `mcp.json` intentionally has no active server: an immutable project root must be selected explicitly. Activate MCP using a reviewed project setup preview and receipt. For Codex with the native plugin enabled:
+Both native distributions include seven skills and the same bundled core. Codex uses only `.codex-plugin/plugin.json` in its separate tree: a portable root manifest suppresses hook discovery in the tested CLI `0.162.0-alpha.17.2`. Copilot retains Agent Plugins 1.0 at `plugin/plugin.json`. Neither distribution activates a project-bound MCP server: an immutable project root must be selected explicitly. Activate MCP using a reviewed project setup preview and receipt. For Codex with the native plugin enabled:
 
 ```sh
-node /path/to/plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --native-plugin --dry-run
+node /path/to/codex-plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --native-plugin --dry-run
 # Review the additions, exact targets and receipt printed above. Then explicitly approve:
-node /path/to/plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --native-plugin --approve-and-apply RECEIPT
+node /path/to/codex-plugin/dist/cli.mjs setup --host codex --project-root /path/to/project --native-plugin --approve-and-apply RECEIPT
 ```
 
 Codex native mode writes only the project MCP entry; the native plugin supplies hooks, which require host trust review. It rejects exact duplicate FeatureNetwork project hooks. For Copilot CLI use `--host copilot` and omit `--native-plugin`: reviewed project setup supplies MCP and lifecycle hooks because the packaged Copilot hooks are deliberately non-active. Setup preserves unrelated configuration, rejects changed previews and never installs a host plugin or changes host trust settings.
 
-Codex Mac app, Copilot CLI and Copilot App require separate live acceptance. Automated package/contract tests establish no native menu, actual model use or App capability. Copilot's documented hook payload has no reliable turn identity, so it cannot force automatic completion; the skill/MCP workflow must finish maintenance explicitly. This is a visible v1 integration gap.
+Codex Mac app, Copilot CLI and the standalone [GitHub Copilot App](https://github.com/features/ai/github-app) require separate live acceptance. The App is the desktop product linked here; CLI behavior does not establish App behavior. Automated package/contract tests establish no native menu, actual model use or App capability. Copilot's documented hook payload has no reliable turn identity, so it cannot force automatic completion; the skill/MCP workflow must finish maintenance explicitly. This is a visible v1 integration gap.
 
 ## Commands
 
@@ -50,7 +50,7 @@ npm run bench:core
 npm run release:prepare -- --version 0.1.0
 ```
 
-`release:prepare` writes an ignored local `releases/feature-network-0.1.0/` tree, deterministic `.tar.gz`, source/checksum manifest and validation report. Sources and prebuilt plugin share the recorded Git revision and tree. It never pushes, tags, uploads or publishes. Existing output is refused. Missing licensing blocks release preparation while local builds remain possible.
+`release:prepare` writes an ignored local `releases/feature-network-0.1.0/` tree, deterministic `.tar.gz`, source/checksum manifest and validation report. Both prebuilt distributions, their matching native catalogs, and sources share the recorded Git revision and tree. It never pushes, tags, uploads or publishes. Existing output is refused. Missing licensing blocks release preparation while local builds remain possible.
 
 CI defines Node 24 validation on Linux, macOS and Windows with read-only repository permissions and no publication workflow. An actual CI run is required to establish each platform's result; local macOS tests do not prove Windows or Linux support. See [contributing](CONTRIBUTING.md), [MCP contract](docs/mcp.md) and [adapter limits](docs/adapters.md).
 
