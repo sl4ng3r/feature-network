@@ -152,3 +152,23 @@ test('checkpoint_persists_per_slice_analysis_outcome_and_reason_without_source_c
   const file = saved.state!.files.find(f => f.path === 'source.ts')!;
   expect(file).toMatchObject({ sliceReviews: { '["source.ts",0,6]': { outcome: 'analyzed', reason: 'Reviewed actual source and saved feature mapping', featureIds: ['alpha'] } } });
 });
+test('empty_checkpoint_cannot_carry_completed_review_to_a_changed_network', async () => {
+  const p = await fixture(roots);
+  const initial = await bootstrap(p, { action: 'start' }); const before = await readSnapshot(p);
+  const completed = await bootstrap(p, { ...ack(initial, before.revision, { alpha: before.fingerprints['network-spec/alpha.yaml']! }), relationalReviewComplete: true, reason: 'Reviewed all original relationships' });
+  expect(completed.status).toBe('completed');
+  const featurePath = join(p.networkDir, 'alpha.yaml');
+  const changedBytes = (await readFile(featurePath, 'utf8')).replace('summary: Source', 'summary: Manually revised source');
+  await writeFile(featurePath, changedBytes);
+  const changed = await readSnapshot(p); expect(changed.integrity).toBe('valid'); expect(changed.revision).not.toBe(before.revision);
+  const checkpointBefore = await readRuntime(p, 'bootstrap/run');
+  await expect(bootstrap(p, { action: 'checkpoint', expectedRunRevision: completed.runRevision!, packageId: null, networkRevision: changed.revision, sources: [], results: [], featureFingerprints: {} })).rejects.toMatchObject({ code: 'invalid_checkpoint' });
+  expect(await readRuntime(p, 'bootstrap/run')).toEqual(checkpointBefore);
+  expect(await readFile(featurePath, 'utf8')).toBe(changedBytes);
+  expect((await bootstrap(p, { action: 'status' })).state?.networkRevision).toBe(before.revision);
+  const renewed = await bootstrap(p, { action: 'checkpoint', expectedRunRevision: completed.runRevision!, packageId: null, networkRevision: changed.revision, sources: [], results: [], featureFingerprints: { alpha: changed.fingerprints['network-spec/alpha.yaml']! }, relationalReviewComplete: true, reason: 'Re-read manually revised feature and checked all cross-area relationships against unchanged sources' });
+  expect(renewed).toMatchObject({ status: 'completed', coverage: 'partial', state: { networkRevision: changed.revision, relationalReviewComplete: true } });
+  expect(await readFile(featurePath, 'utf8')).toBe(changedBytes);
+  const status = await bootstrap(p, { action: 'status' }); expect(status.runRevision).toBe(renewed.runRevision);
+  expect((await bootstrap(p, { action: 'status' })).runRevision).toBe(status.runRevision);
+});

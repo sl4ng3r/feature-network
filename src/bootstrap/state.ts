@@ -64,7 +64,13 @@ export async function bootstrap(project: Project, request: BootstrapRequest, sto
     if (observed.checkoutIdentity !== state.checkoutIdentity) return result(state, 'reconciliation_required');
     const batch = state.activePackage;
     if ((batch?.id ?? null) !== request.packageId) conflict('Only the active sequential package can be acknowledged');
+    if (batch === null && request.relationalReviewComplete !== true) {
+      throw new NetworkError('invalid_checkpoint', 'A package-free checkpoint requires an explicit cross-area review');
+    }
     const next = structuredClone(state);
+    // A receipt only applies to its reviewed network revision. The explicit
+    // final-review validation below is the only path that can renew it.
+    if (next.networkRevision !== snapshot.revision) next.relationalReviewComplete = false;
     const supplied = new Map(request.sources.map(s => [s.path, s.hash]));
     const expectedSources = new Map(batch?.slices.map(s => [s.path, s.fileHash]) ?? []);
     if (supplied.size !== request.sources.length || supplied.size !== expectedSources.size || [...expectedSources].some(([p, h]) => supplied.get(p) !== h)) conflict('Checkpoint source hashes do not match active package');
