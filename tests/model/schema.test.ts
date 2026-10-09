@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { stringify } from 'yaml';
 import { parseFeature, parseMeta } from '../../src/model/schema.js';
@@ -47,6 +48,44 @@ describe('Feature YAML contract', () => {
     ['recursive alias', minimalFeatureYaml.replace('key_points: []', 'key_points: &points [*points]')],
     ['anchor', minimalFeatureYaml.replace('key_points: []', 'key_points: &points []')],
   ])('rejects_duplicate_yaml_keys_tags_aliases: %s', (_name, yaml) => invalidFeature(yaml));
+
+  it.each([
+    ['sequence key', '? [PRIVATE_TEST_SENTINEL]\n: ignored\n'],
+    ['mapping key', '? {secret: PRIVATE_TEST_SENTINEL}\n: ignored\n'],
+    ['numeric key', '42: ignored\n'],
+    ['boolean key', 'true: ignored\n'],
+    ['null key', 'null: ignored\n'],
+    ['nested collection key', 'evidence:\n  - ? [PRIVATE_TEST_SENTINEL]\n    : ignored\n'],
+  ])('rejects non-string mapping keys without leaking input: %s', (_name, extra) => {
+    // Exercise the real parser in a process with real console/stderr. Waiting for
+    // process exit also captures Node's deferred emitWarning output.
+    const parserUrl = new URL('../../src/model/schema.ts', import.meta.url).href;
+    const script = `
+      import { registerHooks } from 'node:module';
+      import { readFileSync } from 'node:fs';
+      // Node24 strips TS; this test-only resolver maps source .js imports to TS.
+      registerHooks({ resolve(specifier, context, next) {
+        try { return next(specifier, context); }
+        catch (error) {
+          if (error.code === 'ERR_MODULE_NOT_FOUND' && specifier.startsWith('./') && specifier.endsWith('.js')) {
+            return next(specifier.slice(0, -3) + '.ts', context);
+          }
+          throw error;
+        }
+      } });
+      const { parseFeature } = await import(${JSON.stringify(parserUrl)});
+      try { parseFeature(readFileSync(0, 'utf8'), 'backup.yaml'); }
+      catch (error) { process.stdout.write(JSON.stringify({ code: error.code, paths: error.paths, message: error.message })); }
+    `;
+    const result = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
+      encoding: 'utf8', input: minimalFeatureYaml + extra,
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toMatchObject({ code: 'invalid_schema', paths: ['backup.yaml'] });
+    expect(result.stdout).not.toContain('PRIVATE_TEST_SENTINEL');
+  });
 
   it('rejects_over_65536_utf8_bytes', () => {
     const base = minimalFeatureYaml + '#';

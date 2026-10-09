@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import { isAlias, parseDocument, visit } from 'yaml';
+import { isAlias, isScalar, parseDocument, visit } from 'yaml';
 import { z } from 'zod';
 import { NetworkError } from './errors.js';
 import type { Feature, NetworkMeta } from './types.js';
@@ -66,6 +66,11 @@ function parseYaml(text: string, filename: string): unknown {
     const issue = document.errors[0] ?? document.warnings[0];
     if (issue) invalid(`Invalid YAML: ${issue.code}`, filename);
     visit(document, {
+      Pair(_key, pair) {
+        if (!isScalar(pair.key) || typeof pair.key.value !== 'string') {
+          invalid('YAML mapping keys must be strings', filename);
+        }
+      },
       Node(_key, node) {
         if (isAlias(node) || node.anchor || node.tag) {
           invalid('YAML aliases, anchors and explicit tags are not supported', filename);
