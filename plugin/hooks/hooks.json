@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/dist/hook.mjs\" --host codex", "timeout": 8 }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/dist/hook.mjs\" --host codex", "timeout": 8 }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node \"$PLUGIN_ROOT/dist/hook.mjs\" --host codex", "timeout": 8 }] }]
+  }
+}

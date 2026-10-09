@@ -5,7 +5,7 @@ import type { Diagnostic } from '../model/types.js';
 import { readGitState, type GitState } from '../project/git.js';
 import type { Project } from '../project/root.js';
 import { featureReferences, readSnapshot, type Snapshot, type StorageOptions } from '../storage/repository.js';
-import { readRuntime, runtimeRevision, writeRuntime } from '../storage/runtime.js';
+import { readRuntime, runtimeRevision, writeRuntime, type RuntimeWriteOptions } from '../storage/runtime.js';
 import { inspectChange, inspectReference, isIgnoredChange } from './references.js';
 
 export interface TurnState {
@@ -43,7 +43,7 @@ export async function relevantChanges(project: Project, paths: string[], options
 }
 export const workingPaths = (git: GitState): string[] => [...git.staged, ...git.unstaged, ...git.untracked];
 /** Explicit start of a new work turn; fingerprints only references and existing edits. */
-export async function startTurn(project: Project, sessionId: string, options: StorageOptions = {}): Promise<TurnState> {
+export async function startTurn(project: Project, sessionId: string, options: RuntimeWriteOptions = {}): Promise<TurnState> {
   const key = sessionKey(sessionId); const snapshot = await readSnapshot(project, options);
   const blocked = snapshot.integrity === 'pending_recovery' || snapshot.integrity === 'not_initialized';
   const git: GitState = blocked ? { status: 'unavailable', head: null, branch: null, staged: [], unstaged: [], untracked: [], diagnostics: [] } : await readGitState(project);

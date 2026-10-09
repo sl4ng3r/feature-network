@@ -1,0 +1,79 @@
+import { afterEach, expect, test } from 'vitest';
+import { mkdir, readFile, writeFile, symlink, access } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { planSetup, applySetup, quoteBash, quotePowerShell } from '../../src/adapters/setup.js';
+import { cleanup, tree, exec } from '../project/helpers.js';
+const roots: string[] = [];
+const options = { pluginRoot: resolve('plugin'), nodePath: process.execPath };
+afterEach(async () => { await Promise.all(roots.splice(0).map(cleanup)); });
+async function project() { const root = await tree(); roots.push(root); return root; }
+test('setup_preserves_unrelated_config', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const original = 'model = "manual-model"\n# keep my comment\n[mcp_servers.other]\ncommand = "manual"\n';
+  await writeFile(join(root, '.codex/config.toml'), original);
+  const plan = await planSetup('codex', root, { '.codex/config.toml': original, '.codex/hooks.json': null }, options);
+  expect(JSON.stringify(plan)).not.toContain('manual-model');
+  expect(plan.files.find(file => file.path.endsWith('config.toml'))?.content).toContain('mcp_servers');
+  await expect(access(join(root, '.codex/hooks.json'))).rejects.toThrow();
+  await applySetup(plan);
+  expect(await readFile(join(root, '.codex/config.toml'), 'utf8')).toContain(original);
+});
+test('config_changed_since_preview_conflicts before any config writes', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const plan = await planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, options);
+  await writeFile(join(root, '.codex/config.toml'), '# changed');
+  await expect(applySetup(plan)).rejects.toThrow();
+  await expect(access(join(root, '.codex/hooks.json'))).rejects.toThrow();
+});
+test('forged plan or replacement content is not authorization', async () => {
+  const root = await project();
+  const plan = await planSetup('copilot', root, { '.mcp.json': null, '.github/hooks/feature-network.json': null }, options);
+  await expect(applySetup(JSON.parse(JSON.stringify(plan)))).rejects.toThrow();
+  await expect(applySetup({ ...plan, projectRoot: '/tmp' })).rejects.toThrow();
+});
+test('parent_symlink_escape is refused', async () => {
+  const root = await project(); const other = await project(); await symlink(other, join(root, '.codex'));
+  await expect(planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, options)).rejects.toThrow();
+});
+test('quoted_paths_on_bash_and_powershell', async () => {
+  const value = "path with space/it's;$HOME`touch BAD`$(echo bad)";
+  expect((await exec('/bin/bash', ['-c', `printf '%s' ${quoteBash(value)}`])).stdout).toBe(value);
+  expect(quotePowerShell(value)).toBe("'path with space/it''s;$HOME`touch BAD`$(echo bad)'");
+});
+test('config_values_and_manual_hook_settings_are_preserved_but_not_previewed', async () => {
+  const root = await project(); await mkdir(join(root, '.github/hooks'), { recursive: true });
+  const manual = JSON.stringify({ version: 1, hooks: { sessionStart: [{ type: 'command', bash: 'manual SECRET_SETTING' }] } });
+  const mcp = JSON.stringify({ mcpServers: { other: { command: 'manual', env: { TOKEN: 'SECRET_VALUE' } } } });
+  await writeFile(join(root, '.github/hooks/feature-network.json'), manual); await writeFile(join(root, '.mcp.json'), mcp);
+  const plan = await planSetup('copilot', root, { '.mcp.json': mcp, '.github/hooks/feature-network.json': manual }, options);
+  expect(JSON.stringify(plan)).not.toContain('SECRET'); await applySetup(plan);
+  expect(JSON.parse(await readFile(join(root, '.mcp.json'), 'utf8')).mcpServers.other.env.TOKEN).toBe('SECRET_VALUE');
+  expect(JSON.parse(await readFile(join(root, '.github/hooks/feature-network.json'), 'utf8')).hooks.sessionStart[0].bash).toBe('manual SECRET_SETTING');
+});
+test('existing_manual_FeatureNetwork_entry_is_not_replaced', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const original = '[mcp_servers."feature-network"]\ncommand = "manual"\n'; await writeFile(join(root, '.codex/config.toml'), original);
+  await expect(planSetup('codex', root, { '.codex/config.toml': original, '.codex/hooks.json': null }, options)).rejects.toThrow();
+});
+test('parent_symlink_created_after_preview_conflicts', async () => {
+  const root = await project(); const other = await project();
+  const plan = await planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, options);
+  await symlink(other, join(root, '.codex')); await expect(applySetup(plan)).rejects.toThrow();
+});
+test('invalid_existing_config_error_does_not_echo_secret_contents', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const raw = 'token = SECRET_CONFIG_VALUE'; await writeFile(join(root, '.codex/config.toml'), raw);
+  try { await planSetup('codex', root, { '.codex/config.toml': raw, '.codex/hooks.json': null }, options); throw new Error('unexpected success'); }
+  catch (error) { expect(String(error)).not.toContain('SECRET_CONFIG_VALUE'); }
+});
+test('another_setup_lock_blocks_publication_without_overwriting_or_reclaiming_it', async () => {
+  const root = await project(); await mkdir(join(root, '.codex'));
+  const plan = await planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, options);
+  const lock = join(root, '.codex/hooks.json.feature-network-setup-lock'); await writeFile(lock, 'other-owner');
+  await expect(applySetup(plan)).rejects.toThrow(); expect(await readFile(lock, 'utf8')).toBe('other-owner');
+  await expect(access(join(root, '.codex/config.toml'))).rejects.toThrow();
+});
+test('plugin_source_symlink_escape_is_refused', async () => {
+  const root = await project(); const pluginRoot = await project(); await symlink(join(options.pluginRoot, 'dist'), join(pluginRoot, 'dist'));
+  await expect(planSetup('codex', root, { '.codex/config.toml': null, '.codex/hooks.json': null }, { ...options, pluginRoot })).rejects.toThrow();
+});

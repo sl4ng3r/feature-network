@@ -1,0 +1,12 @@
+{
+  "codex": [
+    {"session_id":"redacted-session","cwd":"/redacted/project","hook_event_name":"SessionStart","source":"startup","transcript_path":null,"model":"redacted-model","permission_mode":"default"},
+    {"session_id":"redacted-session","cwd":"/redacted/project","hook_event_name":"UserPromptSubmit","turn_id":"10000000-0000-4000-8000-000000000001","prompt":"/feature-network-sync","permission_mode":"default"},
+    {"session_id":"redacted-session","cwd":"/redacted/project","hook_event_name":"Stop","turn_id":"10000000-0000-4000-8000-000000000001","stop_hook_active":false,"last_assistant_message":"[redacted]","permission_mode":"default"}
+  ],
+  "copilot": [
+    {"event":"sessionStart","payload":{"sessionId":"redacted-session","timestamp":1791540000000,"cwd":"/redacted/project","source":"startup"}},
+    {"event":"userPromptSubmitted","payload":{"sessionId":"redacted-session","timestamp":1791540001000,"cwd":"/redacted/project","prompt":"/feature-network-sync"}},
+    {"event":"agentStop","payload":{"sessionId":"redacted-session","timestamp":1791540002000,"cwd":"/redacted/project","transcriptPath":"/redacted/transcript","stopReason":"end_turn","stop_hook_active":false}}
+  ]
+}

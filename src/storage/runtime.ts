@@ -1,8 +1,10 @@
 import type { Project } from '../project/root.js';
 import { NetworkError } from '../model/errors.js';
-import { assertStorageSize, atomicStorageWrite, digest, readStorage } from './journal.js';
+import { assertStorageSize, atomicStorageWrite, digest, hasJournal, readStorage } from './journal.js';
 import { withProjectLock } from './lock.js';
 import { recoverNetworkUnderLock, type StorageOptions } from './repository.js';
+
+export interface RuntimeWriteOptions extends StorageOptions { allowRecovery?: boolean }
 
 function valuePath(key: string, writable = false): string {
   if (key === 'baselines' && !writable) return '.feature-network/baselines.json';
@@ -38,10 +40,11 @@ export async function readRuntime<T>(project: Project, key: string): Promise<T |
   const existing = await existingValue(project, valuePath(key));
   return existing === null ? null : existing.value as T;
 }
-export async function writeRuntime<T>(project: Project, key: string, expectedRevision: string | null, value: T, options: StorageOptions = {}, validate?: () => Promise<void>): Promise<void> {
+export async function writeRuntime<T>(project: Project, key: string, expectedRevision: string | null, value: T, options: RuntimeWriteOptions = {}, validate?: () => Promise<void>): Promise<void> {
   const path = valuePath(key, true); const text = serialize(value);
   assertStorageSize(text, path); // Reject invalid requests before lock acquisition or pending recovery.
   await withProjectLock(project, async () => {
+    if (options.allowRecovery === false && await hasJournal(project)) throw new NetworkError('pending_recovery', 'Hook bookkeeping cannot recover pending network writes');
     await recoverNetworkUnderLock(project, options);
     const existing = await existingValue(project, path);
     if ((existing === null ? null : runtimeRevision(existing.value)) !== expectedRevision) throw new NetworkError('conflict', 'Runtime revision changed', [key]);
