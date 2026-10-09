@@ -19,6 +19,8 @@ Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-desi
 
 `network-spec/` enthält Git-versionierte YAML-Dateien mit kurzer Summary, Kernpunkten, Codereferenzen und gerichteten Beziehungen. `.feature-network/` ist für Git-ignorierte lokale Caches, Sessiondaten und Wiederherstellungsjournale vorgesehen. Der Kern benötigt keine Datenbank, Cloud oder eigene KI-API. Die geplante Demo verwendet lokal SQLite.
 
+V1 enthält den expliziten Skill-/Command-Einstieg `feature-network-init` zum Aufbau des Gedächtnisses ganzer Bestandsprojekte. Analyse erfolgt durch den laufenden Agenten in begrenzten Paketen; lokale Checkpoints ermöglichen Wiederaufnahme. Technisch abgeschlossene Inventarisierung beweist keine vollständige fachliche Coverage. Bestehende Features und manuelle Kernpunkte bewahren; keine Produktcode- oder Datenbankänderungen durch den Initialisierungsbefehl.
+
 Der Nutzer hat Docker Compose und Deploy Cockpit ausdrücklich vollständig ausgenommen. Auslieferung erfolgt als vorgebautes lokales Plugin-Paket; normale Updates dürfen Projektdaten und vorhandene Hostkonfigurationen nicht überschreiben. Keine absoluten Entwicklerpfade im Produktpaket. Node-Version, Installation, Update, Build und Testbefehle werden mit der Implementierung dokumentiert.
 
 Kern und Plugins sollen öffentlich als Open Source über Git verfügbar werden. Release-Tags enthalten ein geprüftes vorgebautes Plugin-Paket; README, Lizenz, Versionshinweise und Beitragshinweise gehören zur Auslieferung. Lizenzwahl, Remote und tatsächliche Veröffentlichung benötigen konkrete Nutzerangaben beziehungsweise eine Veröffentlichungsanweisung. Releases aus frischem Checkout prüfen; keine privaten Projekt- oder Laufzeitdaten ausliefern.

@@ -23,6 +23,7 @@ Verbindliche Entscheidungen aus dem Gespräch:
 - Docker Compose und Deploy Cockpit entfallen ausdrücklich vollständig.
 - FeatureNetwork benötigt keinen eigenen Cloud-Dienst und keinen eigenen KI-API-Schlüssel.
 - Kern und Plugins werden als Open Source über ein öffentliches Git-Repository für andere Nutzer bereitgestellt. Installation und Beiträge dürfen keine persönliche Entwicklerumgebung voraussetzen.
+- V1 enthält einen expliziten Plugin-Einstieg `feature-network-init`, der das fachliche Gedächtnis für ein bestehendes Projekt schrittweise aus Code, Tests und vorhandener Dokumentation aufbaut und unterbrochene Analysen fortsetzt.
 - Testgetriebene Umsetzung, automatisierte Tests für fachliche Wirkung, Speicherung, Konsistenz und Integrationen.
 
 FeatureNetwork selbst überträgt keine Repository-Inhalte an einen eigenen externen Dienst. Inhalte, die es dem gewählten Coding-Agenten liefert, unterliegen weiterhin dessen normalem Datenverarbeitungsmodell und den Regeln der Arbeitsumgebung.
@@ -35,11 +36,11 @@ Die erste Version umfasst:
 2. Vorwärts-, Rückwärts- und indirekte Graphabfragen sowie konservative Impact-Analyse.
 3. Erkennung struktureller Fehler, geänderter Referenzen und nicht erfasster Änderungsbereiche.
 4. Einen lokalen MCP-Server und ein installierbares Plugin-Paket für die drei Zielumgebungen.
-5. Einen agentengeführten Einstieg zur Erfassung einzelner Features eines vorhandenen Projekts.
+5. Einen expliziten, agentengeführten Initialisierungsbefehl für bestehende Projekte mit begrenzten Analysepaketen, Fortschrittsbericht, Wiederaufnahme und anschließender inkrementeller Erweiterung.
 6. Eine kleine Demo mit Benutzerprofil, Backup und Restore samt automatisierten Tests.
 7. Reproduzierbare Kernbenchmarks und einen Vergleichsablauf für Agenten mit und ohne Netzwerk.
 
-Die umfassende, schrittweise Inventarisierung großer Bestandsprojekte erhält anschließend eine eigene Spezifikation und Umsetzung. Graphdatenbanken, Embeddings, allgemeine Codegraphen, eine Weboberfläche und ein eigenes Requirements-Management gehören nicht zur ersten Version.
+Die schrittweise Inventarisierung eines ganzen Bestandsprojekts gehört nach der ergänzten Nutzeranforderung bereits zur ersten Version. Die erste Umsetzung verwendet den laufenden Agenten und sequentielle Analysepakete. Sprachspezifische AST-Analysen, parallele autonome Inventarisierungsagenten und weitere Optimierungen für sehr große Monorepos sind spätere Erweiterungen. Graphdatenbanken, Embeddings, allgemeine Codegraphen, eine Weboberfläche und ein eigenes Requirements-Management gehören nicht zur ersten Version.
 
 Die Bibliothek und die Hook-Helfer müssen portable Dateipfade verwenden. Bash- und PowerShell-Einstiege delegieren an denselben Node-Code; keine Python- oder Unix-exklusiven Produktabhängigkeiten. macOS ist das unmittelbar verfügbare Live-Testziel. Linux und Windows werden als automatisierte Testziele vorgesehen. Ein konkreter Live-Nachweis auf dem Arbeitsrechner ist separat zu dokumentieren.
 
@@ -51,6 +52,7 @@ Die Bibliothek und die Hook-Helfer müssen portable Dateipfade verwenden. Bash- 
 | Netzwerkindex | Feature-, Text-, Dateizuordnungs- und Graphindizes | Validierte Feature-Daten |
 | Abfragen und Impact | Relevante Features und erklärbare Beziehungspfade auswählen | Netzwerkindex |
 | Aktualitätsprüfung | Referenzänderungen, offene Prüfungen und unbekannte Dateien erkennen | Dateisystem, lokale Laufzeitdaten, Git |
+| Initialisierung | Dateiinventar, begrenzte Analysepakete, Fortschritt und Wiederaufnahme | Gemeinsamer Speicher, Dateisystem, Git; fachliche Analyse durch den Hostagenten |
 | MCP | Kleine, strukturierte Werkzeuge bereitstellen | Gemeinsamer Kern, MCP-SDK |
 | Skill | Fachliche Zuordnung, Codeprüfung und Pflegeablauf anleiten | MCP-Werkzeuge, Agentenfähigkeiten |
 | Adapter | Hostereignisse und Rückgaben normalisieren | Kern und jeweilige Hook-Verträge |
@@ -70,7 +72,7 @@ network-spec/
 .feature-network/       # Lokale Laufzeitdaten; Git-ignoriert
 ```
 
-`_meta.yaml` ist der explizite Netzwerkmarker und enthält `schema: 1` sowie die deklarierte Abdeckung. In v1 ist die Abdeckung stets `partial`: Auch ein funktionierendes Netzwerk darf nicht als vollständige Bestandsaufnahme bezeichnet werden. Beschreibungen der bereits untersuchten Bereiche sind optionale Hinweise, keine Vollständigkeitsbeweise.
+`_meta.yaml` ist der explizite Netzwerkmarker und enthält `schema: 1` sowie die deklarierte Abdeckung. In v1 ist die fachliche Abdeckung stets `partial`: Auch ein abgeschlossener Initialisierungslauf beweist nicht, dass alle Features und Beziehungen korrekt erkannt wurden. Der technische Analysestatus wird separat geführt. Beschreibungen der bereits untersuchten Bereiche sind optionale Hinweise, keine Vollständigkeitsbeweise.
 
 Feature-IDs sind stabil, innerhalb eines Netzwerks eindeutig und entsprechen dem Dateinamen ohne `.yaml`. Erlaubt sind Kleinbuchstaben, Ziffern und einfache Bindestriche, beginnend mit einem Buchstaben. Eine geänderte Summary ändert die ID nicht. Die reservierte Datei `_meta.yaml` ist kein Feature.
 
@@ -166,6 +168,7 @@ Der Server läuft lokal über STDIO. Diagnoseausgaben gehen an STDERR; STDOUT bl
 | `network_impact` | Ausgangs-IDs/Pfade, Richtung, Tiefe und Budget | Potenziell betroffene Features mit erklärbaren Pfaden |
 | `network_update` | Erwarteter Stand, Upserts/Löschungen und überprüfte Referenzstände | Validierter Änderungssatz oder Konflikt; keine versteckten Commits |
 | `network_check` | Strukturprüfung und optionaler Session-/Änderungsbezug | Fehler, Warnungen, offene Prüfungen, unbekannte Dateien |
+| `network_bootstrap` | Aktion `start`, `next`, `checkpoint` oder `status`; optionale Bereichseingrenzung und Analysegrenzen | Dateiinventar, nächste begrenzte Analyseaufgabe oder gespeicherter Fortschritt; keine eigene Modellanalyse |
 
 `network_context` liefert zunächst IDs und Summaries; für ausgewählte Features werden Kernpunkte und Referenzen nachgeladen. Das Werkzeug bietet zusätzlich die Möglichkeit, einzelne umfangreiche Ergebnisse mit einem Offset fortzusetzen.
 
@@ -208,6 +211,7 @@ plugin/
   plugin.json
   mcp.json
   skills/feature-network/SKILL.md
+  skills/feature-network-init/SKILL.md
   dist/
   hooks/hooks.json
   com.github.copilot/hooks/hooks.json
@@ -249,19 +253,49 @@ Ein erfolgreicher CLI-Test gilt nicht als erfolgreicher App-Test. Sollte eine ko
 
 Organisationsrichtlinien können Plugin-/Hook-Nutzung beschränken. Installation respektiert diese Regeln. Weder Arbeitgeber-Repositories noch globale Nutzerkonfigurationen werden ohne eine passende konkrete Installationsanweisung verändert.
 
-## 11. Einstieg in vorhandene Projekte
+## 11. Initialisierungsbefehl für bestehende Projekte
 
-Der erste Einstieg ist bewusst begrenzt: Der Agent untersucht ein ausgewähltes Feature mit seinen Implementierungs-, Test- und Dokumentationsreferenzen. Er legt eine Summary und Kernpunkte an, kennzeichnet Vermutungen, und erfasst nur belegte oder explizit hypothetische Beziehungen zu bereits vorhandenen beziehungsweise im selben Satz angelegten Features.
+### Nutzereinstieg
 
-Der Agent kann ein weiteres angrenzendes Feature nachladen und so das Netzwerk schrittweise erweitern. Die Abdeckung bleibt `partial`. Es gibt keine aus dem Fehlen einer Kante abgeleitete Aussage, dass kein Zusammenhang besteht.
+Das Plugin liefert einen ausdrücklich aufrufbaren Skill namens `feature-network-init`. Sein Auftrag ist, das fachliche Netzwerk des aktuellen Projekts aus Code, Tests und vorhandener Dokumentation aufzubauen. Er ist von der automatisch verwendeten Pflege des bereits vorhandenen Netzwerks getrennt. Ein umfassender Projektlauf beginnt nur durch diesen expliziten Nutzerauftrag, nicht bei jedem normalen Entwicklungswunsch.
 
-Die spätere große Initialisierung baut darauf auf: begrenzte Teilbereiche, Fortschritt und Wiederaufnahme, identische Schema-/Schreibregeln und messbare Analysekosten. Sie ist kein verdeckter Vollscan im MVP.
+Für Copilot CLI ist `/feature-network-init` der vorgesehene Aufruf eines benannten Skills. In Codex wird derselbe Skill über die native Skill-Auswahl beziehungsweise `$feature-network-init` aufgerufen. Der Adapter erfindet keinen identischen Slash-Command für Hosts mit anderem Aufrufmodell. [GitHub: Skill-Aufruf in der CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills), [OpenAI: Skill-Aufruf](https://learn.chatgpt.com/docs/build-skills)
+
+Auch in der Copilot App muss dieser Einstieg explizit nutzbar sein. Die konkrete Darstellung im Command-Picker wird im App-Live-Test geprüft; die Dokumentation der eingebauten App-Slash-Commands allein belegt keine Registrierung unseres eigenen Befehls. Der benannte Skill bleibt über eine ausdrückliche Anfrage zum Aufbau des Gedächtnisses aufrufbar. Die reale App-Anleitung nennt den geprüften Einstieg. [GitHub: App-Slash-Commands](https://docs.github.com/en/copilot/reference/github-copilot-app-reference/slash-commands)
+
+### Schrittweiser Aufbau
+
+1. **Inventar:** Der Kern erfasst Git-verwaltete und nicht ignorierte neue Dateien im aktuellen Projekt. Abhängigkeiten, generierte Builddateien, binäre Assets, Git-Metadaten, Laufzeitdaten und sensible Dateien wie lokale `.env`-Dateien werden ausgeschlossen. Konfigurierbare Bereichseingrenzungen und Ausschlüsse werden gespeichert und im Bericht ausgewiesen. Eine `.env.example` darf als bereinigte Konfigurationsdokumentation berücksichtigt werden. Eingebettete Repositories und Submodule werden als eigenständige, zunächst ausgelassene Bereiche gemeldet.
+2. **Orientierung:** Der Agent liest die vorhandene Architektur- und Projektdokumentation sowie relevante Einstiegspunkte. Er identifiziert fachliche Bereiche als Kandidaten. Eine Verzeichnisstruktur allein ist kein Nachweis für ein Feature und erzeugt keine endgültigen fachlichen Aussagen.
+3. **Analysepakete:** Der Kern gibt dem Agenten deterministisch sortierte, begrenzte Dateipakete. Der Standard ist höchstens zwanzig Dateien und insgesamt höchstens 64 KiB an vorgesehener Textmenge je Paket; umfangreiche Dateien werden in wiederaufnehmbare Ausschnitte geteilt. Der Kern liefert Pfade und Umfang, die Codelektüre erfolgt durch die normalen Werkzeuge des Agenten. Es wird kein vollständiger Repository-Inhalt in eine einzige MCP-Antwort geladen.
+4. **Feature-Erfassung:** Der Agent verfolgt konkrete fachliche Abläufe und erfasst Features mit Summary, Kernpunkten, Codereferenzen und nachvollziehbaren Quellen. Fachlich zusammengehörige Dateien können einem Feature zugeordnet werden; technische Hilfsdateien benötigen kein künstliches eigenes Feature.
+5. **Beziehungen:** Belegte Zusammenhänge werden erfasst, unsichere als Hypothesen markiert. Ein zusätzlicher Abgleich untersucht Beziehungen zwischen den erfassten Bereichen anhand der kompakten Zwischenergebnisse und gezielter Codelektüre. Ziele müssen bereits vorhanden sein oder im selben validierten Änderungssatz angelegt werden.
+6. **Checkpoint:** Nach jedem Paket werden Features über `network_update` geschrieben und anschließend der zugehörige Fortschritt bestätigt. Der Fortschritt enthält Pfade/Ausschnitte, Inhaltsfingerprints, Bearbeitungsstatus und referenzierte Feature-IDs, keine Kopien des gesamten Quellcodes. Ein Feature-Schreibkonflikt darf nicht als erledigtes Analysepaket verbucht werden.
+7. **Abschluss:** Der Kern prüft Netzwerkkonsistenz und Inventarstand. Der Agent berichtet erfasste Features und Beziehungen, abgearbeitete und ausgelassene Bereiche, Hypothesen, offene Prüfungen und Analysekosten. Nicht erklärbare oder unlesbare Dateien werden als offene Prüfungen geführt, statt still als analysiert zu gelten.
+
+### Fortschritt, Wiederaufnahme und bestehendes Wissen
+
+Der Laufzustand liegt in `.feature-network/` und ist durch Schema-/Projektzuordnung und Dateifingerprints an den untersuchten Stand gebunden. Ein erneuter Aufruf setzt standardmäßig den vorhandenen Lauf fort und stellt inzwischen geänderte oder neue Dateien wieder in die Warteschlange. Ein Wechsel von Checkout oder Projektroot darf nicht den Fortschritt eines fremden Projekts übernehmen.
+
+`network_bootstrap start` darf im explizit konfigurierten Projektroot bereits vor Existenz des Netzwerkmarkers das lokale Inventar und den Laufzustand anlegen. Der Marker entsteht mit dem ersten validierten Feature. Ein leeres beziehungsweise vollständig ausgeschlossenes Projekt liefert einen entsprechenden Bericht, ohne ein erfundenes Feature zu erzeugen. Checkpoints enthalten eine erwartete Laufrevision; konkurrierende Bestätigungen desselben Pakets führen zum Konflikt statt zu verlorenem Fortschritt.
+
+Die Datei-/Ausschnittstatus sind `pending`, `analyzed`, `excluded` und `needs_review`. Ein Lauf ist technisch `completed`, wenn im gewählten Inventar keine offenen Pakete oder Prüfungen verbleiben und der bereichsübergreifende Beziehungsabgleich erfolgt ist. Das ist eine Aussage über den Bearbeitungsfortschritt, keine Garantie fachlicher Vollständigkeit; `coverage: partial` bleibt bestehen. Entfernte Dateien werden erkannt und betroffene Referenzen zur Überprüfung markiert.
+
+V1 verarbeitet Analysepakete sequentiell. Bei Unterbrechung bleiben bereits validierte Feature-Dateien erhalten. Nach verlorenen lokalen Checkpoints darf der Agent das Inventar neu aufbauen und bestehende Features erneut abgleichen; er löscht das Netzwerk nicht. Wiederholte Läufe müssen bei unverändertem Ergebnis ohne künstliche YAML-Änderungen auskommen. Manuelle Kernpunkte und stabile IDs werden bewahrt; Entfernung oder Zusammenführung erfordert einen nachvollziehbaren fachlichen Abgleich.
+
+Der Befehl verändert die Feature-Dateien und seinen lokalen Fortschritt. Produktcode, Datenbanken, globale Agenteneinstellungen und Git-Commits werden durch die Initialisierung nicht verändert. Der Agent führt unbekannte Projektskripte nicht allein zur Inventarisierung aus.
+
+### Aufwand und Grenzen
+
+Der erstmalige Aufbau benötigt echte Codeanalyse durch den laufenden Coding-Agenten und kann bei großen Projekten erhebliche Tokens und Zeit kosten. Er nutzt die bestehende Agentensession und benötigt keine zusätzliche KI-API. Fortschritt und Paketgrenzen verhindern einen unkontrollierten Kontextaufbau; sie machen die fachliche Erkennung nicht deterministisch.
+
+Die Initialisierung enthält gespeicherte Zähler für bearbeitete Pakete und Textumfang. Vom Host verfügbare Token-/Zeitwerte werden separat ausgewiesen. Bei Hostlimits stoppt der Lauf mit gespeichertem Fortschritt und klarer Wiederaufnahmeanweisung. Es gibt keine unendliche Hook-Fortsetzung und keine automatische Vollanalyse bei späteren kosmetischen Änderungen.
 
 ## 12. Sicherheit und Datenhaltung
 
 - Referenzen und Schreibziele werden gegen den kanonischen Projektroot geprüft; absolute Pfade, Traversal und entweichende Symlinks werden abgewiesen. Git-Metadaten, Laufzeitjournale und Plugin-Installationsverzeichnisse sind keine zulässigen fachlichen Codereferenzen.
 - YAML wird als Daten behandelt. Benutzerdefinierte Tags, ausführbare Inhalte, unbegrenzte Aliasexpansion und unkontrollierte Dateigrößen sind nicht zugelassen. Pro Feature gilt eine technische Obergrenze von 64 KiB mit klarer Fehlermeldung.
-- Der Kern öffnet nur ausdrücklich referenzierte Dateien zur Existenz-/Fingerprint-Prüfung; er lädt keine Inhalte aus Geheimnisdateien automatisch in Modellkontexte. Netzwerktexte gelten als Repository-Daten und dürfen keine ausführbaren Anweisungen ersetzen.
+- Im normalen Kontext-/Pflegeablauf öffnet der Kern nur ausdrücklich referenzierte Dateien zur Existenz-/Fingerprint-Prüfung. Beim expliziten Initialisierungslauf darf er die ausgewählten zulässigen Inventardateien zusätzlich für Umfang und Fingerprints prüfen; sensible und ausgeschlossene Dateien werden nicht gelesen. Er lädt keine Inhalte aus Geheimnisdateien automatisch in Modellkontexte. Netzwerktexte gelten als Repository-Daten und dürfen keine ausführbaren Anweisungen ersetzen.
 - Schreibzugriffe bleiben auf `network-spec/` und `.feature-network/` beschränkt. Produktcode wird vom Agenten mit dessen normalen Werkzeugen geändert.
 - Default-Logs enthalten Fehlercodes, Zähler und technische Laufzeiten, keine Prompts, Quellcodeinhalte oder Zugangsdaten. Benchmarks mit detaillierter Host-Telemetrie werden explizit aktiviert.
 - Das Netzwerk ist Git-versioniert; lokale Caches sind wegwerfbar. Journale für offene Änderungen sind wiederherstellungsrelevante Laufzeitdaten und werden vor Cachebereinigung geschützt.
@@ -281,11 +315,17 @@ Die Demo besitzt ein kleines persistentes Profilmodell, JSON-Sicherung und Wiede
 
 Der zentrale Auftrag ergänzt ein persistentes Profilfeld. Der Test muss sowohl die Impact-Hinweise auf Backup und Restore als auch einen tatsächlichen Sicherungs-/Wiederherstellungsrundlauf mit dem neuen Wert prüfen. Weitere Fälle verkleinern ein Feature, ändern einen Vertrag und lassen einen Zusammenhang zunächst unvollständig oder veraltet. Erforderliche fachliche Abhängigkeiten werden aus den Demo-Verträgen und Verhaltenstests bestimmt, nicht allein aus der im Test erzeugten Graphstruktur.
 
+### Initialisierung
+
+Automatisierte Tests prüfen Dateiinventar und Ausschlüsse, paketweise Verarbeitung und Ausschnittgrenzen, Checkpoints, Unterbrechung/Wiederaufnahme, geänderte und neue Dateien während eines Laufs, Schreibkonflikte und idempotente erneute Aufrufe. Bestehende manuelle Kernpunkte und Feature-IDs dürfen nicht still überschrieben oder gelöscht werden. Technisch abgeschlossene Inventarisierung und fachliche Coverage werden getrennt geprüft.
+
+Ein agentengeführter Abnahmelauf beginnt mit der Demo ohne `network-spec/` und muss Profil, Backup und Restore mit nutzbaren Zusammenhängen erfassen. Der Sollvergleich stammt aus den fachlichen Demo-Verträgen. Reine Tests mit vorgegebenen Modellantworten beweisen nur das Protokoll und die Fortschrittsverwaltung, nicht die Qualität echter Codeanalyse.
+
 ### Hostadapter und Live-Nachweise
 
 Automatisierte Vertragstests prüfen echte dokumentierte Payloadformen, Ausgaben, Hostunterschiede, Projektbindung, Shell-Quoting, Start aus Unterverzeichnissen und maximale einmalige Fortsetzung. Pakettests prüfen Manifeste, mitgelieferte ausführbare Dateien und fehlende Runtime-Abhängigkeiten.
 
-Für jede der drei Zielumgebungen wird ein separater Nachweis geführt: Version, Installation, MCP-Erreichbarkeit, Skill-Aktivierung, Hook-Auslösung und Profil-/Backup-/Restore-Auftrag. Automatisierte Adaptertests werden als solche bezeichnet. Live-Nachweise bleiben offen, bis sie in der jeweiligen Oberfläche tatsächlich erbracht wurden; fehlende Umgebung oder Berechtigung wird als konkrete Einschränkung dokumentiert.
+Für jede der drei Zielumgebungen wird ein separater Nachweis geführt: Version, Installation, MCP-Erreichbarkeit, Skill-Aktivierung, Hook-Auslösung, expliziter Initialisierungsaufruf einschließlich Wiederaufnahme und Profil-/Backup-/Restore-Auftrag. Automatisierte Adaptertests werden als solche bezeichnet. Live-Nachweise bleiben offen, bis sie in der jeweiligen Oberfläche tatsächlich erbracht wurden; fehlende Umgebung oder Berechtigung wird als konkrete Einschränkung dokumentiert.
 
 ## 14. Performance und Vergleich
 
@@ -309,6 +349,6 @@ Diese Spezifikation wird zuerst schriftlich geprüft. Nach Freigabe folgt ein ei
 - Fachliche Aussagen, Hypothesen, Aktualität und Coverage sind getrennt.
 - Graphrichtung, Traversierung, Budgets, Schreibkonflikte und Wiederherstellung sind festgelegt.
 - Copilot-Prompt-Hooks werden nicht wie Codex-Prompt-Hooks behandelt; App-Support wird separat geprüft.
-- MVP und spätere große Initialisierung sind abgegrenzt.
+- Initialisierung ganzer Bestandsprojekte gehört zu v1; Bearbeitungsstatus, Wiederaufnahme und Grenzen der fachlichen Coverage sind ausdrücklich getrennt. Weitergehende AST-/Parallelisierungsoptimierungen folgen später.
 - Öffentliche Git-Verteilung, Release-Pakete und Installationen durch andere Nutzer sind vorgesehen; tatsächliche Veröffentlichung und Lizenzwahl sind separate Schritte.
 - Es gibt keine Platzhalter für das Kernverhalten und keine Behauptung bereits bestandener Produkt- oder Live-Tests.
