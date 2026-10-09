@@ -76,12 +76,12 @@ test('optimistic_update_conflicts_and_semantic_decisions_are_separate', async ({
   expect(data(await call(client, 'network_check')).openDecisions[0].reason).toBe('decision_missing');
 });
 test('missing_observation_requires_repair_and_does_not_invent_baseline', async ({ signal }) => {
-  const p = await fixture(roots); await writeFile(join(p.root, 'aux.ts'), 'aux'); await exec('git', ['-C', p.root, 'add', 'aux.ts']); await rm(join(p.root, 'aux.ts'));
+  const p = await fixture(roots); await writeFile(join(p.root, 'unmapped-source.ts'), 'aux'); await exec('git', ['-C', p.root, 'add', 'unmapped-source.ts']); await rm(join(p.root, 'unmapped-source.ts'));
   const snap = await readSnapshot(p); const { client } = await connect(p.root, bundle, signal);
-  const result = await call(client, 'network_update', { expected: {}, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: [], observations: [{ path: 'aux.ts', state: 'missing' }], decision: { outcome: 'no_semantic_change', reason: 'Deleted helper has no feature semantics' } });
+  const result = await call(client, 'network_update', { expected: {}, expectedRevision: snap.revision, upserts: [], deletes: [], verifiedReferences: [], observations: [{ path: 'unmapped-source.ts', state: 'missing' }], decision: { outcome: 'no_semantic_change', reason: 'Deleted helper has no feature semantics' } });
   expect(result.isError).not.toBe(true);
-  expect(data(await call(client, 'network_check', { mode: 'full' })).unknownChangeDecisions).toContainEqual({ path: 'aux.ts', state: 'missing_no_semantic_change' });
-  expect(JSON.parse(await readFile(join(p.runtimeDir, 'baselines.json'), 'utf8')).references).not.toHaveProperty('aux.ts');
+  expect(data(await call(client, 'network_check', { mode: 'full' })).unknownChangeDecisions).toContainEqual({ path: 'unmapped-source.ts', state: 'missing_no_semantic_change' });
+  expect(JSON.parse(await readFile(join(p.runtimeDir, 'baselines.json'), 'utf8')).references).not.toHaveProperty('unmapped-source.ts');
 });
 test('complete_tool_result_budget_and_unicode_continuation', async ({ signal }) => {
   const p = await fixture(roots); const snap = await readSnapshot(p); const { client } = await connect(p.root, bundle, signal);

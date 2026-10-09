@@ -84,10 +84,10 @@ test('corrupt_runtime_cannot_claim_completion', async () => {
   expect((await bootstrap(p, { action: 'status' })).status).toBe('invalid_checkpoint');
 });
 test('deleted_unmapped_source_is_resolved_without_invented_hash', async () => {
-  const p = await fixture(roots); await writeFile(join(p.root, 'aux.ts'), 'aux'); await exec('git', ['-C', p.root, 'add', 'aux.ts']);
-  await bootstrap(p, { action: 'start' }); await rm(join(p.root, 'aux.ts'));
+  const p = await fixture(roots); await writeFile(join(p.root, 'unmapped-source.ts'), 'aux'); await exec('git', ['-C', p.root, 'add', 'unmapped-source.ts']);
+  await bootstrap(p, { action: 'start' }); await rm(join(p.root, 'unmapped-source.ts'));
   const result = await bootstrap(p, { action: 'next' });
-  expect(result.state!.files.find(f => f.path === 'aux.ts')).toMatchObject({ hash: null, status: 'excluded', reason: 'deleted' });
+  expect(result.state!.files.find(f => f.path === 'unmapped-source.ts')).toMatchObject({ hash: null, status: 'excluded', reason: 'deleted' });
 });
 test('mapped_source_cannot_be_acknowledged_without_its_saved_feature', async () => {
   const p = await fixture(roots); const next = await bootstrap(p, { action: 'start' }); const snap = await readSnapshot(p);
