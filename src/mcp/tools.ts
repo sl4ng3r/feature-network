@@ -9,11 +9,11 @@ const budget = parametersSchema.shape.budget;
 export const contextSchema = parametersSchema.omit({ depth: true, direction: true }).extend({ cursor: cursorSchema.optional() });
 export const impactSchema = parametersSchema.extend({ cursor: cursorSchema.optional() });
 export const updateSchema = z.strictObject({
-  expected: z.record(z.string().regex(/^network-spec\/(?:_meta|[a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.yaml$/), fingerprint.nullable()),
-  expectedRevision: fingerprint.optional(), expectedMissingReferences: z.array(path).max(100).optional(),
+  expected: z.record(z.string().regex(/^network-spec\/(?:_meta|[a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.yaml$/), fingerprint.nullable()).describe('Copy exact path fingerprints from network_context structured responses; new feature paths use null. Never truncate or reconstruct tokens.'),
+  expectedRevision: fingerprint.optional().describe('Copy the exact revision from a fresh successful structured network_context/update response; a complete lowercase SHA-256 token.'), expectedMissingReferences: z.array(path).max(100).optional(),
   upserts: z.array(featureSchema).max(100), deletes: z.array(id).max(100),
-  verifiedReferences: z.array(z.strictObject({ path, hash: fingerprint })).max(100),
-  observations: z.array(reviewObservationSchema).max(100).optional(),
+  verifiedReferences: z.array(z.strictObject({ path, hash: fingerprint })).max(100).describe('Only actually mapped network source references; copy exact SHA-256 hashes of inspected bytes. Unmapped tests belong in a separate observations/no_semantic_change request.'),
+  observations: z.array(reviewObservationSchema).max(100).optional().describe('If supplied, replaces the implicit verifiedReferences review list: must be nonempty and include every verified source with identical path and hash. Omit for ordinary mapped updated writes; never send an empty overriding array. Unmapped sources require no_semantic_change.'),
   decision: reviewDecisionSchema.omit({ networkRevision: true }), initialize: z.boolean().optional(), budget,
 });
 export const checkSchema = z.strictObject({ mode: z.enum(['summary', 'full']).optional(), sessionId: z.string().min(1).max(128).optional(), budget });

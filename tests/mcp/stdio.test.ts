@@ -85,6 +85,68 @@ test('optimistic_update_conflicts_and_semantic_decisions_are_separate', async ({
   await rm(join(p.runtimeDir, 'values/freshness/decisions.json'));
   expect(data(await call(client, 'network_check')).openDecisions[0].reason).toBe('decision_missing');
 });
+test('update_discovery_explains_two_writes_and_explicit_observation_override', async ({ signal }) => {
+  const root = await tree(); roots.push(root); const { client } = await connect(root, bundle, signal);
+  const tool = (await client.listTools(undefined, { signal })).tools.find(tool => tool.name === 'network_update')!;
+  expect(tool.description).toMatch(/two.*write/i);
+  expect(tool.description).toMatch(/unmapped.*no_semantic_change/i);
+  const properties = tool.inputSchema.properties as Record<string, { description?: string }>;
+  expect(properties.observations!.description).toMatch(/replaces.*verifiedReferences/i);
+  expect(properties.observations!.description).toMatch(/nonempty.*every verified.*path.*hash/i);
+  expect(properties.verifiedReferences!.description).toMatch(/only.*mapped/i);
+  expect(properties.expectedRevision!.description).toMatch(/exact.*structured/i);
+});
+
+test('documented_two_write_example_records_mapped_update_then_unmapped_test_review', async ({ signal }) => {
+  const p = await fixture(roots); const { client } = await connect(p.root, bundle, signal);
+  const mappedPath = 'source.ts'; const unmappedTestPath = 'profile.test.ts';
+  await writeFile(join(p.root, mappedPath), 'new profile source');
+  await writeFile(join(p.root, unmappedTestPath), 'profile roundtrip assertions');
+  const mappedHash = hash(await readFile(join(p.root, mappedPath), 'utf8'));
+  const unmappedTestHash = hash(await readFile(join(p.root, unmappedTestPath), 'utf8'));
+  const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
+  const reviewedFeature = { ...current.items[0], summary: 'Reviewed profile behavior', key_points: [...current.items[0].key_points, 'Profile roundtrip inspected'] };
+  const text = await readFile(new URL('../../plugin/skills/feature-network/SKILL.md', import.meta.url), 'utf8');
+  const example = /## Guarded review requests[\s\S]*?```javascript\n([\s\S]*?)```/.exec(text);
+  expect(example, 'the usable guarded two-write example must be present').not.toBeNull();
+  const responses: Record<string, any>[] = [];
+  const invoke = async (name: string, args: Record<string, unknown>) => {
+    const result = await call(client, name, args); expect(result.isError).not.toBe(true);
+    const structured = data(result); if (name === 'network_update') responses.push(structured); return structured;
+  };
+  // Run only the repository-owned example against the real local MCP process.
+  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
+  await new AsyncFunction('network_context', 'network_update', 'featureId', 'reviewedFeature', 'mappedPath', 'mappedHash', 'unmappedTestPath', 'unmappedTestHash', example![1])(
+    (args: Record<string, unknown>) => invoke('network_context', args),
+    (args: Record<string, unknown>) => invoke('network_update', args),
+    'alpha', reviewedFeature, mappedPath, mappedHash, unmappedTestPath, unmappedTestHash);
+  expect(responses).toHaveLength(2); expect(responses.map(result => result.semanticReview)).toEqual(['recorded', 'recorded']);
+  const checked = data(await call(client, 'network_check', { mode: 'full' }));
+  expect(checked.openDecisions).toEqual([]);
+  expect(checked.unknownChangeDecisions).toContainEqual({ path: unmappedTestPath, state: 'no_semantic_change' });
+  const baseline = JSON.parse(await readFile(join(p.runtimeDir, 'baselines.json'), 'utf8'));
+  expect(Object.hasOwn(baseline.references, mappedPath)).toBe(true);
+  expect(Object.hasOwn(baseline.references, unmappedTestPath)).toBe(false);
+  expect(data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' })).items[0].summary).toBe('Reviewed profile behavior');
+});
+
+test('mixed_updated_unmapped_and_empty_overriding_observations_remain_rejected', async ({ signal }) => {
+  const p = await fixture(roots); const { client } = await connect(p.root, bundle, signal);
+  await writeFile(join(p.root, 'profile.test.ts'), 'test source');
+  const current = data(await call(client, 'network_context', { ids: ['alpha'], detail: 'full' }));
+  const mapped = { path: 'source.ts', hash: hash(await readFile(join(p.root, 'source.ts'), 'utf8')) };
+  const unmapped = { path: 'profile.test.ts', hash: hash(await readFile(join(p.root, 'profile.test.ts'), 'utf8')) };
+  const request = { expected: current.fingerprints, expectedRevision: current.revision, upserts: [{ ...current.items[0], summary: 'Should not publish' }], deletes: [], verifiedReferences: [mapped], decision: { outcome: 'updated', reason: 'Reviewed profile source' } };
+  for (const observations of [[], [unmapped], [mapped, unmapped]]) {
+    expect(data(await call(client, 'network_update', { ...request, observations })).error.code).toBe('invalid_decision');
+    expect(data(await call(client, 'network_context', { ids: ['alpha'] })).revision).toBe(current.revision);
+  }
+  expect(data(await call(client, 'network_update', { ...request, verifiedReferences: [unmapped] })).error.code).toBe('invalid_update');
+  expect(data(await call(client, 'network_update', { ...request, expectedRevision: current.revision.slice(1) })).error.code).toBe('invalid_input');
+  expect(data(await call(client, 'network_update', { ...request, verifiedReferences: [{ ...mapped, hash: mapped.hash.slice(1) }] })).error.code).toBe('invalid_input');
+  expect(data(await call(client, 'network_context', { ids: ['alpha'] })).revision).toBe(current.revision);
+});
+
 test('missing_observation_requires_repair_and_does_not_invent_baseline', async ({ signal }) => {
   const p = await fixture(roots); await writeFile(join(p.root, 'unmapped-source.ts'), 'aux'); await exec('git', ['-C', p.root, 'add', 'unmapped-source.ts']); await rm(join(p.root, 'unmapped-source.ts'));
   const snap = await readSnapshot(p); const { client } = await connect(p.root, bundle, signal);

@@ -84,3 +84,16 @@ describe('development and impact instruction contracts', () => {
     expect(text).toContain('network_impact({cursor: result.nextCursor})');
   });
 });
+
+// Usability contracts; real MCP execution of the example is in stdio.test.ts.
+it('development_review_teaches_observation_override_exact_tokens_and_safe_diagnostics', async () => {
+  const text = await readFile(new URL('../../plugin/skills/feature-network/SKILL.md', import.meta.url), 'utf8');
+  expect(text).toMatch(/observations.*replaces.*verifiedReferences/s);
+  expect(text).toMatch(/never.*empty.*observations/i);
+  expect(text).toMatch(/every verified.*path.*hash/i);
+  expect(text).toMatch(/only.*mapped.*verifiedReferences/i);
+  expect(text).toMatch(/exact.*structured.*responses/i);
+  expect(text).toMatch(/SHA-256.*(?:truncate|reconstruct)/i);
+  expect(text).toContain('invalid_input'); expect(text).toContain('invalid_decision');
+  expect(text).toContain('no_semantic_change');
+});

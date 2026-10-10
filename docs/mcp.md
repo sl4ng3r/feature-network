@@ -26,6 +26,35 @@ Check/update/bootstrap projections disclose `truncated` and per-field `omitted` 
 
 These are local protocol and bundle tests, not live acceptance of Codex, Copilot CLI or Copilot App.
 
+## Guarded review requests
+
+For mapped feature changes and unmapped test changes, use two guarded writes. Put only actually mapped references in `verifiedReferences`; do not add a test as a network reference just to bypass this distinction. An explicit `observations` array replaces the implicit `verifiedReferences` observations: it must be nonempty and include every verified source's identical path and hash. Never send empty `observations` when relying on the fallback. An `updated` decision cannot include unmapped observations; review those separately with reasoned `no_semantic_change` only when source inspection supports that result.
+
+Copy exact revision and fingerprint values from actual structured tool responses. Hash the exact source bytes you inspected with the host's SHA-256 tool; do not truncate, retype or reconstruct hashes. Never confirm unseen content. Before the example, set `featureId`, `mappedPath`, `mappedHash`, `unmappedTestPath` and `unmappedTestHash` from that inspection. Prepare `reviewedFeature` from the complete refreshed feature, retaining manual key points and changing only source-grounded assertions; partial coverage remains partial. Replace the example reasons with concrete findings from that review. The tool-call helpers below return `structuredContent` from successful responses; stop on any error.
+
+```javascript
+const context = await network_context({ids:[featureId],detail:"full"});
+// Prepare reviewedFeature from this exact complete context response before writing;
+// preserve manual points and re-review if an earlier preparation used another revision.
+await network_update({
+  expected:context.fingerprints,
+  expectedRevision:context.revision,
+  upserts:[reviewedFeature], deletes:[],
+  verifiedReferences:[{path:mappedPath,hash:mappedHash}],
+  decision:{outcome:"updated",reason:"Inspected mapped source and updated the affected feature assertions"}
+  // observations intentionally omitted: verifiedReferences supplies the reviews.
+});
+const fresh = await network_context({ids:[featureId],detail:"full"});
+await network_update({
+  expected:{}, expectedRevision:fresh.revision,
+  upserts:[], deletes:[], verifiedReferences:[],
+  observations:[{path:unmappedTestPath,hash:unmappedTestHash}],
+  decision:{outcome:"no_semantic_change",reason:"Inspected the unmapped test changes; they assert the mapped behavior without separate feature semantics"}
+});
+```
+
+On `invalid_input`, inspect the advertised input schema and copy fresh exact tokens: revisions, fingerprints and source hashes must be complete 64-character lowercase SHA-256 values, and unknown fields are rejected. On `invalid_decision`, repair composition: omit `observations` for the mapped write, or include every verified path/hash in a nonempty explicit list; move unmapped tests to the separate `no_semantic_change` request. Do not change outcomes without supporting review or bypass a guard. On conflict or interruption, refresh context/check before retrying because network publication may have succeeded while semantic review remains open.
+
 ## Read caches and scoped freshness
 
 Read snapshots share per-process byte/parsed caches bound to canonical project/storage paths, exclusion options and cache/schema version. File identity includes device, inode, mode, size, nanosecond mtime and ctime; same-length edits and restored mtimes invalidate it. Readers still take the short lock, check journals first, compare two captures and validate references/exclusions. Git diagnostics are still observed, not promoted from a stale cache. MCP consumers incrementally refresh the index and reuse unchanged entries. Fresh writer validation and semantic confirmation bypass these caches.
