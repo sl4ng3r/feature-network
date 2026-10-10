@@ -31,18 +31,10 @@
       "loadedSkills": 7,
       "completedHookEvents": [
         {
-          "id": "session-start:0:<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "sessionStart",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "thread",
-          "sourcePath": "<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 0,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622932,
-          "completedAt": 1791622932,
           "durationMs": 139,
           "entries": [
             {
@@ -52,18 +44,10 @@
           ]
         },
         {
-          "id": "user-prompt-submit:1:<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "userPromptSubmit",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 1,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622932,
-          "completedAt": 1791622932,
           "durationMs": 223,
           "entries": [
             {
@@ -73,18 +57,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "blocked",
-          "statusMessage": null,
-          "startedAt": 1791622999,
-          "completedAt": 1791622999,
           "durationMs": 182,
           "entries": [
             {
@@ -94,18 +70,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/1/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791623014,
-          "completedAt": 1791623014,
           "durationMs": 79,
           "entries": []
         }
@@ -114,221 +82,29 @@
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
-            "sessionId": "01a1250c-5879-7cb2-9ad8-2919b155ef31"
+          "error": null,
+          "argumentsSummary": {
+            "sessionId": "01a1250c-5879-7cb2-9ad8-2919b155ef31",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "summary",
+          "resultSummary": {
             "freshness": "last_known",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "not_recorded",
-            "changeCoverage": "last_known",
-            "lastCheckedAt": null,
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              }
-            ],
-            "unknownChangeDecisions": [],
-            "unknownChanges": [],
-            "turnChanges": [],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "query": "stored user profiles persistence backup restore locale",
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "restore": {
                 "state": "unknown",
@@ -342,35 +118,29 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_impact",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile"
             ],
             "direction": "both",
             "depth": 2,
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "depth": 2,
             "depthLimited": false,
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
             "coverage": "partial",
             "incomplete": false,
-            "diagnostics": [],
             "items": [
               {
                 "id": "user-profile",
@@ -538,30 +308,14 @@
               }
             ],
             "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
-            "freshness": {
-              "user-profile": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "backup": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "restore": {
-                "state": "unknown",
-                "review": "open"
-              }
-            }
-          },
-          "error": null
+            "omitted": 0
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb",
@@ -569,110 +323,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e"
             },
             "deletes": [],
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale; locale defaults to en-US and supports de-DE.",
-                  "Existing rows receive en-US when migrated to schema version 2.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "relations": []
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "Invalid restore preserves all existing rows through validation before transaction."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              }
-            ],
             "verifiedReferences": [
               {
                 "path": "src/profile.ts",
@@ -700,142 +350,32 @@
             "decision": {
               "outcome": "updated",
               "reason": "Verified locale migration, profile upsert, backup and restore behavior in inspected source and passing tests."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_decision",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "query": "user-profile backup restore",
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "restore": {
                 "state": "unknown",
@@ -849,20 +389,14 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb",
@@ -870,109 +404,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e"
             },
             "deletes": [],
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale; locale defaults to en-US and supports de-DE.",
-                  "Existing rows receive en-US when migrated to schema version 2.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "Invalid restore preserves all existing rows through validation before transaction."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              }
-            ],
             "verifiedReferences": [
               {
                 "path": "src/profile.ts",
@@ -1000,364 +431,62 @@
             "decision": {
               "outcome": "updated",
               "reason": "Verified locale migration, profile upsert, backup and restore behavior in inspected source and passing tests."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_decision",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "sessionId": "01a1250c-5879-7cb2-9ad8-2919b155ef31",
-            "mode": "full"
-          },
-          "result": {
             "mode": "full",
+            "upsertIds": []
+          },
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:03:15.998Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/base.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/base.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/base.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/base.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "87518396832d83f870d7bdbfc8c22bdae1e8e99ed00f91ac0d8ebf63fd2bb6f5",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "7245c7107a8403c0a0ab710c562d0c1f3724f005f8105973a34d31dd518c74b0",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "sessionId": "01a1250c-5879-7cb2-9ad8-2919b155ef31",
-            "mode": "full"
-          },
-          "result": {
             "mode": "full",
+            "upsertIds": []
+          },
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:03:21.438Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/base.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/base.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/base.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/base.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "87518396832d83f870d7bdbfc8c22bdae1e8e99ed00f91ac0d8ebf63fd2bb6f5",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "7245c7107a8403c0a0ab710c562d0c1f3724f005f8105973a34d31dd518c74b0",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "query": "user-profile backup restore",
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "restore": {
                 "state": "unknown",
@@ -1371,20 +500,14 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb",
@@ -1392,116 +515,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e"
             },
             "deletes": [],
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale; locale defaults to en-US and supports de-DE.",
-                  "Existing rows receive en-US when migrated to schema version 2.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "Invalid restore preserves all existing rows through validation before transaction."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              }
-            ],
             "verifiedReferences": [
               {
                 "path": "src/profile.ts",
@@ -1529,24 +542,28 @@
             "decision": {
               "outcome": "updated",
               "reason": "Source inspection and passing npm tests verify locale migration, profile upsert, backup and restore behavior."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_decision",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {},
             "deletes": [],
-            "upserts": [],
             "verifiedReferences": [],
             "observations": [
               {
@@ -1557,124 +574,29 @@
             "decision": {
               "outcome": "no_semantic_change",
               "reason": "Regression tests verify the documented profile, migration, backup, restore and atomic validation semantics already captured in the feature records."
-            }
-          },
-          "result": {
-            "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92"
             },
-            "recovered": false,
-            "diagnostics": [],
-            "semanticReview": "recorded"
+            "upsertIds": []
           },
-          "error": null
+          "resultSummary": {
+            "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
+            "recovered": false,
+            "semanticReview": "recorded"
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "sessionId": "01a1250c-5879-7cb2-9ad8-2919b155ef31",
-            "mode": "full"
-          },
-          "result": {
             "mode": "full",
+            "upsertIds": []
+          },
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:03:33.290Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/base.test.mjs",
-                "state": "no_semantic_change"
-              }
-            ],
-            "unknownChanges": [
-              "test/base.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/base.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "87518396832d83f870d7bdbfc8c22bdae1e8e99ed00f91ac0d8ebf63fd2bb6f5",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "7245c7107a8403c0a0ab710c562d0c1f3724f005f8105973a34d31dd518c74b0",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         }
       ],
       "actualReturnedDependencyPaths": 2,
@@ -2060,29 +982,6 @@
         }
       },
       "agentFinalAnswer": "`locale` ist jetzt ein persistentes Profilfeld. Neue Profile erhalten standardmäßig `en-US`, explizites `de-DE` bleibt erhalten, und bestehende Profile bekommen es per SQLite-Migration. Backup und Restore übernehmen das Feld; `sessionHint` bleibt flüchtig. Ungültige Eingaben werden weiterhin vor Änderungen an den gespeicherten Daten abgelehnt.\n\nTestgetrieben ergänzt und geprüft: **`npm test` mit Node 24: 4 Tests bestanden**, außerdem `git diff --check` ohne Befund.\n\nDer abschließende FeatureNetwork-Check ist technisch gültig, zeigt aber weiterhin offene Entscheidungen und eine nur teilweise Abdeckung. Die Aktualisierung des Netzwerks wurde mit `invalid_decision` abgewiesen.\nDer FeatureNetwork-Check ist gültig. Die Teständerung ist als `no_semantic_change` erfasst. Vier offene Speicherentscheidungen bleiben bestehen: `src/profile.ts`, `src/migrations.ts`, `src/backup.ts` und `src/restore.ts`. Die FeatureNetwork-Aktualisierung der betroffenen Feature-Einträge wurde weiterhin mit `invalid_decision` abgewiesen.",
-      "usage": {
-        "threadId": "01a1250c-5879-7cb2-9ad8-2919b155ef31",
-        "turnId": "01a1250c-5b82-77f0-98be-b1e94cf95d3e",
-        "tokenUsage": {
-          "total": {
-            "totalTokens": 980782,
-            "inputTokens": 973356,
-            "cachedInputTokens": 877056,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 7426,
-            "reasoningOutputTokens": 0
-          },
-          "last": {
-            "totalTokens": 39817,
-            "inputTokens": 39731,
-            "cachedInputTokens": 38656,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 86,
-            "reasoningOutputTokens": 0
-          },
-          "modelContextWindow": 258400
-        }
-      },
       "evidenceSha256": {
         "heldout.txt": "924e2c6229518ff15da23d556755964d4c13b9dd96764c40a24dd382998c590d",
         "baseline-test.txt": "a345928553aed3da22c6a5b1d220fbadeb2054a4eec5b2e2430e742f3908ac0c",
@@ -2119,6 +1018,14 @@
         "skills/feature-network-impact/agents/openai.yaml": "0b0ee1568181011d4e8afef996ca8a42fde4c8ada571c19ff8448a94c4838d61",
         "skills/feature-network/agents/openai.yaml": "0077a14730e073c8e0656d18fb0c570a62d1ccdf00498005930c7c82591c71f7",
         "skills/feature-network-check/agents/openai.yaml": "4e5c162de506b7c5b44d17299f0f66f901c9e2fafc20d052c5c0593540ea30b0"
+      },
+      "usageSummary": {
+        "totalTokens": 980782,
+        "inputTokens": 973356,
+        "cachedInputTokens": 877056,
+        "cacheWriteInputTokens": 0,
+        "outputTokens": 7426,
+        "reasoningOutputTokens": 0
       }
     },
     {
@@ -2136,18 +1043,10 @@
       "loadedSkills": 7,
       "completedHookEvents": [
         {
-          "id": "session-start:0:<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "sessionStart",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "thread",
-          "sourcePath": "<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 0,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622942,
-          "completedAt": 1791622942,
           "durationMs": 133,
           "entries": [
             {
@@ -2157,18 +1056,10 @@
           ]
         },
         {
-          "id": "user-prompt-submit:1:<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "userPromptSubmit",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 1,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622942,
-          "completedAt": 1791622943,
           "durationMs": 185,
           "entries": [
             {
@@ -2178,18 +1069,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "blocked",
-          "statusMessage": null,
-          "startedAt": 1791623054,
-          "completedAt": 1791623054,
           "durationMs": 163,
           "entries": [
             {
@@ -2199,18 +1082,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/2/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791623090,
-          "completedAt": 1791623091,
           "durationMs": 86,
           "entries": []
         }
@@ -2219,128 +1094,31 @@
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "summary",
-            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c"
+            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "summary",
+          "resultSummary": {
             "freshness": "last_known",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "not_recorded",
-            "changeCoverage": "last_known",
-            "lastCheckedAt": null,
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              }
-            ],
-            "unknownChangeDecisions": [],
-            "unknownChanges": [],
-            "turnChanges": [],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": null,
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "query": "profile save backup restore migration",
             "detail": "summary",
-            "limit": 8
+            "limit": 8,
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup."
-              },
-              {
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON."
-              },
-              {
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite."
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "restore": {
                 "state": "unknown",
@@ -2354,147 +1132,26 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "paths": [
               "src/profile.ts",
               "src/migrations.ts",
               "src/backup.ts",
               "src/restore.ts"
             ],
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -2508,20 +1165,14 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_impact",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile",
               "backup",
@@ -2529,16 +1180,16 @@
             ],
             "direction": "both",
             "depth": 2,
-            "detail": "summary"
+            "detail": "summary",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "depth": 2,
             "depthLimited": false,
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
             "coverage": "partial",
             "incomplete": false,
-            "diagnostics": [],
             "items": [
               {
                 "id": "backup",
@@ -2563,30 +1214,14 @@
               }
             ],
             "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
-            "freshness": {
-              "backup": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "restore": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "user-profile": {
-                "state": "unknown",
-                "review": "open"
-              }
-            }
-          },
-          "error": null
+            "omitted": 0
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
@@ -2594,125 +1229,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             },
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite with persistent locale.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale; locale defaults to en-US and explicit values such as de-DE are retained.",
-                  "Opening existing databases migrates profiles to locale en-US while preserving existing data.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [
-                  {
-                    "path": "test/locale.test.mjs"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles, including locale, to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "JSON formatVersion is independent of SQLite schemaVersion; current formatVersion remains 1.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ],
-                "evidence": [
-                  {
-                    "path": "test/locale.test.mjs"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "Invalid restore preserves all existing rows.",
-                  "Restore validates the complete backup before beginning its transaction."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ],
-                "evidence": [
-                  {
-                    "path": "test/locale.test.mjs"
-                  }
-                ]
-              }
-            ],
             "deletes": [],
             "observations": [
               {
@@ -2757,146 +1273,36 @@
             "decision": {
               "outcome": "updated",
               "reason": "Implemented and tested persistent locale, defaulting and migration; updated scoped profile, backup and restore memory."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "unverified_reference",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "detail": "full",
             "ids": [
               "user-profile",
               "backup",
               "restore"
-            ]
+            ],
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -2910,368 +1316,55 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "full",
-            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c"
+            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "full",
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:04:09.985Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/locale.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/locale.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/locale.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/locale.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "2bda474324a214fe3408780f92bc59bca237bd0cfbf17068be99f9354f729c59",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "9945efaa60365ea29724cc7b8d63d753177426aa377e52f02494d332bffb3d88",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "full",
-            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c"
+            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "full",
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:04:17.840Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/locale.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/locale.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/locale.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/locale.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "2bda474324a214fe3408780f92bc59bca237bd0cfbf17068be99f9354f729c59",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "9945efaa60365ea29724cc7b8d63d753177426aa377e52f02494d332bffb3d88",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "detail": "full",
             "ids": [
               "user-profile",
               "backup",
               "restore"
-            ]
+            ],
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -3285,20 +1378,14 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
@@ -3306,110 +1393,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             },
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite with persistent locale.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale; locale defaults to en-US and explicit values such as de-DE are retained.",
-                  "Opening existing databases migrates profiles to locale en-US while preserving existing data.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles, including locale, to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "JSON formatVersion is independent of SQLite schemaVersion; current formatVersion remains 1.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale.",
-                  "Invalid restore preserves all existing rows.",
-                  "Restore validates the complete backup before beginning its transaction."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ]
-              }
-            ],
             "deletes": [],
             "observations": [
               {
@@ -3450,26 +1433,24 @@
             "decision": {
               "outcome": "updated",
               "reason": "Reviewed current profile, migration, backup, restore code and confirmed locale persistence, defaulting, migration, and transaction behavior."
-            }
-          },
-          "result": {
-            "revision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "17e24d44339e4c697b74d7f821608835273e765fb5310c93cf662521afd40a6e",
-              "network-spec/restore.yaml": "7a137475ba177436bdcf1bad3e8790a9ada3897254715625fcdfd58db4f32847",
-              "network-spec/user-profile.yaml": "3525d1d2f7289569403d44c8f0f25d995c9fc103719da47f226f57642757b755"
             },
-            "recovered": false,
-            "diagnostics": [],
-            "semanticReview": "recorded"
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "error": null
+          "resultSummary": {
+            "revision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
+            "recovered": false,
+            "semanticReview": "recorded"
+          }
         },
         {
           "tool": "network_update",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
@@ -3477,7 +1458,6 @@
               "network-spec/restore.yaml": "7a137475ba177436bdcf1bad3e8790a9ada3897254715625fcdfd58db4f32847",
               "network-spec/user-profile.yaml": "3525d1d2f7289569403d44c8f0f25d995c9fc103719da47f226f57642757b755"
             },
-            "upserts": [],
             "deletes": [],
             "observations": [
               {
@@ -3489,98 +1469,29 @@
             "decision": {
               "outcome": "no_semantic_change",
               "reason": "The test file is unmapped in the feature network; it verifies affected profile/backup/restore behaviors and creates no separate runtime feature."
-            }
-          },
-          "result": {
-            "revision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92"
             },
-            "recovered": false,
-            "diagnostics": [],
-            "semanticReview": "recorded"
+            "upsertIds": []
           },
-          "error": null
+          "resultSummary": {
+            "revision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
+            "recovered": false,
+            "semanticReview": "recorded"
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "full",
-            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c"
+            "sessionId": "01a1250c-7e18-7810-89bf-ff025dfcee6c",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "full",
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:04:48.751Z",
-            "openDecisions": [],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/locale.test.mjs",
-                "state": "no_semantic_change"
-              }
-            ],
-            "unknownChanges": [
-              "test/locale.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/locale.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "current",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "current",
-                "hash": "2bda474324a214fe3408780f92bc59bca237bd0cfbf17068be99f9354f729c59",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "current",
-                "hash": "9945efaa60365ea29724cc7b8d63d753177426aa377e52f02494d332bffb3d88",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "current",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": [
-              {
-                "code": "turn_network_changed",
-                "severity": "warning",
-                "message": "Network changed since turn start; decisions require the current revision"
-              }
-            ]
-          },
-          "error": null
+            "networkRevision": "0f11532ac915d54a1e2b06e3091f2b8219b9c4bb12a7d5186b7bb2443061bcc7"
+          }
         }
       ],
       "actualReturnedDependencyPaths": 0,
@@ -3947,29 +1858,6 @@
         }
       },
       "agentFinalAnswer": "`locale` ist jetzt persistent: explizites `de-DE` bleibt erhalten, fehlende Angaben und migrierte Altprofile erhalten `en-US`. Speichern, Backup und Restore übernehmen das Feld; `sessionHint` bleibt flüchtig. Die SQLite-Migration läuft transaktional, und Restore validiert ungültige Eingaben weiterhin, bevor es die Datenbank ändert.\n\n**Verifiziert:** `npm test` auf Node.js 24, beide Tests bestanden. Der neue Test deckt Migration, erneutes Öffnen, Backup/Restore und atomare Validierung ab.\n\nDie FeatureNetwork-Aktualisierung wurde wegen einer nicht verifizierten Referenz abgewiesen. Die abschließende technische Prüfung ist gültig, meldet aber weiterhin offene Entscheidungen und partielle Abdeckung.\nDie FeatureNetwork-Prüfung ist abgeschlossen: **0 offene Entscheidungen**, Integrität gültig. Die vier geänderten Quelldateien sind als aktuell bestätigt; für den neuen Test wurde begründet `no_semantic_change` erfasst. Die Abdeckung bleibt partiell.",
-      "usage": {
-        "threadId": "01a1250c-7e18-7810-89bf-ff025dfcee6c",
-        "turnId": "01a1250c-806e-73e2-ac92-fb1f4ab8c3de",
-        "tokenUsage": {
-          "total": {
-            "totalTokens": 566103,
-            "inputTokens": 559579,
-            "cachedInputTokens": 506368,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 6524,
-            "reasoningOutputTokens": 0
-          },
-          "last": {
-            "totalTokens": 35721,
-            "inputTokens": 35661,
-            "cachedInputTokens": 34560,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 60,
-            "reasoningOutputTokens": 0
-          },
-          "modelContextWindow": 258400
-        }
-      },
       "evidenceSha256": {
         "heldout.txt": "425ef09993e9c10589165d1f5ed89df3dd2cdeeeca05802f71f9c4e96dd74ae4",
         "baseline-test.txt": "8d733e4dc47dbf82ea79a51629fdbe43d895ec93410d52e4eae3e69d271cf8e4",
@@ -4006,6 +1894,14 @@
         "skills/feature-network-impact/agents/openai.yaml": "0b0ee1568181011d4e8afef996ca8a42fde4c8ada571c19ff8448a94c4838d61",
         "skills/feature-network/agents/openai.yaml": "0077a14730e073c8e0656d18fb0c570a62d1ccdf00498005930c7c82591c71f7",
         "skills/feature-network-check/agents/openai.yaml": "4e5c162de506b7c5b44d17299f0f66f901c9e2fafc20d052c5c0593540ea30b0"
+      },
+      "usageSummary": {
+        "totalTokens": 566103,
+        "inputTokens": 559579,
+        "cachedInputTokens": 506368,
+        "cacheWriteInputTokens": 0,
+        "outputTokens": 6524,
+        "reasoningOutputTokens": 0
       }
     },
     {
@@ -4023,18 +1919,10 @@
       "loadedSkills": 7,
       "completedHookEvents": [
         {
-          "id": "session-start:0:<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "sessionStart",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "thread",
-          "sourcePath": "<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 0,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622945,
-          "completedAt": 1791622945,
           "durationMs": 141,
           "entries": [
             {
@@ -4044,18 +1932,10 @@
           ]
         },
         {
-          "id": "user-prompt-submit:1:<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "userPromptSubmit",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 1,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791622945,
-          "completedAt": 1791622945,
           "durationMs": 170,
           "entries": [
             {
@@ -4065,18 +1945,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "blocked",
-          "statusMessage": null,
-          "startedAt": 1791622998,
-          "completedAt": 1791622998,
           "durationMs": 195,
           "entries": [
             {
@@ -4086,18 +1958,10 @@
           ]
         },
         {
-          "id": "stop:2:<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
           "eventName": "stop",
-          "handlerType": "command",
           "executionMode": "sync",
           "scope": "turn",
-          "sourcePath": "<synthetic-test-root>/3/codex-home/plugins/cache/feature-network-local/feature-network/0.1.0/hooks/hooks.json",
-          "source": "plugin",
-          "displayOrder": 2,
           "status": "completed",
-          "statusMessage": null,
-          "startedAt": 1791623012,
-          "completedAt": 1791623012,
           "durationMs": 74,
           "entries": []
         }
@@ -4106,34 +1970,15 @@
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "query": "saved user profile persistent fields database migration backup restore",
-            "detail": "summary"
+            "detail": "summary",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup."
-              },
-              {
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite."
-              },
-              {
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON."
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "restore": {
                 "state": "unknown",
@@ -4147,146 +1992,25 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile",
               "backup",
               "restore"
             ],
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -4300,35 +2024,29 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_impact",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile"
             ],
             "direction": "both",
             "depth": 2,
-            "detail": "summary"
+            "detail": "summary",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "depth": 2,
             "depthLimited": false,
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
             "coverage": "partial",
             "incomplete": false,
-            "diagnostics": [],
             "items": [
               {
                 "id": "user-profile",
@@ -4389,30 +2107,14 @@
               }
             ],
             "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
-            "freshness": {
-              "user-profile": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "backup": {
-                "state": "unknown",
-                "review": "open"
-              },
-              "restore": {
-                "state": "unknown",
-                "review": "open"
-              }
-            }
-          },
-          "error": null
+            "omitted": 0
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
@@ -4420,108 +2122,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998eac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             },
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale (defaults to en-US).",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale (defaults to en-US).",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale (defaults to en-US).",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, locale through SQLite backup and restore."
-                  }
-                ]
-              }
-            ],
             "deletes": [],
             "verifiedReferences": [
               {
@@ -4549,146 +2149,36 @@
             "decision": {
               "outcome": "updated",
               "reason": "Inspected current profile, migration, backup, restore implementations and tests; locale is now a persistent profile field with en-US default, preserved through backup/restore, and network records were aligned with the exercised behavior."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_input",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile",
               "backup",
               "restore"
             ],
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -4702,392 +2192,79 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630626e8ac3782c116935a92"
             },
-            "upserts": [],
             "deletes": [],
             "verifiedReferences": [],
             "decision": {
               "outcome": "no_semantic_change",
               "reason": "Retry validation probe."
-            }
+            },
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_input",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "full",
-            "sessionId": "01a1250c-84d3-77e3-a42e-7da26b65b981"
+            "sessionId": "01a1250c-84d3-77e3-a42e-7da26b65b981",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "full",
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:03:16.217Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/base.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/base.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/base.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/base.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "fa48e7c5223978b1c22de6743455c45a5b002705a94c14d105c2d398651861b0",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "2da6192d157b5172bcac3aafc6cd3d27b791c91524a15fcce1f596b726adfbf3",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_check",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "mode": "full",
-            "sessionId": "01a1250c-84d3-77e3-a42e-7da26b65b981"
+            "sessionId": "01a1250c-84d3-77e3-a42e-7da26b65b981",
+            "upsertIds": []
           },
-          "result": {
-            "mode": "full",
+          "resultSummary": {
             "freshness": "fresh_technical_check",
             "integrity": "valid",
-            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
-            "turnAssumptions": "valid",
-            "changeCoverage": "git",
-            "lastCheckedAt": "2026-10-10T09:03:20.814Z",
-            "openDecisions": [
-              {
-                "path": "src/backup.ts",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/migrations.ts",
-                "featureIds": [
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/profile.ts",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "src/restore.ts",
-                "featureIds": [
-                  "restore"
-                ],
-                "reason": "unknown"
-              },
-              {
-                "path": "test/base.test.mjs",
-                "featureIds": [],
-                "reason": "unmapped"
-              }
-            ],
-            "unknownChangeDecisions": [
-              {
-                "path": "test/base.test.mjs",
-                "state": "open"
-              }
-            ],
-            "unknownChanges": [
-              "test/base.test.mjs"
-            ],
-            "turnChanges": [
-              "src/backup.ts",
-              "src/migrations.ts",
-              "src/profile.ts",
-              "src/restore.ts",
-              "test/base.test.mjs"
-            ],
-            "references": [
-              {
-                "path": "src/backup.ts",
-                "state": "unknown",
-                "hash": "4203fb68b256a66b1bd177026603105da61553d8fded39fe784f25a54151ad5f",
-                "featureIds": [
-                  "backup",
-                  "restore"
-                ]
-              },
-              {
-                "path": "src/migrations.ts",
-                "state": "unknown",
-                "hash": "fa48e7c5223978b1c22de6743455c45a5b002705a94c14d105c2d398651861b0",
-                "featureIds": [
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/profile.ts",
-                "state": "unknown",
-                "hash": "2da6192d157b5172bcac3aafc6cd3d27b791c91524a15fcce1f596b726adfbf3",
-                "featureIds": [
-                  "backup",
-                  "restore",
-                  "user-profile"
-                ]
-              },
-              {
-                "path": "src/restore.ts",
-                "state": "unknown",
-                "hash": "6448169d9e80a6864670bf0b8f89eaca721ef9b309a88e5772672a25f2fcc4e0",
-                "featureIds": [
-                  "restore"
-                ]
-              }
-            ],
-            "preexistingChanges": [],
-            "diagnostics": []
-          },
-          "error": null
+            "networkRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6"
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "ids": [
               "user-profile",
               "backup",
               "restore"
             ],
-            "detail": "full"
+            "detail": "full",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "evidence": [],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName through SQLite backup and restore."
-                  }
-                ],
-                "hypotheses": []
-              },
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ],
-                "evidence": [],
-                "relations": [],
-                "hypotheses": []
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -5101,20 +2278,14 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630626e8ac3782c116935a92",
@@ -5122,108 +2293,6 @@
               "network-spec/restore.yaml": "cce789b4a1d40998eac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
               "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             },
-            "upserts": [
-              {
-                "schema": 1,
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite.",
-                "key_points": [
-                  "Manual: keep displayName as a human-readable profile label.",
-                  "Persistent fields: id, displayName, locale with en-US default.",
-                  "sessionHint is transient and is never persisted."
-                ],
-                "code": [
-                  {
-                    "path": "src/profile.ts",
-                    "symbol": "saveProfile"
-                  },
-                  {
-                    "path": "src/migrations.ts",
-                    "symbol": "migrate"
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale with en-US default.",
-                  "JSON formatVersion is independent of SQLite schemaVersion.",
-                  "sessionHint is excluded."
-                ],
-                "code": [
-                  {
-                    "path": "src/backup.ts",
-                    "symbol": "createBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "user-profile",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/backup.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ]
-              },
-              {
-                "schema": 1,
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup.",
-                "key_points": [
-                  "Persistent fields: id, displayName, locale with en-US default.",
-                  "Invalid restore preserves all existing rows."
-                ],
-                "code": [
-                  {
-                    "path": "src/restore.ts",
-                    "symbol": "restoreBackup"
-                  }
-                ],
-                "relations": [
-                  {
-                    "to": "backup",
-                    "type": "reads",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/backup.ts"
-                      }
-                    ],
-                    "when": "JSON backup contract changes.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  },
-                  {
-                    "to": "user-profile",
-                    "type": "writes",
-                    "status": "evidenced",
-                    "evidence": [
-                      {
-                        "path": "src/restore.ts"
-                      },
-                      {
-                        "path": "src/profile.ts"
-                      }
-                    ],
-                    "when": "Persistent profile fields change.",
-                    "check": "Roundtrip id, displayName, and locale through SQLite backup and restore."
-                  }
-                ]
-              }
-            ],
             "deletes": [],
             "verifiedReferences": [
               {
@@ -5252,20 +2321,25 @@
             "decision": {
               "outcome": "updated",
               "reason": "Reviewed all currently changed implementation and test sources. Locale persistence/default/migration and backup-restore roundtrip are exercised, and invalid restore remains atomic; memory records now reflect the verified contract."
-            }
+            },
+            "upsertIds": [
+              "user-profile",
+              "backup",
+              "restore"
+            ]
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_input",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_context",
           "status": "completed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "paths": [
               "src/backup.ts",
               "src/migrations.ts",
@@ -5273,32 +2347,12 @@
               "src/restore.ts",
               "test/base.test.mjs"
             ],
-            "detail": "summary"
+            "detail": "summary",
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "revision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "integrity": "valid",
-            "coverage": "partial",
-            "incomplete": false,
-            "diagnostics": [],
-            "items": [
-              {
-                "id": "backup",
-                "summary": "Serializes persistent SQLite profiles to versioned JSON."
-              },
-              {
-                "id": "restore",
-                "summary": "Replaces SQLite profiles atomically from a validated JSON backup."
-              },
-              {
-                "id": "user-profile",
-                "summary": "Stores synthetic profiles in local SQLite."
-              }
-            ],
-            "truncated": false,
-            "omitted": 0,
-            "freshnessScope": "returned_features",
-            "freshnessBasis": "technical_now_saved_review",
             "freshness": {
               "backup": {
                 "state": "unknown",
@@ -5312,40 +2366,33 @@
                 "state": "unknown",
                 "review": "open"
               }
-            },
-            "fingerprints": {
-              "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630616026e8ac3782c116935a92",
-              "network-spec/backup.yaml": "88f1a90ea03ae0ef024135424a780012dba23fc4ced5bde9680656a05d9a1e71",
-              "network-spec/restore.yaml": "cce789b4a1d40998e8ac3fb5a1cdc9171c4df55433710c18c9de658c9d26f83e",
-              "network-spec/user-profile.yaml": "e6bc2a5803dddbbeb9da9ca48ced41fd3634ea4b18fd5eba99861f2ec6e8a8bb"
             }
-          },
-          "error": null
+          }
         },
         {
           "tool": "network_update",
           "status": "failed",
-          "arguments": {
+          "error": null,
+          "argumentsSummary": {
             "expectedRevision": "414305a8532a040cffe92a0c0462633e9c11574551f5d6c1854828d57442d3b6",
             "expected": {
               "network-spec/_meta.yaml": "a66094af711a305ffadeca489448f2f391e38630626e8ac3782c116935a92"
             },
-            "upserts": [],
             "deletes": [],
             "verifiedReferences": [],
             "observations": [],
             "decision": {
               "outcome": "no_semantic_change",
               "reason": "test"
-            }
+            },
+            "upsertIds": []
           },
-          "result": {
+          "resultSummary": {
             "error": {
               "code": "invalid_input",
               "message": "Operation could not be completed; refresh inputs or review the reported state."
             }
-          },
-          "error": null
+          }
         }
       ],
       "actualReturnedDependencyPaths": 2,
@@ -5736,29 +2783,6 @@
         }
       },
       "agentFinalAnswer": "Erweitert wurde das persistente Profilfeld `locale`: Neue Profile und migrierte Bestandsprofile erhalten standardmäßig `en-US`; ein explizites `de-DE` bleibt beim Speichern, erneuten Öffnen sowie in Backup und Restore erhalten. `sessionHint` bleibt flüchtig. Die transaktionale Validierung ungültiger Restore-Daten bleibt erhalten.\n\n`npm test` unter Node.js 24: **3 Tests bestanden**. `git diff --check` war sauber.\n\nDer FeatureNetwork-Abgleich wurde trotz erneut geladener Eingaben als `invalid_input` abgewiesen. Der abschließende Check meldet daher weiterhin offene Entscheidungen für die geänderten Dateien; außerdem bleibt die Projektabdeckung partiell.\nDer erneute Full Check zeigt weiterhin fünf offene Prüfungen für die Änderungen dieser Runde. Beide gezielten Memory-Aktualisierungen wurden mit `invalid_input` abgewiesen; FeatureNetwork bleibt daher ungeklärt. Produktcode oder weitere Projektdateien habe ich in dieser Fortsetzung nicht geändert.",
-      "usage": {
-        "threadId": "01a1250c-84d3-77e3-a42e-7da26b65b981",
-        "turnId": "01a1250c-8d45-7d20-9b01-8f59ff958148",
-        "tokenUsage": {
-          "total": {
-            "totalTokens": 634314,
-            "inputTokens": 627990,
-            "cachedInputTokens": 567808,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 6324,
-            "reasoningOutputTokens": 0
-          },
-          "last": {
-            "totalTokens": 32447,
-            "inputTokens": 32383,
-            "cachedInputTokens": 31488,
-            "cacheWriteInputTokens": 0,
-            "outputTokens": 64,
-            "reasoningOutputTokens": 0
-          },
-          "modelContextWindow": 258400
-        }
-      },
       "evidenceSha256": {
         "heldout.txt": "0273d62327f6e4de37c30a6beb44c8bd8c4bf1c0c1914e4753acc8d9eee30788",
         "baseline-test.txt": "bb403ba259694e005eeecb3f962b67bf036583b4a4d6c979f80af123f0ac3e83",
@@ -5795,6 +2819,14 @@
         "skills/feature-network-impact/agents/openai.yaml": "0b0ee1568181011d4e8afef996ca8a42fde4c8ada571c19ff8448a94c4838d61",
         "skills/feature-network/agents/openai.yaml": "0077a14730e073c8e0656d18fb0c570a62d1ccdf00498005930c7c82591c71f7",
         "skills/feature-network-check/agents/openai.yaml": "4e5c162de506b7c5b44d17299f0f66f901c9e2fafc20d052c5c0593540ea30b0"
+      },
+      "usageSummary": {
+        "totalTokens": 634314,
+        "inputTokens": 627990,
+        "cachedInputTokens": 567808,
+        "cacheWriteInputTokens": 0,
+        "outputTokens": 6324,
+        "reasoningOutputTokens": 0
       }
     }
   ],
@@ -5804,6 +2836,7 @@
     "Multiple instruction and harness corrections changed together; cannot isolate causal effects.",
     "Exact provider revision and random seed unavailable.",
     "Independent evaluator stayed outside agent checkouts; frozen from preceding diagnostic; controls reported there.",
-    "SDK post-run calls are evaluator reads, not agent behavior."
+    "SDK post-run calls are evaluator reads, not agent behavior.",
+    "Public tool arguments/results are summarized; exact raw requests/events are retained locally and bound by evidence SHA256."
   ]
 }

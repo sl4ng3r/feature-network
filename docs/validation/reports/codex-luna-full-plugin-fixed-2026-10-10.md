@@ -35,3 +35,5 @@ The [original uncorrected diagnostic](codex-luna-full-plugin-2026-10-10.md) reta
 Source-grounded memory and task correctness are separate outcomes. Any remaining strict-oracle failure or request repair is a real limitation. In particular, leaving JSON `schemaVersion:1` after the database migrates to version 2 fails this demo's required versioned backup contract even when locale roundtrip and rollback work. No oracle values or demo source were changed to manufacture acceptance.
 
 All raw events, exact 21-file package hashes, independent evaluators and resulting source/test/network/runtime snapshots are retained under ignored `releases/luna-fixed-2026-10-10/`; public paths are redacted. Copilot is available only on the work computer, and Desktop UI control was previously denied; neither host's acceptance follows from these native CLI runs. No global plugin update, employer project, public tag or release upload was performed.
+
+Public JSON summarizes request arguments/results; exact raw requests/events remain in the hash-bound local evidence.
