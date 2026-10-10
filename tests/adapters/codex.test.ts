@@ -87,6 +87,21 @@ test('invalid_nearest_marker is blocked without parent fallback', async () => {
   expect(JSON.stringify(out)).not.toContain(p.root);
 });
 
+// Instruction-output contract only; natural model acceptance is checked separately.
+test('prompt_context_preserves_the_original_coding_task_and_bounds_extra_memory_work', async () => {
+  const p = await fixture(roots);
+  const out = await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: 'Add a profile field and test its backup/restore roundtrip' }), options);
+  const text = out.hookSpecificOutput?.additionalContext;
+  expect(text).toMatch(/continue the user.s authorized coding and testing task/i);
+  expect(text).toMatch(/only additional FeatureNetwork memory maintenance/i);
+  expect(text).toMatch(/does not withdraw.*product.*authorization/i);
+  expect((await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options)).decision).toBeUndefined();
+  await writeFile(join(p.root, 'source.ts'), 'new profile behavior');
+  const stop = await handleCodexEvent(payload(p.root, 'Stop', { stop_hook_active: false }), options);
+  expect(stop.decision).toBe('block');
+  expect(stop.reason).toContain('Do not process old backlog or edit product code');
+});
+
 test('normal_turn_requires_actual_new_source_changes', async () => {
   const p = await fixture(roots);
   await handleCodexEvent(payload(p.root, 'UserPromptSubmit', { prompt: 'Implement the requested change' }), options);

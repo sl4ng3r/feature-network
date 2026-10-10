@@ -16,6 +16,20 @@ describe('impact query', () => {
     expect(ids(queryImpact(graph(), { ids: ['profile'], direction: 'outgoing' }))).toEqual(['profile']);
     expect(ids(queryImpact(graph(), { ids: ['restore'], direction: 'outgoing' }))).toEqual(['restore', 'backup', 'profile']);
   });
+  it('selecting_all_dependents_as_origins_hides_paths_that_a_direct_origin_explains', () => {
+    const direct = queryImpact(graph(), { ids: ['profile'], direction: 'both', depth: 2 });
+    expect(direct.items.map(item => ({ id: item.id, origin: (item as ImpactItem).origin, steps: (item as ImpactItem).path.length }))).toEqual([
+      { id: 'profile', origin: 'profile', steps: 0 },
+      { id: 'backup', origin: 'profile', steps: 1 },
+      { id: 'restore', origin: 'profile', steps: 2 },
+    ]);
+    const all = queryImpact(graph(), { ids: ['profile', 'backup', 'restore'], direction: 'both', depth: 2 });
+    expect(all.items.map(item => ({ id: item.id, origin: (item as ImpactItem).origin, steps: (item as ImpactItem).path.length }))).toEqual([
+      { id: 'backup', origin: 'backup', steps: 0 },
+      { id: 'profile', origin: 'profile', steps: 0 },
+      { id: 'restore', origin: 'restore', steps: 0 },
+    ]);
+  });
   it('cycles_terminate', () => {
     const a = feature('alpha'); const b = feature('beta'); a.relations = [edge('beta')]; b.relations = [edge('alpha')];
     expect(ids(queryImpact(buildIndex(snapshot([a, b])), { ids: ['alpha'], depth: 8 }))).toEqual(['alpha', 'beta']);

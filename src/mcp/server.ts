@@ -188,7 +188,7 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
     description: name === 'network_bootstrap' ? 'Metadata-only project inventory and explicit checkpoint CAS; sanitizedExamples are caller attestations, not secret-free proof.'
       : name === 'network_update' ? 'Guarded network changes followed by explicit source review decisions. Read fingerprints and revision from network_context first.'
       : name === 'network_context' ? 'Bounded feature context. JSON fragments use UTF-16 offsets; concatenate in offset order then JSON.parse. Named sections carry sectionIndex/sectionCount.'
-      : name === 'network_check' ? 'Read-only last_known summary or fresh technical check. Does not perform semantic review.' : 'Explain evidenced and hypothetical impact paths; bounded revision-bound continuation.',
+      : name === 'network_check' ? 'Read-only last_known summary or fresh technical check. Does not perform semantic review.' : 'Use network_context first to resolve direct origin IDs, then query those roots, not all candidate dependents. Each origin is a zero-length seed path. When children point to parents, incoming finds dependents; use explicit direction both normally, depth 2. Explain evidenced and hypothetical paths; bounded revision-bound continuation with cursor only.',
     inputSchema: clean<Tool['inputSchema']>({ ...z.toJSONSchema(schema, { io: 'input', unrepresentable: 'any' }), type: 'object' }), annotations: { readOnlyHint: name !== 'network_update' && name !== 'network_bootstrap', destructiveHint: name === 'network_update', idempotentHint: name !== 'network_update' && name !== 'network_bootstrap', openWorldHint: false } })) }));
   server.setRequestHandler('tools/call', async request => {
     try {

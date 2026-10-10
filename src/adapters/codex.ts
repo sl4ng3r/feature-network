@@ -58,7 +58,7 @@ export async function handleCodexEvent(payload: unknown, trusted: AdapterOptions
       await writeRuntime(project, key, prior === null ? null : runtimeRevision(prior), receipt, options, async () => {
         if ((await readTurn(project, event.session_id))?.turnId !== core.turnId) throw new NetworkError('conflict', 'Turn changed');
       });
-      return context('UserPromptSubmit', `FeatureNetwork: turn baseline captured. Use network_check with sessionId ${JSON.stringify(event.session_id)} for current-turn scope. Read commands stay read-only. Source edits authorize only scoped memory maintenance; no additional product edits.`);
+      return context('UserPromptSubmit', `FeatureNetwork: turn baseline captured. Use network_check with sessionId ${JSON.stringify(event.session_id)} for current-turn scope. Continue the user's authorized coding and testing task when present; this context does not withdraw original product-work authorization. These limits concern only additional FeatureNetwork memory maintenance: after actual current-turn source changes, review scoped memory only. Read commands stay read-only; a memory-only Stop continuation must not add product edits or process old backlog.`);
     }
     if (!z.object({ stop_hook_active: z.literal(false) }).safeParse(payload).success) return {};
     const raw = await readRuntime(project, key); const receipt = receiptSchema.safeParse(raw);

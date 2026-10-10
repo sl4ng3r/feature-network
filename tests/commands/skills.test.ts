@@ -64,3 +64,23 @@ it.each(['\n', '\r\n'])('frontmatter_accepts_valid_line_breaks_%j', async newlin
   expect(manifest['user-invocable']).toBe(true);
   expect(manifest['disable-model-invocation']).toBe(true);
 });
+
+// Instruction contracts, not proof that a host model follows the instructions.
+describe('development and impact instruction contracts', () => {
+  it('ordinary_coding_authorization_survives_unspecified_command_classification', async () => {
+    const text = await readFile(new URL('../../plugin/skills/feature-network/SKILL.md', import.meta.url), 'utf8');
+    expect(text).toMatch(/plain coding request.*unspecified/s);
+    expect(text).toMatch(/does not withdraw.*product.*authorization/i);
+    expect(text).toMatch(/actual.*current-turn changes/s);
+    expect(text).toContain('Explicit `status`, `show`, `impact`, and `check` stay read-only');
+  });
+  it.each(['feature-network', 'feature-network-impact'])('%s resolves direct origins before traversing dependents', async name => {
+    const text = await readFile(new URL(`../../plugin/skills/${name}/SKILL.md`, import.meta.url), 'utf8');
+    expect(text).toMatch(/network_context.*direct(?:ly)?(?: changed)?(?: feature)? roots/s);
+    expect(text).toMatch(/do not.*dependents.*(?:origin|seed)/i);
+    expect(text).toContain('network_impact({ids:["user-profile"],direction:"both",depth:2})');
+    expect(text).toMatch(/incoming.*dependents/i);
+    expect(text).toMatch(/zero-length.*(?:origin|seed)/i);
+    expect(text).toContain('network_impact({cursor: result.nextCursor})');
+  });
+});

@@ -35,6 +35,16 @@ test('lists_exactly_five_tools', async ({ signal }) => {
   const { client } = await connect(root, bundle, signal); const names = (await client.listTools(undefined, { signal })).tools.map(t => t.name).sort();
   expect(names).toEqual(['network_bootstrap', 'network_check', 'network_context', 'network_impact', 'network_update']);
 });
+test('impact_tool_metadata_explains_direct_origins_direction_and_empty_seed_paths', async ({ signal }) => {
+  const root = await tree(); roots.push(root);
+  const { client } = await connect(root, bundle, signal);
+  const tool = (await client.listTools(undefined, { signal })).tools.find(tool => tool.name === 'network_impact')!;
+  expect(tool.description).toMatch(/network_context.*direct.*origin/i);
+  expect(tool.description).toMatch(/zero-length.*seed/i);
+  expect(tool.description).toMatch(/incoming.*dependents/i);
+  expect(tool.annotations?.readOnlyHint).toBe(true);
+});
+
 test('uninitialized_reads_create_nothing_and_root_cannot_switch', async ({ signal }) => {
   const root = await tree(); roots.push(root); const { client } = await connect(root, bundle, signal);
   expect(data(await call(client, 'network_context')).error.code).toBe('not_initialized');
