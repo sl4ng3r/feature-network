@@ -67,6 +67,16 @@ it.each(['\n', '\r\n'])('frontmatter_accepts_valid_line_breaks_%j', async newlin
 
 // Instruction contracts, not proof that a host model follows the instructions.
 describe('development and impact instruction contracts', () => {
+  it('connects_one_business_state_across_input_storage_effective_access_and_views', async () => {
+    const development = await readFile(new URL('../../plugin/skills/feature-network/SKILL.md', import.meta.url), 'utf8');
+    const initialization = await readFile(new URL('../../plugin/skills/feature-network-init/SKILL.md', import.meta.url), 'utf8');
+    const sync = await readFile(new URL('../../plugin/skills/feature-network-sync/SKILL.md', import.meta.url), 'utf8');
+    expect(initialization).toMatch(/input.*persisted.*effective.*view/s);
+    expect(initialization).toMatch(/pending.*active/i);
+    expect(development).toMatch(/input.*persisted.*effective.*view/s);
+    expect(development).toMatch(/test.*(?:pending|lifecycle).*active/is);
+    expect(sync).toMatch(/relationship.*(?:view|projection)/is);
+  });
   it('ordinary_coding_authorization_survives_unspecified_command_classification', async () => {
     const text = await readFile(new URL('../../plugin/skills/feature-network/SKILL.md', import.meta.url), 'utf8');
     expect(text).toMatch(/plain coding request.*unspecified/s);

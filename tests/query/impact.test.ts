@@ -16,6 +16,25 @@ describe('impact query', () => {
     expect(ids(queryImpact(graph(), { ids: ['profile'], direction: 'outgoing' }))).toEqual(['profile']);
     expect(ids(queryImpact(graph(), { ids: ['restore'], direction: 'outgoing' }))).toEqual(['restore', 'backup', 'profile']);
   });
+  it('surfaces_admin_and_portal_effects_of_an_invitation_selection', () => {
+    const invitation = feature('invitation-selection');
+    const assignment = feature('saved-assignment');
+    const adminView = feature('admin-view');
+    const portal = feature('portal-visibility');
+    assignment.relations = [{ ...edge('invitation-selection'), type: 'depends_on', when: 'Inviting a user', check: 'Selected apps are saved atomically' }];
+    adminView.relations = [{ ...edge('saved-assignment'), evidence: [{ path: 'src/admin-view.ts' }], when: 'Rendering a pending or active user', check: 'Distinguish saved assignment from effective visibility' }];
+    portal.relations = [{ ...edge('saved-assignment'), evidence: [{ path: 'src/portal.ts' }], when: 'Account becomes active', check: 'Effective visibility follows assignments and global offers' }];
+    const index = buildIndex(snapshot([invitation, assignment, adminView, portal]));
+    const result = queryImpact(index, { ids: ['invitation-selection'], direction: 'incoming', depth: 2 });
+    expect(ids(result)).toEqual(['invitation-selection', 'saved-assignment', 'admin-view', 'portal-visibility']);
+    expect(result.items.filter(item => item.id !== 'invitation-selection').every(item => (item as ImpactItem).status === 'evidenced')).toBe(true);
+    expect((result.items.find(item => item.id === 'admin-view') as ImpactItem).path.map(step => step.check)).toEqual([
+      'Selected apps are saved atomically', 'Distinguish saved assignment from effective visibility',
+    ]);
+    adminView.relations = [];
+    const incomplete = queryImpact(buildIndex(snapshot([invitation, assignment, adminView, portal])), { ids: ['invitation-selection'], direction: 'incoming', depth: 2 });
+    expect(ids(incomplete)).not.toContain('admin-view'); // A missing edge remains a coverage gap, never automatic discovery.
+  });
   it('selecting_all_dependents_as_origins_hides_paths_that_a_direct_origin_explains', () => {
     const direct = queryImpact(graph(), { ids: ['profile'], direction: 'both', depth: 2 });
     expect(direct.items.map(item => ({ id: item.id, origin: (item as ImpactItem).origin, steps: (item as ImpactItem).path.length }))).toEqual([
