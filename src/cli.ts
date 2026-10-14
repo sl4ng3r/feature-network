@@ -1,3 +1,4 @@
+import { runConnections } from './cli/connections.js';
 import { runUpgrade } from './cli/upgrade.js';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import { dirname } from 'node:path';
@@ -12,6 +13,7 @@ export async function runCli(argv: string[]): Promise<number> {
   try {
     if (Number(process.versions.node.split('.')[0]) !== 24) throw new NetworkError('node_24_required', 'Node.js 24 LTS is required');
     const installedRoot = dirname(dirname(fileURLToPath(import.meta.url)));
+    if (argv[0] === 'connections') return await runConnections(argv.slice(1));
     if (argv[0] === 'upgrade') return await runUpgrade(argv.slice(1));
     if (argv[0] === 'hook') return runHook(argv.slice(1), installedRoot);
     if (argv[0] === 'setup') {

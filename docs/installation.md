@@ -90,3 +90,14 @@ node plugin/dist/cli.mjs upgrade --project-root <root> --project-id <uuid> --nam
 ```
 
 Review the displayed files first. Changed YAML or sources invalidate the receipt. An interrupted publication uses the existing recovery journal; recovery may finish and then reject the old request revision, requiring a fresh preview. Feature IDs, manual key points and local relationships survive. No host configuration, connections, source baseline or learning permission is created by this operation. Older clients reject schema 2; there is no destructive automatic downgrade.
+
+## Explicit local project selection
+
+Create a local YAML selection with `schema: 1`, `learning: {enabled: true|false}` and `projects` entries containing a persistent UUID (`id`), local checkout `root`, `readSources` and `writeMemory` booleans. The active project is implicit and must not be duplicated. The file is limited to 64 KiB and 128 entries; individual queries have smaller declared work limits. Selection is not transitive. Missing registry means disabled automatic learning and no external access.
+
+```sh
+node plugin/dist/cli.mjs connections --project-root <root> --config-file <local-selection.yaml> --dry-run
+node plugin/dist/cli.mjs connections --project-root <root> --config-file <local-selection.yaml> --approve-and-apply <receipt>
+```
+
+Only the active project's ignored `.feature-network/connections.yaml` is changed. Review the paths and rights; the receipt binds the candidate bytes, current registry and selected identities. Counterpart configuration, global settings and product files stay untouched. Replacing the registry or a selected identity invalidates outstanding access. This grants plugin-level scope only; host permissions still apply.
