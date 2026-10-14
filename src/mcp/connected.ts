@@ -17,7 +17,7 @@ import type {Project} from '../project/root.js';
 import {readGitState} from '../project/git.js';
 import {isIgnoredChange} from '../freshness/references.js';
 import {readProjectSnapshot,commitNetworkDocuments,readLocalSource,documentSources,type DocumentStorageOptions} from '../storage/documents.js';
-import {digest,hasJournal,revision} from '../storage/journal.js';
+import {digest,hasJournal,revision,readJournal,readStorage,stableCapture,journalTarget} from '../storage/journal.js';
 import {runtimeRevision} from '../storage/runtime.js';
 import type {ToolName} from './tools.js';
 const hash=z.string().regex(/^[a-f0-9]{64}$/),budget=connectedParametersSchema.shape.budget;
@@ -66,12 +66,24 @@ async function update(binding:ConnectionBinding,raw:unknown,options:DocumentStor
 export async function initializeConnected(project:Project,raw:unknown,options:DocumentStorageOptions):Promise<CallToolResult>{
  const input=memoryUpdateSchema.parse(raw),budget=input.budget??12000;preflight(budget);
  if(!input.initialize||input.purpose.mode!=='init'||input.purpose.explicitReadOnly||input.targetProject&&input.targetProject!==input.initialize.id||input.operationId||input.review||input.deletes.length||!input.upserts.length||input.upserts.some(d=>'kind'in d))throw new NetworkError('invalid_update','Initialization requires an explicit real first feature');
- const before=await readProjectSnapshot(project,{...options,sourceMode:'none'});if(before.meta||before.integrity!=='not_initialized'||Object.keys(before.fingerprints).length||before.revision!==input.expectedRevision||input.expectedRevision!==revision({}))throw new NetworkError('conflict','Initialization requires an unchanged empty network');
+ if(input.expectedRevision!==revision({}))throw new NetworkError('conflict','Initialization needs the original empty-network revision');
  const id=input.initialize.id,delta=reconstruct(input,id);if(Object.values(delta.update.expected).some(v=>v!==null))throw new NetworkError('conflict','New documents require null expectations');
  const reader=async(ref:{project:string;path:string})=>{if(ref.project!==id)throw new NetworkError('project_not_connected','Initialization only inspects active sources');return {project:id,path:ref.path,hash:await readLocalSource(project,ref.path,options)};};
- const guard=async()=>{for(const source of input.sources){const observed=await reader(source);if(!('hash'in source)||!('hash'in observed)||observed.hash!==source.hash)throw new NetworkError('conflict','Initial source changed');}};
+ let journalHash:string|undefined;
+ const guard=async()=>{if(journalHash!==undefined){const raw=await readStorage(project,'.feature-network/journal.json');if(raw!==null&&digest(raw)!==journalHash)throw new NetworkError('conflict','Initialization journal changed');}for(const source of input.sources){const observed=await reader(source);if(!('hash'in source)||!('hash'in observed)||observed.hash!==source.hash)throw new NetworkError('conflict','Initial source changed');}};
  for(const doc of input.upserts)for(const ref of documentSources(doc))if(!input.sources.some(s=>s.project===(ref.project??id)&&s.path===ref.path&&'hash'in s))throw new NetworkError('invalid_decision','Every initial source requires its inspected hash');
  const changes:Record<NetworkPath,string>={'network-spec/_meta.yaml':stringify({schema:2,coverage:'partial',project:input.initialize,areas:[]})};for(const doc of input.upserts)changes[documentPath(doc)]=stringify(doc);
+ const targetRevision=revision(Object.fromEntries(Object.entries(changes).map(([path,text])=>[path,Buffer.from(text)])));
+ const before=await readProjectSnapshot(project,{...options,sourceMode:'none'});
+ if(await hasJournal(project)){
+  const raw=await readStorage(project,'.feature-network/journal.json'),journal=await readJournal(project);
+  if(raw===null||!journal||journal.version!==2||Object.keys(journal.before).length||JSON.stringify(Object.keys(journal.changes).sort())!==JSON.stringify(Object.keys(changes).sort())||Object.entries(changes).some(([path,text])=>journal.changes[path]!==text)||revision(journalTarget(journal,await stableCapture(project)))!==targetRevision)throw new NetworkError('conflict','Pending journal differs from this initialization intent');
+  journalHash=digest(raw);await guard();
+  const saved=await commitNetworkDocuments(project,targetRevision,{}, {...options,sourceReader:reader,beforePublish:guard});invalidateConnectedCache(project.root);
+  return fit({targetRevision:saved.revision,publication:'already_present',review:'open',diagnostics:[]},budget);
+ }
+ if(before.revision===targetRevision){await guard();return fit({targetRevision,publication:'already_present',review:'open',diagnostics:[]},budget);}
+ if(before.meta||before.integrity!=='not_initialized'||Object.keys(before.fingerprints).length)throw new NetworkError('conflict','Initialization requires an unchanged empty network');
  await guard();const saved=await commitNetworkDocuments(project,input.expectedRevision,changes,{...options,sourceReader:reader,beforePublish:guard});invalidateConnectedCache(project.root);
  return fit({targetRevision:saved.revision,publication:'applied',review:'open',diagnostics:[]},budget);
 }

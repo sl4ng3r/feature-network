@@ -66,7 +66,8 @@ export async function validateProjectContents(project:Project,contents:Contents,
   const validateSource=(ref:SourceRef):Promise<void>=>{
     const id=ref.project??own,key=JSON.stringify([id,ref.path]);let check=sourceChecks.get(key);
     if(!check){check=(async()=>{
-      if(id!==own){if(!options.sourceReader)throw new NetworkError('external_source_unavailable','External source not connected');const observed=await options.sourceReader({...ref,project:id!});if(!('hash'in observed))throw new NetworkError('missing_reference','External source is missing');}
+      if(options.sourceReader&&id!==undefined){const observed=await options.sourceReader({...ref,project:id});if(!('hash'in observed))throw new NetworkError('missing_reference','Source is missing');}
+      else if(id!==own)throw new NetworkError('external_source_unavailable','External source not connected');
       else await readLocalSource(project,ref.path,options);
     })();sourceChecks.set(key,check);}
     return check;
@@ -111,7 +112,7 @@ async function recover(project:Project,options:DocumentStorageOptions):Promise<b
   const pending=await readJournal(project);if(!pending)return false;
   const target=journalTarget(pending,await stableCapture(project));
   const valid=await validateProjectContents(project,target,{...options,sourceMode:'all'});
-  if(valid.integrity!=='valid')throw new NetworkError('pending_recovery','Recovered network would be invalid');
+  if(valid.integrity!=='valid')throw new NetworkError(valid.diagnostics.some(d=>d.severity==='error'&&d.code==='permission_denied')?'permission_denied':'pending_recovery','Recovered network could not be validated');
   await finishJournal(project,pending,options.beforePublish);return true;
 }
 /** Authorized writers may finish a validated journal; readers never call this. */
@@ -130,7 +131,7 @@ export async function commitNetworkDocuments(project:Project,expectedRevision:st
       if((before[path]===undefined?null:digest(before[path]!))!==(text===null?null:digest(text)))actual[path]=text;
     }
     const validation=await validateProjectContents(project,after,{...options,sourceMode:'all'});
-    if(validation.integrity!=='valid')throw new NetworkError('invalid_network','Complete end state is invalid',validation.diagnostics.filter(d=>d.severity==='error').flatMap(d=>d.path?[d.path]:[]));
+    if(validation.integrity!=='valid')throw new NetworkError(validation.diagnostics.some(d=>d.severity==='error'&&d.code==='permission_denied')?'permission_denied':'invalid_network','Complete end state could not be validated',validation.diagnostics.filter(d=>d.severity==='error').flatMap(d=>d.path?[d.path]:[]));
     if(options.beforePublish)await options.beforePublish();
     if(revision(await stableCapture(project))!==revision(before))throw new NetworkError('conflict','Network changed during validation');
     if(Object.keys(actual).length){const journal={version:2 as const,before:fingerprints(before),changes:actual};await saveJournal(project,journal);await finishJournal(project,journal,options.beforePublish);}
@@ -160,7 +161,7 @@ export async function applyDocumentUpdate(project:Project,request:DocumentUpdate
        for(const ref of refs){
         const id=ref.project??own;const supplied=request.sources.find(s=>s.project===id&&s.path===ref.path&&'hash'in s);
         if(!supplied||!('hash'in supplied))throw new NetworkError('unverified_reference','Upsert source was not inspected',[ref.path]);
-        const actual=id===own?{hash:await readLocalSource(project,ref.path,options)}:await options.sourceReader?.({...ref,project:id});
+        const actual=options.sourceReader?await options.sourceReader({...ref,project:id}):id===own?{hash:await readLocalSource(project,ref.path,options)}:undefined;
         if(!actual||!('hash'in actual)||actual.hash!==supplied.hash)throw new NetworkError('conflict','Inspected source changed',[ref.path]);
        }
       }

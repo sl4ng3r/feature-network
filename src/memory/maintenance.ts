@@ -12,6 +12,7 @@ import { digest } from '../storage/journal.js';
 import { storagePath,isMissing } from '../storage/lock.js';
 import { readRuntime,writeRuntime,runtimeRevision } from '../storage/runtime.js';
 import { connectedReviewSchema,recordConnectedReview,type ConnectedReview } from '../freshness/connected.js';
+import { bindSourceAccess } from '../project/source-access.js';
 import { prepareMemoryDelta,type PreparedDelta } from './delta.js';
 import { memoryPolicy,type MemoryPolicyInput } from './policy.js';
 import { invalidateConnectedCache } from '../query/connected.js';
@@ -38,6 +39,7 @@ function intended(snapshot:ProjectSnapshot,delta:PreparedDelta):{fingerprints:Re
  return {fingerprints:changes,revision:digest(JSON.stringify(Object.fromEntries(Object.entries(all).sort(([a],[b])=>a<b?-1:a>b?1:0))))};
 }
 export async function applyMemoryDelta(binding:ConnectionBinding,target:ProjectId,delta:PreparedDelta|null,context:MaintenanceContext,options:DocumentStorageOptions={}):Promise<MaintenanceReceipt|null>{
+ options=bindSourceAccess(binding,options);
  return withWorkMeter(options.meter,async()=>{
   const parsedReview=context.review===undefined?undefined:maintenanceReviewIntentSchema.safeParse(context.review);
   if(parsedReview&&!parsedReview.success)throw new NetworkError('invalid_decision','Invalid review intent');

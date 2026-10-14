@@ -58,7 +58,10 @@ export function queryState(index: NetworkIndex, request: ContextRequest | Impact
 /** Offset and fragment offsets are UTF-16 code-unit indices, never split surrogate pairs.
  * Reassemble a fragmented row by concatenating text in offset order, then JSON.parse.
  * total is the original serialized row length; no row content is silently discarded. */
-export function paginate<T extends { id: string }>(index: NetworkIndex, state: QueryState, rows: T[], defaultLimit: number, options: { maxLimit?: number; depth?: number; depthLimited?: boolean; responseReserveBytes?: number; includeFingerprints?: boolean; freshness?: Record<string, FeatureFreshness> } = {}): QueryResult<T> {
+export function paginate<T extends { id: string }>(index: NetworkIndex, state: QueryState, rows: T[], defaultLimit: number, options: { maxLimit?: number; depth?: number; depthLimited?: boolean; responseReserveBytes?: number; includeFingerprints?: boolean; freshness?: Record<string, FeatureFreshness>; measure?: (page:QueryResult<T>)=>number } = {}): QueryResult<T> {
+  // Trusted projection measures the actual outer result while preserving this
+  // single selection/fragmentation engine. No function is accepted from JSON.
+  const size=(page:QueryResult<T>):number=>options.measure?options.measure(page):bytes(page);
   const reserve = options.responseReserveBytes ?? 0;
   if (!Number.isSafeInteger(reserve) || reserve < 0) throw new NetworkError('invalid_query', 'Invalid internal response reserve');
   const budget = (state.parameters.budget ?? 12000) - reserve;
@@ -94,13 +97,13 @@ export function paginate<T extends { id: string }>(index: NetworkIndex, state: Q
   let offset = state.offset;
   finalize(offset, state.fragment);
   // Reject continuation metadata that already exceeds the entire response budget.
-  if (bytes(result) > budget && rows.length > offset) throw new NetworkError('invalid_query', 'Budget is too small for query parameters and continuation metadata');
+  if (size(result) > budget && rows.length > offset) throw new NetworkError('invalid_query', 'Budget is too small for query parameters and continuation metadata');
   for (const diagnostic of index.diagnostics) {
     result.diagnostics.push(diagnostic);
     const omitted = index.diagnostics.length - result.diagnostics.length;
     if (omitted) result.diagnosticsOmitted = omitted;
     else delete result.diagnosticsOmitted;
-    if (bytes(result) > Math.min(budget / 3, bytes({ ...result, diagnostics: [] }) + 512)) {
+    if (size(result) > Math.min(budget / 3, size({ ...result, diagnostics: [] }) + 512)) {
       result.diagnostics.pop();
       result.diagnosticsOmitted = index.diagnostics.length - result.diagnostics.length;
       break;
@@ -114,7 +117,7 @@ export function paginate<T extends { id: string }>(index: NetworkIndex, state: Q
     if (fragmentOffset === 0) {
       result.items.push(row);
       finalize(offset + 1);
-      if (bytes(result) <= budget) {
+      if (size(result) <= budget) {
         offset++;
         continue;
       }
@@ -132,7 +135,7 @@ export function paginate<T extends { id: string }>(index: NetworkIndex, state: Q
       const mid = Math.ceil((low + high) / 2);
       piece.fragment.text = serialized.slice(fragmentOffset, mid);
       finalize(mid === serialized.length ? offset + 1 : offset, mid === serialized.length ? 0 : mid);
-      if (bytes(result) <= budget) low = mid;
+      if (size(result) <= budget) low = mid;
       else high = mid - 1;
     }
     if (low < serialized.length && isLowSurrogate(serialized.charCodeAt(low))) low--;
@@ -141,7 +144,7 @@ export function paginate<T extends { id: string }>(index: NetworkIndex, state: Q
     finalize(low === serialized.length ? offset + 1 : offset, low === serialized.length ? 0 : low);
     break;
   }
-  if (bytes(result) > budget) throw new NetworkError('invalid_query', 'Budget cannot fit result metadata');
+  if (size(result) > budget) throw new NetworkError('invalid_query', 'Budget cannot fit result metadata');
   return result;
 }
 function isLowSurrogate(code: number): boolean { return code >= 0xdc00 && code <= 0xdfff; }

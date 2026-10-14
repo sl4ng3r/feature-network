@@ -208,10 +208,11 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
       if (!Object.hasOwn(toolSchemas, name)) throw new NetworkError('unknown_tool', 'Unknown tool');
       const raw=request.params.arguments??{};
       let version:1|2|null=null;try{version=await projectSchema(bound);}catch{/* Legacy readers retain invalid-marker diagnostics. */}
+      const initializing=name==='network_update'&&object(raw).kind==='memory'&&object(raw).initialize!==undefined;
       if(name!=='network_bootstrap'&&(version===2||(version===null&&object(raw).kind==='memory'))){
         const schema=connectedToolSchemas[name as keyof typeof connectedToolSchemas];
         if(!schema.safeParse(raw).success)throw new NetworkError('invalid_input','Invalid versioned tool input');
-        const response=version===null?await initializeConnected(bound,raw,options):await handleConnectedTool(name as ToolName,raw,await readConnections(bound),options);
+        const response=version===null||initializing?await initializeConnected(bound,raw,options):await handleConnectedTool(name as ToolName,raw,await readConnections(bound),options);
         return server.projectCallToolResult(response,undefined);
       }
       const parsed = toolSchemas[name as ToolName].safeParse(raw);

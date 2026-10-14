@@ -154,6 +154,7 @@ export async function finishJournal(project: Project, journal: Journal, beforePu
   // Check all files before *any* recovery mutation, then recheck before each I/O.
   let current = await stableCapture(project);
   const target = journalTarget(journal, current);
+  if(beforePublish)await beforePublish();
   for (const [path, text] of Object.entries(journal.changes).sort(([a], [b]) => a.localeCompare(b))) {
     current = await stableCapture(project); journalTarget(journal, current);
     if ((current[path] ? digest(current[path]!) : null) === (text === null ? null : digest(text))) continue;

@@ -4,7 +4,7 @@ import type { ProjectId,RevisionSet } from '../model/identity.js';
 import type { EditableDocument } from '../model/documents.js';
 import type { Diagnostic } from '../model/types.js';
 import { NetworkError } from '../model/errors.js';
-import { parametersSchema,paginate,type QueryState,type FragmentItem } from './pagination.js';
+import { parametersSchema,paginate,type QueryState,type QueryResult,type FragmentItem } from './pagination.js';
 import type { NetworkIndex } from './index.js';
 import type { ConnectedIndex,ConnectedEdge } from './connected-index.js';
 const hash=z.string().regex(/^[a-f0-9]{64}$/);
@@ -37,22 +37,20 @@ export function connectedState(input:ConnectedContextRequest|ConnectedImpactRequ
  return {parameters};
 }
 const bytes=(v:unknown)=>Buffer.byteLength(JSON.stringify(v));
-/** Share the proven UTF-16 fragmenter; reserve connected metadata against the same rows. */
+/** Share selection and Unicode fragmentation, measuring the exact connected
+ * projection for every candidate rather than approximating its outer overhead. */
 export function paginateConnected(index:ConnectedIndex,rows:ConnectedRow[],parameters:ConnectedParameters,kind:'context'|'impact',frame:ConnectedFrame,cursor?:ConnectedCursor,freshness?:ConnectedFreshness,responseReserveBytes=0):ConnectedResult{
- const budget=parameters.budget??12000;
- const state:QueryState={parameters:{budget,...(parameters.limit!==undefined?{limit:parameters.limit}:{})},kind,offset:cursor?.offset??0,fragment:cursor?.fragment??0};
+ const state:QueryState={parameters:{budget:parameters.budget??12000,...(parameters.limit!==undefined?{limit:parameters.limit}:{})},kind,offset:cursor?.offset??0,fragment:cursor?.fragment??0};
  const adapter:NetworkIndex={revision:index.revision,integrity:frame.integrity,diagnostics:index.diagnostics,fingerprints:{},entries:new Map(),tokens:new Map(),paths:new Map(),outgoing:new Map(),incoming:new Map()};
  const overview=kind==='context'&&!parameters.query?.trim()&&!parameters.ids?.length&&!parameters.features?.length&&!parameters.knowledge?.length&&!parameters.paths?.length;
- let reserve=responseReserveBytes;
- for(let attempt=0;attempt<8;attempt++){
-  const page=paginate(adapter,state,rows,overview?10:20,{responseReserveBytes:reserve,maxLimit:overview?10:100});
-  const {nextCursor:inner,freshness:legacyFreshness,...core}=page;const {selectedProjects,...publicFrame}=frame;
+ const {selectedProjects,...publicFrame}=frame;
+ const project=(page:QueryResult<ConnectedRow>):ConnectedResult=>{
+  const {nextCursor:inner,freshness:legacyFreshness,...core}=page;
   const result:ConnectedResult={...core,...publicFrame,projects:Object.fromEntries(Object.entries(frame.projects).map(([id,p])=>[id,{...p,fingerprints:{}}]))};
-  for(const item of result.items){const entity=index.entries.get(item.id);if(!entity)continue;const p=result.projects[entity.project];if(p){p.fingerprints[entity.path]=entity.fingerprint;}}
+  for(const item of result.items){const entity=index.entries.get(item.id);if(!entity)continue;const p=result.projects[entity.project];if(p)p.fingerprints[entity.path]=entity.fingerprint;}
   if(inner)result.nextCursor={revision:index.revision,registerRevision:index.registerRevision,revisions:index.revisions,projects:selectedProjects,kind,parameters,offset:inner.offset,fragment:inner.fragment};
   if(freshness)result.freshness=Object.fromEntries(result.items.filter(item=>index.entries.get(item.id)?.kind==='feature').map(item=>[item.id,freshness[item.id]??{state:'unknown',review:'open',resolution:'missing'}]));
-  if(bytes(result)+responseReserveBytes<=budget)return result;
-  reserve+=Math.max(1,bytes(result)+responseReserveBytes-budget);
- }
- throw new NetworkError('invalid_query','Connected metadata cannot fit this budget');
+  return result;
+ };
+ return project(paginate(adapter,state,rows,overview?10:20,{responseReserveBytes,maxLimit:overview?10:100,measure:page=>bytes(project(page))}));
 }

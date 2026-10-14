@@ -60,13 +60,18 @@ async function query(binding:ConnectionBinding,input:ConnectedContextRequest|Con
   }else{rows=ranked.keys.map(k=>row(index.entries.get(k)!,p.detail));for(const r of rows)if(r.kind==='feature')countWork('visitedFeatures');}
   const sourceFreshnessBasis=p.freshness??(kind==='impact'?'returned_features':'last_known');
   const frame:ConnectedFrame={revision:index.revision,registerRevision:binding.revision,revisions:index.revisions,coverage:'partial',integrity:index.diagnostics.some(d=>d.severity==='error')?'invalid':'valid',incomplete:unexamined.length>0||featuresLimited||index.diagnostics.some(d=>d.severity==='error'||d.code==='external_target_unresolved'),projectsExamined:[...snapshots.keys()],projectsUnexamined:unexamined,projects:Object.fromEntries([...snapshots].map(([id,s])=>[id,{name:s.meta?.schema===2?s.meta.project.name:id,revision:s.revision,fingerprints:{}}])),basis:freshSnapshots?'fresh_snapshots':'last_known',sourceFreshnessBasis,sourceValidationScope:sourceFreshnessBasis==='returned_features'?'returned_features':'none',limits:{maxProjects,maxVisitedFeatures,projectsLimited:unexamined.some(p=>p.reason==='project_limit'),featuresLimited},unexaminedMatchCount:unexamined.length||featuresLimited?null:0,selectedProjects:selected,...depthExtra};
-  const preliminary=paginateConnected(index,rows,p,kind,frame,state.cursor,undefined,options.responseReserveBytes);
+  // Reserve the longest allowed freshness fields before choosing any source
+  // work. These internal placeholders are never returned to the caller.
+  const reserved:ConnectedFreshness|undefined=sourceFreshnessBasis==='last_known'?undefined:Object.fromEntries(rows.filter(row=>row.kind==='feature').map(row=>[row.id,{state:'unknown',review:'recorded',resolution:'not_connected'}]));
+  const preliminary=paginateConnected(index,rows,p,kind,frame,state.cursor,reserved,options.responseReserveBytes);
   if(sourceFreshnessBasis==='last_known')return preliminary;
   if(!options.readFreshness)throw new NetworkError('freshness_unavailable','A current source check provider is required');
   const refs=[...new Set(preliminary.items.map(r=>r.id))].map(k=>index.entries.get(k)).filter((e):e is ConnectedEntity=>e?.kind==='feature').map(e=>({project:e.project,feature:e.id}));
   const freshness=await options.readFreshness(refs);
   for(const [id,snapshot] of snapshots){const project=await assertConnection(binding,id,'read_memory');const current=await readProjectSnapshot(project,{...options,sourceMode:'none'});if(current.revision!==snapshot.revision||current.integrity==='pending_recovery')throw new NetworkError(state.cursor?'stale_cursor':'conflict','Network changed during source observation');}
-  return paginateConnected(index,rows,p,kind,frame,state.cursor,freshness,options.responseReserveBytes);
+  // Retain exactly the selected page, including fragment/cursor offsets. A
+  // smaller actual warning must not pull an uninspected extra row into it.
+  return {...preliminary,freshness:Object.fromEntries(refs.map(ref=>{const key=featureKey(ref);return [key,freshness[key]??{state:'unknown',review:'open',resolution:'missing'}];}))};
  });
 }
 export const readConnectedContext=(binding:ConnectionBinding,request:ConnectedContextRequest={},options:ConnectedQueryOptions={}):Promise<ConnectedResult>=>query(binding,request,'context',options);
