@@ -107,6 +107,10 @@ async function recover(project:Project,options:DocumentStorageOptions):Promise<b
   if(valid.integrity!=='valid')throw new NetworkError('pending_recovery','Recovered network would be invalid');
   await finishJournal(project,pending,options.beforePublish);return true;
 }
+/** Authorized writers may finish a validated journal; readers never call this. */
+export async function recoverDocumentJournal(project:Project,options:DocumentStorageOptions={}):Promise<boolean>{
+ return withWorkMeter(options.meter,()=>withProjectLock(project,()=>recover(project,options)));
+}
 /** Internal marker-capable transaction. Guard is trusted Core code, never JSON. */
 export async function commitNetworkDocuments(project:Project,expectedRevision:string,changes:Record<NetworkPath,string|null>,options:DocumentStorageOptions = {}):Promise<UpdateResult>{
   return withWorkMeter(options.meter,()=>withProjectLock(project,async()=>{
@@ -128,7 +132,8 @@ export async function commitNetworkDocuments(project:Project,expectedRevision:st
 }
 export async function applyDocumentUpdate(project:Project,request:DocumentUpdate,options:DocumentStorageOptions = {}):Promise<UpdateResult>{
   return withWorkMeter(options.meter,async()=>{
-    const before=await readProjectSnapshot(project,{...options,sourceMode:'none'});
+    let before=await readProjectSnapshot(project,{...options,sourceMode:'none'});
+    if(before.integrity==='pending_recovery'){await recoverDocumentJournal(project,options);before=await readProjectSnapshot(project,{...options,sourceMode:'none'});}
     if(before.revision!==request.expectedRevision)throw new NetworkError('conflict','Network revision changed');
     const own=before.meta?.schema===2?before.meta.project.id:undefined;
     if(!own)throw new NetworkError('schema_two_required','Versioned updates need schema two');
