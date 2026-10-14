@@ -64,7 +64,7 @@ export async function recordConnectedReview(binding:ConnectionBinding,input:Conn
   const currentEntities=new Set([...own.features,...own.knowledge].map(d=>entityKey(receipt.project,d)));for(const key of Object.keys(next.entities))if(!currentEntities.has(key))delete next.entities[key];
   const retained=new Set([...Object.values(next.entities),...Object.values(next.unmapped)]);for(const key of Object.keys(next.reviews))if(!retained.has(key))delete next.reviews[key];
   if(old.raw!==null&&runtimeRevision(old.raw)===runtimeRevision(next))return;
-  await writeRuntime(project,reviewKey,old.raw===null?null:runtimeRevision(old.raw),next,options,guard);
+  await writeRuntime(project,reviewKey,old.raw===null?null:runtimeRevision(old.raw),next,{...options,allowRecovery:false},guard);
  });
 }
 export async function readConnectedFreshness(binding:ConnectionBinding,refs:FeatureRef[],options:DocumentStorageOptions={}):Promise<ConnectedFreshness>{
