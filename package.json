@@ -12,7 +12,8 @@
     "build": "node scripts/build-plugin.mjs",
     "verify:package": "node scripts/verify-package.mjs",
     "bench:core": "node scripts/bench-core.mjs",
-    "release:prepare": "node scripts/release.mjs"
+    "release:prepare": "node scripts/release.mjs",
+    "bench:connected": "node scripts/bench-connected.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.3.1",

@@ -28,7 +28,7 @@ export async function readReferenceHash(project: Project, path: string, options:
   const file = await openRegular(absolute, 'unsafe_reference');
   try {
     if (!(await file.stat()).isFile()) throw new NetworkError('unsafe_reference', 'Reference is not a regular file', [path]);
-    return digest(await file.readFile());
+    const bytes=await file.readFile();countWork('sourceReadOps');countWork('sourceBytes',bytes.length);return digest(bytes);
   } finally { await file.close(); }
 }
 /** Absence is not a hash. Existing dangling symlinks/directories are never absence evidence. */

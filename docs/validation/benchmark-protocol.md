@@ -66,3 +66,7 @@ node --input-type=module -e "import { writeComparisonReport } from './bench/comp
 This command does not collect records or authorize their collection. The input file and detailed output belong in ignored scratch until reviewed/redacted. There is intentionally no committed sample pretending to be an actual run.
 
 See [host matrix](host-matrix.md) for required live evidence and current limits. There are currently no actual comparison reports.
+
+## Connected filesystem costs
+
+`npm run bench:connected` measures generated temporary local repositories through actual snapshot/query/maintenance code, including counted file/source reads and journal publications. Its matrix, six phases, cache definitions and independent scenario are specified in [the connected memory protocol](connected-project-memory-protocol.md). It is separate from `bench:core`'s loaded snapshots, actual agent comparison records and native host acceptance. Unknown agent/token costs remain null. A local successful matrix establishes measured pipeline properties for its bound bundle, without a performance/savings or complete semantic coverage claim.

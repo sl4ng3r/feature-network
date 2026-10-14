@@ -162,10 +162,11 @@ export async function finishJournal(project: Project, journal: Journal, beforePu
       const fresh = await stableCapture(project); journalTarget(journal, fresh);
       if (revision(fresh) !== revision(current)) throw new NetworkError('pending_recovery', 'External edit interrupted the transaction');
     };
-    if (text === null) { await unchanged(); await unlink(await storagePath(project, path)); await syncParent(project, path); }
+    if (text === null) { await unchanged(); await unlink(await storagePath(project, path)); countWork('knowledgeWrites'); await syncParent(project, path); }
     else await atomicStorageWrite(project, path, text, unchanged);
   }
   if (revision(await stableCapture(project)) !== revision(target)) throw new NetworkError('pending_recovery', 'Transaction end state could not be confirmed');
   await unlink(await storagePath(project, journalPath));
   await syncParent(project, journalPath);
+  countWork('networkTransactions');
 }

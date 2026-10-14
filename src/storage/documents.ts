@@ -60,6 +60,17 @@ export async function validateProjectContents(project:Project,contents:Contents,
   const meta=result.meta; const own=meta?.schema===2?meta.project.id:undefined;
   const ids = new Set(result.features.map(f=>f.id));
   const docs:EditableDocument[]=[...result.features,...result.knowledge];
+  // Fresh, invocation-local deduplication only: never reuse a source observation
+  // across validation passes or substitute it for a semantic writer guard.
+  const sourceChecks=new Map<string,Promise<void>>();
+  const validateSource=(ref:SourceRef):Promise<void>=>{
+    const id=ref.project??own,key=JSON.stringify([id,ref.path]);let check=sourceChecks.get(key);
+    if(!check){check=(async()=>{
+      if(id!==own){if(!options.sourceReader)throw new NetworkError('external_source_unavailable','External source not connected');const observed=await options.sourceReader({...ref,project:id!});if(!('hash'in observed))throw new NetworkError('missing_reference','External source is missing');}
+      else await readLocalSource(project,ref.path,options);
+    })();sourceChecks.set(key,check);}
+    return check;
+  };
   for(const doc of docs){
     const path=documentPath(doc);
     if(doc.schema!==meta?.schema)result.diagnostics.push({code:'mixed_schema',path,severity:'error',message:'Document and marker versions differ'});
@@ -70,11 +81,7 @@ export async function validateProjectContents(project:Project,contents:Contents,
     }
     if(options.sourceMode!=='none')for(const ref of documentSources(doc)){
       try{
-        if(ref.project!==undefined && ref.project!==own){
-          if(!options.sourceReader)throw new NetworkError('external_source_unavailable','External source not connected');
-          const observed=await options.sourceReader({...ref,project:ref.project});
-          if(!('hash' in observed))throw new NetworkError('missing_reference','External source is missing');
-        } else await readLocalSource(project,ref.path,options);
+        await validateSource(ref);
       }catch(error){const diagnostic=failure(error,path);if(ref.project!==undefined&&ref.project!==own)diagnostic.severity='warning';result.diagnostics.push(diagnostic);}
     }
   }
