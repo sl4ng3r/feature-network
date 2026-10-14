@@ -50,7 +50,7 @@ export async function validateProjectContents(project:Project,contents:Contents,
     try {
       const hash = digest(bytes); const old=cache?.parsed.get(path);
       let doc = old?.hash===hash ? structuredClone(old.document) : undefined;
-      if(!doc){countWork('yamlParses');doc=parseNetworkDocument(new TextDecoder('utf-8',{fatal:true}).decode(bytes),path as NetworkPath);cache?.parsed.set(path,{hash,document:doc});}
+      if(!doc){doc=parseNetworkDocument(new TextDecoder('utf-8',{fatal:true}).decode(bytes),path as NetworkPath);cache?.parsed.set(path,{hash,document:doc});}
       if(path==='network-spec/_meta.yaml' && !('id' in doc))result.meta=doc;
       else if('kind' in doc)result.knowledge.push(doc);
       else if('id' in doc)result.features.push(doc);

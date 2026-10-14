@@ -17,8 +17,11 @@ export interface ConnectionEntry {readonly id:ProjectId;readonly root:string;rea
 export interface ConnectionBinding {readonly active:Project;readonly activeId:ProjectId;readonly revision:string;readonly learningEnabled:boolean;readonly entries:ReadonlyMap<ProjectId,ConnectionEntry>;readonly diagnostics:readonly Diagnostic[]}
 interface Bound {raw:string|null;active:Project;activeId:ProjectId;entries:ReadonlyMap<ProjectId,ConnectionEntry>}
 const bindings=new WeakMap<ConnectionBinding,Bound>();
-export function parseConnections(text:string):ConnectionsConfig{return validate(configSchema,parseYaml(text,registry),registry);}
-async function identity(project:Project):Promise<ProjectId>{const raw=await readStorage(project,'network-spec/_meta.yaml',65536);if(raw===null)throw new NetworkError('not_initialized','Project marker missing');const meta=parseNetworkMeta(raw);if(meta.schema!==2)throw new NetworkError('schema_two_required','Connections need a persistent project identity');return meta.project.id;}
+const configs=new Map<string,ConnectionsConfig>();
+export function parseConnections(text:string):ConnectionsConfig{let config=configs.get(text);if(!config){config=validate(configSchema,parseYaml(text,registry),registry);if(configs.size>=32)configs.delete(configs.keys().next().value!);configs.set(text,config);}return structuredClone(config);}
+const identities=new Map<string,{raw:string;id:ProjectId}>();
+async function identity(project:Project):Promise<ProjectId>{const raw=await readStorage(project,'network-spec/_meta.yaml',65536);if(raw===null)throw new NetworkError('not_initialized','Project marker missing');const old=identities.get(project.root);if(old?.raw===raw)return old.id;const meta=parseNetworkMeta(raw);if(meta.schema!==2)throw new NetworkError('schema_two_required','Connections need a persistent project identity');if(identities.size>=256)identities.delete(identities.keys().next().value!);identities.set(project.root,{raw,id:meta.project.id});return meta.project.id;}
+
 async function selected(active:Project,activeId:ProjectId,config:ConnectionsConfig,strict:boolean):Promise<{entries:Map<ProjectId,ConnectionEntry>;diagnostics:Diagnostic[]}>{
  const entries=new Map<ProjectId,ConnectionEntry>([[activeId,Object.freeze({id:activeId,root:active.root,boundRoot:active.root,readSources:true,writeMemory:true})]]);const diagnostics:Diagnostic[]=[];
  for(const item of config.projects){

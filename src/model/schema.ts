@@ -1,3 +1,4 @@
+import { countWork } from '../diagnostics/work.js';
 import { basename } from 'node:path';
 import { isAlias, isScalar, parseDocument, visit } from 'yaml';
 import { z } from 'zod';
@@ -57,6 +58,7 @@ function invalid(message: string, filename: string): never {
 
 /** Read data-only YAML without ever resolving aliases or executable tags. */
 export function parseYaml(text: string, filename: string): unknown {
+  countWork('yamlParses');
   if (Buffer.byteLength(text, 'utf8') > 65536) invalid('YAML exceeds the 65536-byte UTF-8 limit', filename);
   try {
     const document = parseDocument(text, {
