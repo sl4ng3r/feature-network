@@ -1,0 +1,15 @@
+import { z } from 'zod';
+import { referenceSchema, featureSchema } from './schema.js';
+export const projectIdSchema = z.uuid().regex(/^[a-f0-9-]+$/);
+export type ProjectId = z.infer<typeof projectIdSchema>;
+export const featureRefSchema = z.strictObject({project: projectIdSchema, feature: featureSchema.shape.id});
+export const statementRefSchema = z.strictObject({project: projectIdSchema, knowledge: featureSchema.shape.id, statement: featureSchema.shape.id});
+export const sourceRefSchema = referenceSchema.extend({project: projectIdSchema.optional()});
+export type FeatureRef = z.infer<typeof featureRefSchema>;
+export type StatementRef = z.infer<typeof statementRefSchema>;
+export type SourceRef = z.infer<typeof sourceRefSchema>;
+export type QualifiedSourceRef = SourceRef & {project: ProjectId};
+export type SourceObservation = {project: ProjectId; path: string; hash: string} | {project: ProjectId; path: string; state: 'missing'};
+export type RevisionSet = Readonly<Record<ProjectId, string>>;
+export const featureKey = (ref: FeatureRef): string => JSON.stringify([projectIdSchema.parse(ref.project), 'feature', featureSchema.shape.id.parse(ref.feature)]);
+export const statementKey = (ref: StatementRef): string => JSON.stringify([ref.project,'knowledge',ref.knowledge,ref.statement]);

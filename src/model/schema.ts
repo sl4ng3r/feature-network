@@ -56,7 +56,7 @@ function invalid(message: string, filename: string): never {
 }
 
 /** Read data-only YAML without ever resolving aliases or executable tags. */
-function parseYaml(text: string, filename: string): unknown {
+export function parseYaml(text: string, filename: string): unknown {
   if (Buffer.byteLength(text, 'utf8') > 65536) invalid('YAML exceeds the 65536-byte UTF-8 limit', filename);
   try {
     const document = parseDocument(text, {
@@ -84,7 +84,7 @@ function parseYaml(text: string, filename: string): unknown {
   }
 }
 
-function validate<T>(schema: z.ZodType<T>, value: unknown, filename: string): T {
+export function validate<T>(schema: z.ZodType<T>, value: unknown, filename: string): T {
   const result = schema.safeParse(value);
   if (!result.success) {
     const details = result.error.issues.map(issue => `${issue.path.join('.') || 'document'}: ${issue.message}`).join('; ');
