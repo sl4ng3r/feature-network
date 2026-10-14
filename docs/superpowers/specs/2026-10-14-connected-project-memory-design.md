@@ -2,7 +2,7 @@
 
 Datum: 2026-10-14
 
-Status: Die schriftliche Spezifikation wurde vom Nutzer am 2026-10-14 mit „ok passt“ zur Implementierungsplanung freigegeben. Anschließend bat der Nutzer ausdrücklich um stärkere Berücksichtigung der Effizienz. Die Ergänzungen in Abschnitt 7.1 und die daraus abgeleiteten Planaufgaben stehen zusammen mit dem Implementierungsplan zur Prüfung. Eine Freigabe zur Umsetzung liegt noch nicht vor. Produktcode und bestehende Projektinstallationen bleiben unverändert.
+Status: Schriftliche Basisspezifikation am 2026-10-14 freigegeben. Anschließend wurde die ausdrücklich gewünschte Effizienzergänzung (Abschnitt 7.1) gemeinsam mit dem Implementierungsplan zur direkten Umsetzung in dieser Session mit unabhängigem Abschlussreview freigegeben. Umsetzung erfolgt isoliert; Produkt- und Hostabnahme bleiben getrennte Nachweise.
 
 ## 1. Ziel und vereinbarte Entscheidungen
 

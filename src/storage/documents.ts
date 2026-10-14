@@ -11,7 +11,7 @@ import { statementKey } from '../model/identity.js';
 import { NetworkError } from '../model/errors.js';
 import { countWork, withWorkMeter, type WorkMeter } from '../diagnostics/work.js';
 import type { Snapshot, StorageOptions, UpdateResult } from './repository.js';
-import { readReferenceHash } from './repository.js';
+import { readReferenceHash } from './sources.js';
 import { withProjectLock, storagePath, isMissing } from './lock.js';
 import { stableCapture, revision, fingerprints, digest, readJournal, journalTarget, saveJournal, finishJournal, hasJournal, type Contents } from './journal.js';
 import type { ByteCache } from './regular.js';

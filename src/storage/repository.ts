@@ -1,3 +1,6 @@
+import { validateProjectContents } from './documents.js';
+import { readReferenceHash, assertMissingReference, referencePath } from './sources.js';
+export { readReferenceHash, assertMissingReference } from './sources.js';
 import { countWork } from '../diagnostics/work.js';
 import { readCache, parsedFeature, publishReadCache, type ReadCache } from './read-cache.js';
 import { regularSignature } from './regular.js';
@@ -40,41 +43,6 @@ const featurePath = (id: string) => {
 };
 export function featureReferences(feature: Feature): Reference[] {
   return [...feature.code, ...feature.evidence, ...feature.relations.flatMap(r => r.evidence), ...feature.hypotheses.flatMap(h => h.evidence)];
-}
-/** Canonical exclusions are checked before opening source bytes, including aliases. */
-async function referencePath(project: Project, path: string, options: StorageOptions): Promise<string> {
-  const absolute = await resolveProjectPath(project, path);
-  const excluded = [resolve(project.root, '.git'), project.networkDir, project.runtimeDir];
-  for (const root of options.excludedReferenceRoots ?? []) {
-    try { excluded.push(await realpath(root)); } catch (error) { if (!isMissing(error)) throw error; excluded.push(resolve(root)); }
-  }
-  const components = relative(project.root, absolute).split(sep);
-  if (path.split('/').some(p => ['.git', '.feature-network', 'network-spec'].includes(p))
-    || components.some(p => ['.git', '.feature-network', 'network-spec'].includes(p)) || excluded.some(root => isPathContained(root, absolute))) {
-    throw new NetworkError('unsafe_reference', 'Reference points into excluded metadata or plugin storage', [path]);
-  }
-  return absolute;
-}
-/** Same confinement and exclusions for existing bytes and absent observations. */
-export async function readReferenceHash(project: Project, path: string, options: StorageOptions): Promise<string> {
-  const absolute = await referencePath(project, path, options);
-  const file = await openRegular(absolute, 'unsafe_reference');
-  try {
-    if (!(await file.stat()).isFile()) throw new NetworkError('unsafe_reference', 'Reference is not a regular file', [path]);
-    return digest(await file.readFile());
-  } finally { await file.close(); }
-}
-/** Absence is not a hash. Existing dangling symlinks/directories are never absence evidence. */
-export async function assertMissingReference(project: Project, path: string, options: StorageOptions = {}): Promise<void> {
-  const absolute = await referencePath(project, path, options);
-  const canonical = relative(project.root, absolute).split(sep).join('/');
-  if (isSensitivePath(path) || isSensitivePath(canonical)) throw new NetworkError('sensitive_reference', 'Automatic observation excludes a potentially sensitive source', [path]);
-  if (isAutomaticGeneratedPath(path) || isAutomaticGeneratedPath(canonical)) throw new NetworkError('unsafe_reference', 'Automatic observation excludes generated sources', [path]);
-  for (const candidate of new Set([resolve(project.root, path), absolute])) {
-    try { await lstat(candidate); }
-    catch (error) { if (isMissing(error)) continue; throw error; }
-    throw new NetworkError('conflict', 'Expected missing source exists', [path]);
-  }
 }
 function diagnostic(error: unknown, path: string): Diagnostic {
   return { code: error instanceof NetworkError ? error.code : isMissing(error) ? 'missing_reference' : 'unreadable_reference',
@@ -162,7 +130,7 @@ export async function recoverNetworkUnderLock(project: Project, options: Storage
   const pending = await readJournal(project);
   if (!pending) return false;
   const target = journalTarget(pending, await stableCapture(project));
-  const validation = pending.version === 2 ? await (await import('./documents.js')).validateProjectContents(project, target, {...options, sourceMode:'all'}) : await validate(project, target, options);
+  const validation = pending.version === 2 ? await validateProjectContents(project, target, {...options, sourceMode:'all'}) : await validate(project, target, options);
   if (validation.diagnostics.some(d => d.severity === 'error')) throw new NetworkError('pending_recovery', 'Recovered end state would not be valid');
   await finishJournal(project, pending);
   return true;

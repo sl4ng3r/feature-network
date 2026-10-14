@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-14-connected-project-memory-design.md`, einschließlich der nachträglich gewünschten Effizienzergänzung in Abschnitt 7.1.
 
-**Status:** Schriftliche Basisspezifikation am 2026-10-14 freigegeben. Dieser Plan und die Effizienzergänzung stehen zur Nutzerprüfung; keine Umsetzung oder reale Installation freigegeben. Der Plan selbst führt keine Tests des künftigen Produkts oder Modellläufe aus.
+**Status:** Plan und Effizienzergänzung sind durch die Nutzerwahl der direkten Umsetzung mit unabhängigem Abschlussreview freigegeben. Umsetzung ab 2026-10-14/15 im isolierten Branch `codex/connected-project-memory`; reale Installationen und Modellläufe sind weiterhin separat zu autorisieren.
 
 ## Global Constraints
 
@@ -103,7 +103,7 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
 
 **Interfaces:** Produces the model types above, `parseNetworkDocument(text: string, path: NetworkPath): NetworkDocument`, `parseNetworkMeta(text: string): MetaV1 | MetaV2`, `documentPath(doc: EditableDocument): EditablePath`, `featureKey(ref: FeatureRef): string`. `NetworkDocument` is a marker or editable document. Existing `parseFeature`/`parseMeta` stay schema-1 parsers; reuse the safe YAML loader rather than copying it.
 
-- [ ] **Step 1 – Failing tests:** Pin spec examples and exact 65.536-byte UTF-8 limit, strict fields, true calendar dates as strings, filename matching, aliases/tags/duplicates, qualified refs and unknown schemas. Add `requirement_needs_user_statement`, `inference_stays_unconfirmed`, `supersedes_rejects_self_and_local_cycles`, and key-collision tests. Example assertions:
+- [x] **Step 1 – Failing tests:** Pin spec examples and exact 65.536-byte UTF-8 limit, strict fields, true calendar dates as strings, filename matching, aliases/tags/duplicates, qualified refs and unknown schemas. Add `requirement_needs_user_statement`, `inference_stays_unconfirmed`, `supersedes_rejects_self_and_local_cycles`, and key-collision tests. Example assertions:
 
   ```ts
   expect(parseNetworkDocument(ideaYaml, 'network-spec/knowledge/roles.yaml'))
@@ -113,10 +113,10 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
     .not.toBe(featureKey({project: projectB, feature: 'access'}));
   ```
 
-- [ ] **Step 2 – Red:** `npm test -- tests/model`; new tests fail on missing parsers/schema; existing v1 expectations remain unchanged.
-- [ ] **Step 3 – Implement:** Define strict `featureV2Schema`, `knowledgeSchema`, `metaV2Schema`; reuse safe YAML decoding. Knowledge has stable statement IDs, `origin`, `type`, `state`, `evidence`, `contradicts`, `supersedes`; features/relations accept `knowledge: StatementRef[]`. Normalize optional lists. Use JSON tuple keys rather than ambiguous string concatenation. Cross-document supersession cycles are checked at snapshot level in Task 2; external unresolved targets remain diagnostics.
-- [ ] **Step 4 – Green:** `npm test -- tests/model` and `npm run typecheck` pass; no changes to existing v1 fixture expectations.
-- [ ] **Step 5 – Commit:** Stage only the listed model/test files; commit `feat: define versioned project and knowledge documents`.
+- [x] **Step 2 – Red:** `npm test -- tests/model`; new tests fail on missing parsers/schema; existing v1 expectations remain unchanged.
+- [x] **Step 3 – Implement:** Define strict `featureV2Schema`, `knowledgeSchema`, `metaV2Schema`; reuse safe YAML decoding. Knowledge has stable statement IDs, `origin`, `type`, `state`, `evidence`, `contradicts`, `supersedes`; features/relations accept `knowledge: StatementRef[]`. Normalize optional lists. Use JSON tuple keys rather than ambiguous string concatenation. Cross-document supersession cycles are checked at snapshot level in Task 2; external unresolved targets remain diagnostics.
+- [x] **Step 4 – Green:** `npm test -- tests/model` and `npm run typecheck` pass; no changes to existing v1 fixture expectations.
+- [x] **Step 5 – Commit:** Stage only the listed model/test files; commit `feat: define versioned project and knowledge documents`.
 
 ## Task 2: Gemeinsamer sicherer Dokumentspeicher und Arbeitszähler
 
@@ -124,7 +124,7 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
 
 **Interfaces:** Consumes Task 1. Produces `readProjectSnapshot(project, options?: DocumentStorageOptions & {sourceMode?: 'all'|'none'}): Promise<ProjectSnapshot>`, `applyDocumentUpdate(project, request: DocumentUpdate, options?: DocumentStorageOptions): Promise<UpdateResult>`, and trusted internal `commitNetworkDocuments(project, expectedRevision: string, changes: Record<NetworkPath, string|null>, options?: DocumentStorageOptions): Promise<UpdateResult>`. `createWorkMeter(): WorkMeter` returns numeric counters named `metadataChecks`, `documentReadOps`, `documentBytes`, `yamlParses`, `sourceReadOps`, `sourceBytes`, `hashes`, `visitedFeatures`, `indexReplacements`, `knowledgeWrites`, `runtimeWrites`.
 
-- [ ] **Step 1 – Failing tests:** Real nested knowledge create/read/update/delete; metadata-mode read does not open product sources; old `readSnapshot`/`applyUpdate` fixtures are unchanged. Pin mixed-version rejection, local missing-target error versus external unresolved warning, manual edit CAS, cross-document supersession cycles and knowledge/source path separation. Add real process kill with a schema-2 journal and malicious nested paths/symlinks/FIFOs. Efficiency assertions:
+- [x] **Step 1 – Failing tests:** Real nested knowledge create/read/update/delete; metadata-mode read does not open product sources; old `readSnapshot`/`applyUpdate` fixtures are unchanged. Pin mixed-version rejection, local missing-target error versus external unresolved warning, manual edit CAS, cross-document supersession cycles and knowledge/source path separation. Add real process kill with a schema-2 journal and malicious nested paths/symlinks/FIFOs. Efficiency assertions:
 
   ```ts
   expect(secondRead.yamlParses).toBe(0);
@@ -133,10 +133,10 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
   expect(metadataSnapshot.validation.sources).toBe('none');
   ```
 
-- [ ] **Step 2 – Red:** `npm test -- tests/storage tests/project`; failures must show the missing versioned storage behavior, not permissions or runtime mismatch.
-- [ ] **Step 3 – Implement:** Extract one transaction engine used by legacy and new APIs. Capture only existing root YAML plus direct `knowledge/*.yaml`; version-2 journals accept exactly these paths, while version-1 journals remain readable. Cache envelopes bind schema/cache version, canonical root, exclusions and exact document hashes. Full writes validate the complete end state freshly, verify all upsert source references against supplied observations, and never treat external availability warnings as structural errors. Metadata reads expose limited validation; legacy reads retain their previous full checks. `beforePublish` may recheck trusted bindings without nested locks/Git/model calls. Recovery never creates semantic confirmation.
-- [ ] **Step 4 – Green:** `npm test -- tests/storage tests/project tests/model` and `npm run typecheck` pass, including existing process concurrency/recovery tests. Counters observe actual I/O boundaries and are neither persisted nor logged automatically.
-- [ ] **Step 5 – Commit:** Stage the listed storage/model-integration tests and source files; commit `feat: store schema two memory with guarded document transactions`.
+- [x] **Step 2 – Red:** `npm test -- tests/storage tests/project`; failures must show the missing versioned storage behavior, not permissions or runtime mismatch.
+- [x] **Step 3 – Implement:** Extract one transaction engine used by legacy and new APIs. Capture only existing root YAML plus direct `knowledge/*.yaml`; version-2 journals accept exactly these paths, while version-1 journals remain readable. Cache envelopes bind schema/cache version, canonical root, exclusions and exact document hashes. Full writes validate the complete end state freshly, verify all upsert source references against supplied observations, and never treat external availability warnings as structural errors. Metadata reads expose limited validation; legacy reads retain their previous full checks. `beforePublish` may recheck trusted bindings without nested locks/Git/model calls. Recovery never creates semantic confirmation.
+- [x] **Step 4 – Green:** `npm test -- tests/storage tests/project tests/model` and `npm run typecheck` pass, including existing process concurrency/recovery tests. Counters observe actual I/O boundaries and are neither persisted nor logged automatically.
+- [x] **Step 5 – Commit:** Stage the listed storage/model-integration tests and source files; commit `feat: store schema two memory with guarded document transactions`.
 
 ## Task 3: Explizites und wiederaufnehmbares Schema-Upgrade
 
@@ -144,11 +144,11 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
 
 **Interfaces:** `planUpgrade(project: Project, identity: {id: ProjectId; name: string}): Promise<UpgradePlan>`, `applyUpgrade(plan: UpgradePlan): Promise<UpdateResult>`, `applyApprovedUpgrade(project, identity, receipt: string): Promise<UpdateResult>`. `UpgradePlan` is frozen with public preview/receipt and private in-process authorization, following the existing setup pattern.
 
-- [ ] **Step 1 – Failing tests:** `upgrade_preserves_v1_content`, `upgrade_rejects_changed_sources`, `upgrade_receipt_binds_identity_and_checkout`, `upgrade_recovers_partial_publication`, `upgrade_does_not_connect_or_enable_learning`, `second_upgrade_is_noop`. Preserve manual key points, feature IDs and string relations. Assert a fresh unrelated schema-2 identity cannot reuse an old receipt.
-- [ ] **Step 2 – Red:** `npm test -- tests/project/upgrade.test.ts`; fail on the missing explicit upgrade path.
-- [ ] **Step 3 – Implement:** Preview marker identity and document schema changes, preserving all semantic fields. CLI syntax: `upgrade --project-root <root> --project-id <uuid> --name <name> --dry-run`, then the same identity arguments with `--approve-and-apply <receipt>`. Identity is supplied identically to both calls, avoiding a newly generated UUID invalidating every receipt. Apply through Task 2's guarded transaction engine. Reject missing explicit identity, changes since preview, unknown versions and unsafe paths; never modify connections/host config or silently downgrade.
-- [ ] **Step 4 – Green:** `npm test -- tests/project tests/storage/knowledge-recovery.test.ts` and `npm run typecheck` pass. CLI process fixtures run Node 24 in temporary roots only; document the new entry as staged functionality until Task 10 integration.
-- [ ] **Step 5 – Commit:** Commit the listed upgrade/CLI/docs files as `feat: add reviewed schema two upgrade`.
+- [x] **Step 1 – Failing tests:** `upgrade_preserves_v1_content`, `upgrade_rejects_changed_sources`, `upgrade_receipt_binds_identity_and_checkout`, `upgrade_recovers_partial_publication`, `upgrade_does_not_connect_or_enable_learning`, `second_upgrade_is_noop`. Preserve manual key points, feature IDs and string relations. Assert a fresh unrelated schema-2 identity cannot reuse an old receipt.
+- [x] **Step 2 – Red:** `npm test -- tests/project/upgrade.test.ts`; fail on the missing explicit upgrade path.
+- [x] **Step 3 – Implement:** Preview marker identity and document schema changes, preserving all semantic fields. CLI syntax: `upgrade --project-root <root> --project-id <uuid> --name <name> --dry-run`, then the same identity arguments with `--approve-and-apply <receipt>`. Identity is supplied identically to both calls, avoiding a newly generated UUID invalidating every receipt. Apply through Task 2's guarded transaction engine. Reject missing explicit identity, changes since preview, unknown versions and unsafe paths; never modify connections/host config or silently downgrade.
+- [x] **Step 4 – Green:** `npm test -- tests/project tests/storage/knowledge-recovery.test.ts` and `npm run typecheck` pass. CLI process fixtures run Node 24 in temporary roots only; document the new entry as staged functionality until Task 10 integration.
+- [x] **Step 5 – Commit:** Commit the listed upgrade/CLI/docs files as `feat: add reviewed schema two upgrade`.
 
 ## Task 4: Ausdrückliche Verbindungen und sichere Quellenauflösung
 
@@ -284,7 +284,7 @@ Testhilfe ab Task 2: `projectV2(roots: string[], name: string): Promise<ProjectF
 
 Zuordnung zur Spezifikation: Abschnitte 1–3 → Tasks 1/4/10/11; Abschnitt 4 → Tasks 1–4; Abschnitt 5 → Tasks 1/2/7/8; Abschnitt 6 → Tasks 1/4–7; Abschnitt 7 und 7.1 → Tasks 2/5/6/8/12; Abschnitt 8 → Tasks 7–11; Abschnitt 9 → Tasks 2/4/7/9; Abschnitt 10 → Tasks 4/8/10/11; Abschnitt 11 → Tasks 1–3; Abschnitt 12 → alle Tasktests und Task 12; Abschnitt 13 → Global Constraints und diese Handoffgrenze.
 
-Vor Ausführung dieses Plans und der Effizienzergänzung ist Nutzerreview erforderlich. Die Schnittstellenblöcke sind der Namensvertrag zwischen Tasks; bestehende Typ-/Exportsignaturen wurden aus den aktuellen Quellen abgeleitet. Das sind geplante APIs, keine Behauptung vorhandener Implementierung.
+Nutzerreview von Plan und Effizienzergänzung ist erfolgt; gewählt wurde Native mit unabhängigem Abschlussreview. Die Schnittstellenblöcke sind der Namensvertrag zwischen Tasks; bestehende Typ-/Exportsignaturen wurden aus den aktuellen Quellen abgeleitet. Das sind geplante APIs, keine Behauptung vorhandener Implementierung.
 
 Nach Freigabe wählt der Nutzer eine Ausführungsmethode:
 

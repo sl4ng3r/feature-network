@@ -77,3 +77,16 @@ Schemas and documentation checked on 2026-10-09:
 - [GitHub Copilot plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference): portable discovery, Copilot namespace and different catalog format. MCP plugin-root expansion does not establish hook command expansion.
 
 Contract tests, offline processes, checksum equality and schema validation do not prove semantic feature coverage, native menus, model instruction use or successful trust review. Three distinct host live checks remain required. The GitHub repository URL in metadata identifies the intended source; it does not claim publication has happened.
+
+## Reviewed schema-2 upgrade (staged connected-memory development)
+
+Schema 1 remains supported. Schema 2 and the future connected-memory workflow require an explicit upgrade; installing an updated plugin never upgrades project data or grants access to another checkout. At this development stage the upgrade API is implemented; the complete connected MCP workflow has its own integration checks.
+
+With Node 24, choose one stable UUID for the project and reuse it in both commands:
+
+```sh
+node plugin/dist/cli.mjs upgrade --project-root <root> --project-id <uuid> --name <name> --dry-run
+node plugin/dist/cli.mjs upgrade --project-root <root> --project-id <uuid> --name <name> --approve-and-apply <receipt>
+```
+
+Review the displayed files first. Changed YAML or sources invalidate the receipt. An interrupted publication uses the existing recovery journal; recovery may finish and then reject the old request revision, requiring a fresh preview. Feature IDs, manual key points and local relationships survive. No host configuration, connections, source baseline or learning permission is created by this operation. Older clients reject schema 2; there is no destructive automatic downgrade.
