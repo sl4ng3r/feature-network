@@ -1,3 +1,4 @@
+import { countWork } from '../diagnostics/work.js';
 import { lstat, mkdir, open, readdir, rename, unlink } from 'node:fs/promises';
 import { openRegular, regularSignature, type ByteCache } from './regular.js';
 import { dirname } from 'node:path';
@@ -17,7 +18,7 @@ export function assertStorageSize(text: string, path: string): void {
 
 export type Contents = Record<string, Buffer>;
 export type Fingerprints = Record<string, string>;
-export const digest = (bytes: string | Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
+export const digest = (bytes: string | Uint8Array): string => { countWork('hashes'); return createHash('sha256').update(bytes).digest('hex'); };
 export function fingerprints(contents: Contents): Fingerprints { return Object.fromEntries(Object.keys(contents).sort().map(path => [path, digest(contents[path]!)])); }
 export const revision = (contents: Contents): string => digest(JSON.stringify(fingerprints(contents)));
 
@@ -40,6 +41,7 @@ async function readStorageBytes(project: Project, path: string, limit = storageB
     if (!info.isFile()) throw new NetworkError('unsafe_path', 'Storage entry is not a regular file', [path]);
     if (info.size > limit) throw new NetworkError('invalid_schema', 'Storage entry exceeds its size limit', [path]);
     const bytes = await file.readFile();
+    if (path.startsWith('network-spec/')) { countWork('documentReadOps'); countWork('documentBytes',bytes.byteLength); }
     if (bytes.byteLength > limit) throw new NetworkError('invalid_schema', 'Storage entry exceeds its size limit', [path]);
     if (cache && signature && await regularSignature(absolute) === signature) cache.set(path, { signature, bytes });
     return bytes;
@@ -71,6 +73,7 @@ export async function atomicStorageWrite(project: Project, path: string, text: s
   try {
     if (beforeRename) await beforeRename();
     await rename(await storagePath(project, temp), await storagePath(project, path));
+    countWork(path.startsWith('network-spec/') ? 'knowledgeWrites' : 'runtimeWrites');
     await syncParent(project, path);
   } finally { await unlink(await storagePath(project, temp)).catch(error => { if (!isMissing(error)) throw error; }); }
 }
@@ -81,6 +84,12 @@ export async function captureNetwork(project: Project, cache?: ByteCache): Promi
   let names: string[];
   try { names = (await readdir(project.networkDir)).filter(name => /\.ya?ml$/i.test(name)).sort(); }
   catch (error) { if (isMissing(error)) return {}; throw error; }
+  try {
+    await storagePath(project, 'network-spec/knowledge/.entry');
+    countWork('metadataChecks');
+    const extra = await readdir(project.networkDir + '/knowledge');
+    names.push(...extra.filter(name => /\.ya?ml$/i.test(name)).sort().map(name => 'knowledge/' + name));
+  } catch (error) { if (!isMissing(error)) throw error; }
   const contents: Contents = {};
   for (const name of names) {
     const path = `network-spec/${name}`;
@@ -103,10 +112,10 @@ export async function stableCapture(project: Project, cache?: ByteCache): Promis
 }
 
 const networkPath = z.string().regex(/^network-spec\/(?:_meta|[a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.yaml$/);
-const journalSchema = z.strictObject({ version: z.literal(1),
-  before: z.record(z.string().regex(/^network-spec\/[^/]+\.ya?ml$/i), z.string().regex(/^[a-f0-9]{64}$/)),
-  changes: z.record(networkPath, z.string().max(65536).nullable()),
-});
+const networkPathV2 = z.string().regex(/^network-spec\/(?:_meta|(?:knowledge\/)?[a-z][a-z0-9]*(?:-[a-z0-9]+)*)\.yaml$/);
+const journalV1 = z.strictObject({version:z.literal(1),before:z.record(z.string().regex(/^network-spec\/[^/]+\.ya?ml$/i),z.string().regex(/^[a-f0-9]{64}$/)),changes:z.record(networkPath,z.string().max(65536).nullable())});
+const journalV2 = z.strictObject({version:z.literal(2),before:z.record(networkPathV2,z.string().regex(/^[a-f0-9]{64}$/)),changes:z.record(networkPathV2,z.string().max(65536).nullable())});
+const journalSchema = z.discriminatedUnion('version',[journalV1,journalV2]);
 export type Journal = z.infer<typeof journalSchema>;
 const journalPath = '.feature-network/journal.json';
 export async function hasJournal(project: Project): Promise<boolean> {
@@ -141,7 +150,7 @@ export function journalTarget(journal: Journal, current: Contents): Contents {
 }
 
 /** Caller holds the lock and validates the entire resulting network before entering. */
-export async function finishJournal(project: Project, journal: Journal): Promise<void> {
+export async function finishJournal(project: Project, journal: Journal, beforePublish?: () => Promise<void>): Promise<void> {
   // Check all files before *any* recovery mutation, then recheck before each I/O.
   let current = await stableCapture(project);
   const target = journalTarget(journal, current);
@@ -149,6 +158,7 @@ export async function finishJournal(project: Project, journal: Journal): Promise
     current = await stableCapture(project); journalTarget(journal, current);
     if ((current[path] ? digest(current[path]!) : null) === (text === null ? null : digest(text))) continue;
     const unchanged = async () => {
+      if (beforePublish) await beforePublish();
       const fresh = await stableCapture(project); journalTarget(journal, fresh);
       if (revision(fresh) !== revision(current)) throw new NetworkError('pending_recovery', 'External edit interrupted the transaction');
     };

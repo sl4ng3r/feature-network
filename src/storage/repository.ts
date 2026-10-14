@@ -1,3 +1,4 @@
+import { countWork } from '../diagnostics/work.js';
 import { readCache, parsedFeature, publishReadCache, type ReadCache } from './read-cache.js';
 import { regularSignature } from './regular.js';
 import { openRegular } from './regular.js';
@@ -161,7 +162,8 @@ export async function recoverNetworkUnderLock(project: Project, options: Storage
   const pending = await readJournal(project);
   if (!pending) return false;
   const target = journalTarget(pending, await stableCapture(project));
-  if ((await validate(project, target, options)).diagnostics.length) throw new NetworkError('pending_recovery', 'Recovered end state would not be valid');
+  const validation = pending.version === 2 ? await (await import('./documents.js')).validateProjectContents(project, target, {...options, sourceMode:'all'}) : await validate(project, target, options);
+  if (validation.diagnostics.some(d => d.severity === 'error')) throw new NetworkError('pending_recovery', 'Recovered end state would not be valid');
   await finishJournal(project, pending);
   return true;
 }
