@@ -8,7 +8,7 @@ Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-desi
 
 ## Arbeitsregeln
 
-Erweiterungsentwurf für projektübergreifendes Gedächtnis und Lernen aus Gesprächen/Analysen: `docs/superpowers/specs/2026-10-14-connected-project-memory-design.md`. Die Richtung ist im Gespräch freigegeben; die schriftliche Spezifikation steht noch zur Nutzerprüfung. Schema 2, Projektverbindungen und der erweiterte Lernmodus sind damit weder implementiert noch zur Umsetzung freigegeben; bis dahin gelten die bestehenden Laufzeitverträge.
+Erweiterungsentwurf für projektübergreifendes Gedächtnis und Lernen aus Gesprächen/Analysen: `docs/superpowers/specs/2026-10-14-connected-project-memory-design.md`, Plan: `docs/superpowers/plans/2026-10-14-connected-project-memory.md`. Die schriftliche Spezifikation ist zur Planung freigegeben; die nachträgliche Effizienzergänzung in Abschnitt 7.1 und der Implementierungsplan stehen zur Nutzerprüfung. Schema 2, Projektverbindungen und der erweiterte Lernmodus sind damit weder implementiert noch zur Umsetzung freigegeben; bis dahin gelten die bestehenden Laufzeitverträge.
 
 - Superpowers nur verwenden, wenn der Nutzer es in der laufenden Session ausdrücklich erwähnt oder einen Pluginbefehl auswählt; keine automatische Aktivierung.
 - Vorschläge kritisch bewerten; Tatsachen, Annahmen und noch ausstehende Live-Nachweise trennen.

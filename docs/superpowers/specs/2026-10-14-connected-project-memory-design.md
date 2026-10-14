@@ -2,7 +2,7 @@
 
 Datum: 2026-10-14
 
-Status: Die Richtung und die Arbeitsgrenzen wurden im Gespräch freigegeben. Dieser schriftliche Entwurf steht zur Nutzerprüfung; er ist noch keine Freigabe zur Implementierungsplanung oder Umsetzung. Produktcode und bestehende Projektinstallationen bleiben unverändert.
+Status: Die schriftliche Spezifikation wurde vom Nutzer am 2026-10-14 mit „ok passt“ zur Implementierungsplanung freigegeben. Anschließend bat der Nutzer ausdrücklich um stärkere Berücksichtigung der Effizienz. Die Ergänzungen in Abschnitt 7.1 und die daraus abgeleiteten Planaufgaben stehen zusammen mit dem Implementierungsplan zur Prüfung. Eine Freigabe zur Umsetzung liegt noch nicht vor. Produktcode und bestehende Projektinstallationen bleiben unverändert.
 
 ## 1. Ziel und vereinbarte Entscheidungen
 
@@ -190,6 +190,34 @@ Das versionierte Wissen wird nicht zentral dupliziert. Der gemeinsame Index häl
 Ohne bestehende Beziehung darf der Agent anhand einer konkreten Analysehypothese gezielt in freigegebenen Projekten suchen. Das ist keine automatische Vollanalyse. Verworfenes Cachematerial entfernt keine versionierte Erkenntnis und bestätigt keine Quelle.
 
 Es gibt noch keine belastbare Größen- oder Latenzzusage. Benchmarks müssen Kaltstart, warme Abfrage und einzelne Aktualisierung getrennt messen; das bisherige geladene Core-Mikrobenchmark ist kein Nachweis für Dateisystem-, Verbund- oder Hostkosten.
+
+### 7.1 Ergänzung: Effizienz als prüfbarer Teil des Vertrags
+
+Die zusätzliche Nutzeranforderung betrifft Kontext-/Tokenbedarf, Dateizugriffe, Laufzeit und laufenden Pflegeaufwand. Effizienz wird anhand beobachteter Arbeit bewertet; eine kürzere Antwort mit übersehenen Auswirkungen ist keine Verbesserung. Fachliche Abnahme und Fehlerarten bleiben das vorrangige Kriterium.
+
+**Abruf in Stufen:** Der normale Einstieg liefert kurze relevante Summaries und Hinweise. Vollständige Featuretexte, einzelne Wissensaussagen und Quellen werden erst bei Bedarf nachgeladen. Der gesamte Verbund wird nicht als Promptpräfix injiziert. Hookausgaben enthalten keine Kopie des bereits gelieferten Wissens. Ein größerer Kontext wird nur mit erkennbarem fachlichem Bedarf geladen; Bytebudgets werden nicht als gemessene Tokens ausgegeben.
+
+**Kleine Arbeitsschritte statt Vollanalyse:** Eine Promptankunft allein startet weder einen vollständigen Projektlauf noch eine Codeanalyse. Unveränderte Dokumente werden aus dem korrekt gebundenen Byte-/Parsing-Cache wiederverwendet. Eine Dokumentänderung ersetzt die zugehörigen Suchpostings und Kanten; ein vollständiger Neubau des gemeinsamen Index pro Anfrage ist ausgeschlossen. Kanten werden in beide Richtungen indexiert, aber nur einmal versioniert gespeichert. Neue eingehende Abhängigkeiten dürfen bei einer Anbieteränderung nicht deshalb übersehen werden, weil ausschließlich dessen ausgehende Kanten geladen wurden.
+
+**Günstiger Hinweis und frische Prüfung bleiben getrennt:** Ein gespeicherter Verbundindex darf zur Kandidatenauswahl dienen, trägt dann aber `basis: last_known` und kann keine aktuelle Entwarnung geben. Für eine frische Impactaussage werden die Netzwerksnapshots aller berücksichtigten Projekte innerhalb der Arbeitsgrenzen erneuert, auch für eingehende Beziehungen. Dazu sind YAML-/Dateimetadatenprüfungen erforderlich; sie werden nicht als kostenlos behandelt. Nicht untersuchte Projekte bleiben ausdrücklich ungeprüft. Verzeichniszeitstempel allein beweisen nicht, dass YAML-Inhalte unverändert sind.
+
+Die gemeinsame Indexbildung validiert zunächst Dokumentstruktur und logische Verweise; sie hasht nicht nebenbei sämtliche Produktquellen aller Projekte. Technische Quellenaktualität wird für die tatsächlich ausgegebenen beziehungsweise untersuchten Features gesondert geprüft und mit ihrem Scope ausgewiesen. Reine Hinweisabfragen dürfen zuletzt bekannte Prüfstände nutzen, müssen diesen Modus ausdrücklich benennen. `check full`, Quellenbestätigung und vollständige Schreibvalidierung behalten ihre frischen Prüfungen. Ein schneller Lesepfad bestätigt niemals Quellen und darf seine begrenzte Integritätsprüfung nicht als vollständig geprüften Projektzustand ausgeben.
+
+**Wenige sinnvolle Schreibzugriffe:** Der Agent sammelt zusammengehörige Erkenntnisse eines Analyseabschnitts und schreibt sie als kleinen Änderungssatz je Projekt. Ein abgeschlossener fachlicher Analyseabschnitt oder Turn bildet einen Checkpoint; es wird weder nach jeder gelesenen Zeile noch erst nach einer unbegrenzt langen Sitzung gespeichert. Noch nicht veröffentlichte Erkenntnisse sind bei Abbruch nicht als dauerhaft gesichert zugesagt. Gleiche Aussagen erzeugen keine neue Datei, keine kosmetische Datumsänderung und keinen erneuten Wissensschreibzugriff. Notwendige Host-Turnbuchführung wird getrennt gezählt. Sicherheits-, CAS-, Journal- und vollständige Endzustandsprüfungen werden nicht zur Beschleunigung übersprungen.
+
+In Schema 2 werden aufgezeichnete fachliche Prüfungen anhand der tatsächlich beteiligten Dokumentfingerprints und Quellenbeobachtungen zugeordnet. Eine zusätzliche, unabhängige Gesprächsnotiz erzeugt eine neue Netzwerkrevision, löscht aber nicht die historische Prüfung unveränderter Features. Das ist keine ungeprüfte Bestätigung aktueller Quellen: Frische Aktualitätsaussagen benötigen weiter die passenden Quellenbeobachtungen. Die bestehenden Schema-1-Baselineverträge werden nicht still gelockert. Obligatorische Schreibvalidierung kann auch bei einer reinen Gesprächsnotiz technische Quellenzugriffe erfordern; sie wird separat vom fachlichen Analyseaufwand gezählt.
+
+**Messung ohne Inhaltsprotokoll:** Lokale, standardmäßig nicht persistierte Zähler erfassen Metadatenprüfungen, Dokumentlesevorgänge/-bytes, YAML-Parsevorgänge, Quellenlesevorgänge/-bytes, Hashvorgänge, besuchte Knoten, ersetzte Indexeinträge und getrennte Wissens-/Runtime-Schreibvorgänge. Sie speichern keine Inhalte oder Prompts. Laufzeitmessungen enthalten tatsächliche Samples, Median und p95 sowie den jeweiligen Cachezustand. Modell-Tokens werden nur bei real verfügbarer Hostmessung als gemessen ausgewiesen; sonst bleiben sie unbekannt. Initialisierung, auftragsbezogene Analyse und Pflege werden getrennt berichtet.
+
+Deterministische Effizienztests müssen mindestens zeigen:
+
+- Eine warme unveränderte Hinweisabfrage parst kein YAML erneut, liest keine Produktquellen und schreibt keine Wissensdateien. Dateimetadatenprüfungen können weiterhin erforderlich sein und werden gezählt.
+- Eine einzelne geänderte Wissens-/Featuredatei ersetzt nur ihren Indexeintrag und die davon abgeleiteten Postings/Kanten; andere Projekte werden nicht neu geparst. Eine Verifikationslesung kann denselben geänderten Inhalt mehrfach lesen, darf daraus aber keinen vollständigen Neuaufbau ableiten.
+- Ein Gespräch ohne neue Erkenntnis erzeugt keine Gedächtnisänderung. Eine reine Idee verlangt keine Codeanalyse oder Quellenbestätigung.
+- Eine frische Impactabfrage findet auch eine neu angelegte eingehende Beziehung eines ausgewählten Verbrauchers; ein zu kleiner Projekt-/Knotenrahmen wird als Einschränkung sichtbar.
+- Erkenntnisbündelung verändert weder bewahrte Nutzeranforderungen noch das Ergebnis des unabhängigen fachlichen Sollorakels.
+
+Der Verbundbenchmark verwendet 1, 4 und 16 lokale Projekte mit jeweils 100 beziehungsweise 1.000 Features und Verknüpfungsgrad 2 beziehungsweise 12. Er trennt Erstladen, warme Hinweisabfrage, frischen Impact, einzelne Dokumentänderung, einzelne Quellenänderung und gebündelte Pflege. Das 16-Projekt-Szenario benötigt explizit ein entsprechend erhöhtes Projektbudget; der Standard von acht wird nicht heimlich erweitert. Hoher Grad und eine tatsächlich erreichte Arbeitsgrenze werden getrennt ausgewiesen. Es gibt keine erfundene absolute Laufzeit- oder Tokenersparniszusage vor der Messung.
 
 ## 8. Automatisches Lernen und auftragsbezogene Arbeit
 
