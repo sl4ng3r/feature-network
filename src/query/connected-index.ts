@@ -16,22 +16,37 @@ export interface ConnectedIndex {
  diagnostics:(Diagnostic & {project?:ProjectId})[];
 }
 export const knowledgeKey=(project:ProjectId,id:string)=>JSON.stringify([project,'knowledge',id]);
-function postings(map:Map<string,Set<string>>,keys:Iterable<string>,id:string,add:boolean){for(const key of keys){const values=new Set(map.get(key));if(add)values.add(id);else values.delete(id);if(values.size)map.set(key,values);else map.delete(key);}}
+interface Mutation {
+ tokens:Set<string>;paths:Set<string>;incoming:Set<string>;
+ removedSources:Set<string>;oldIncomingTargets:Set<string>;
+}
+function postings(map:Map<string,Set<string>>,keys:Iterable<string>,id:string,add:boolean,owned:Set<string>){
+ for(const key of keys){
+  let values=map.get(key);
+  if(!values)values=new Set();else if(!owned.has(key))values=new Set(values);
+  owned.add(key);if(add)values.add(id);else values.delete(id);
+  if(values.size)map.set(key,values);else map.delete(key);
+ }
+}
 function entryTokens(entity:ConnectedEntity):Set<string>{const d=entity.document;return new Set(tokenize([d.id,d.summary,...('kind'in d?d.statements.map(s=>s.text):d.key_points)].join(' ')));}
 function entryPaths(entity:ConnectedEntity):Set<string>{const d=entity.document;const refs:SourceRef[]='kind'in d?d.statements.flatMap(s=>s.evidence):[...d.code,...d.evidence,...d.relations.flatMap(r=>r.evidence),...d.hypotheses.flatMap(h=>h.evidence)];return new Set(refs.map(r=>JSON.stringify([r.project??entity.project,r.path])));}
-function remove(index:ConnectedIndex,entity:ConnectedEntity){
- postings(index.tokens,entryTokens(entity),entity.key,false);postings(index.paths,entryPaths(entity),entity.key,false);
- for(const edge of index.outgoing.get(entity.key)??[]){const incoming=(index.incoming.get(edge.to)??[]).filter(e=>e.from!==entity.key);if(incoming.length)index.incoming.set(edge.to,incoming);else index.incoming.delete(edge.to);}
+function remove(index:ConnectedIndex,entity:ConnectedEntity,mutation:Mutation){
+ postings(index.tokens,entryTokens(entity),entity.key,false,mutation.tokens);postings(index.paths,entryPaths(entity),entity.key,false,mutation.paths);
+ mutation.removedSources.add(entity.key);for(const edge of index.outgoing.get(entity.key)??[])mutation.oldIncomingTargets.add(edge.to);
  index.outgoing.delete(entity.key);index.entries.delete(entity.key);
 }
-function insert(index:ConnectedIndex,entity:ConnectedEntity){
- index.entries.set(entity.key,entity);postings(index.tokens,entryTokens(entity),entity.key,true);postings(index.paths,entryPaths(entity),entity.key,true);
+function insert(index:ConnectedIndex,entity:ConnectedEntity,mutation:Mutation){
+ index.entries.set(entity.key,entity);postings(index.tokens,entryTokens(entity),entity.key,true,mutation.tokens);postings(index.paths,entryPaths(entity),entity.key,true,mutation.paths);
  const d=entity.document;if('kind'in d)return;
  const edges:ConnectedEdge[]=d.relations.map(relation=>{
   const fromRef={project:entity.project,feature:entity.id},toRef=typeof relation.to==='string'?{project:entity.project,feature:relation.to}:relation.to;
   return {...relation,from:entity.key,to:featureKey(toRef),fromRef,toRef};
  });
- index.outgoing.set(entity.key,edges);for(const edge of edges)index.incoming.set(edge.to,[...(index.incoming.get(edge.to)??[]),edge]);
+ index.outgoing.set(entity.key,edges);for(const edge of edges){
+  let incoming=index.incoming.get(edge.to);
+  if(!incoming)incoming=[];else if(!mutation.incoming.has(edge.to))incoming=[...incoming];
+  mutation.incoming.add(edge.to);incoming.push(edge);index.incoming.set(edge.to,incoming);
+ }
 }
 export function buildConnectedIndex(snapshots:ReadonlyMap<ProjectId,ProjectSnapshot>,registerRevision:string,meter?:WorkMeter):ConnectedIndex{
  const empty:ConnectedIndex={revision:'',registerRevision,revisions:{},entries:new Map(),tokens:new Map(),paths:new Map(),outgoing:new Map(),incoming:new Map(),diagnostics:[]};
@@ -50,8 +65,15 @@ export function refreshConnectedIndex(previous:ConnectedIndex,snapshots:Readonly
    }
   }
   const index:ConnectedIndex={registerRevision,revisions,revision:digest(JSON.stringify([registerRevision,revisions])),entries:new Map(previous.entries),tokens:new Map(previous.tokens),paths:new Map(previous.paths),outgoing:new Map(previous.outgoing),incoming:new Map(previous.incoming),diagnostics};
-  for(const [key,entry]of previous.entries)if(wanted.get(key)!==entry){remove(index,entry);if(!wanted.has(key))countWork('indexReplacements');}
-  for(const [key,entry]of wanted)if(previous.entries.get(key)!==entry){insert(index,entry);countWork('indexReplacements');}
+  const mutation:Mutation={tokens:new Set(),paths:new Set(),incoming:new Set(),removedSources:new Set(),oldIncomingTargets:new Set()};
+  for(const [key,entry]of previous.entries)if(wanted.get(key)!==entry){remove(index,entry,mutation);if(!wanted.has(key))countWork('indexReplacements');}
+  // Clone each affected posting or edge list at most once; previous snapshots stay immutable.
+  for(const target of mutation.oldIncomingTargets){
+   const incoming=(index.incoming.get(target)??[]).filter(edge=>!mutation.removedSources.has(edge.from));
+   if(incoming.length)index.incoming.set(target,incoming);else index.incoming.delete(target);
+   mutation.incoming.add(target);
+  }
+  for(const [key,entry]of wanted)if(previous.entries.get(key)!==entry){insert(index,entry,mutation);countWork('indexReplacements');}
   return index;
  });
 }
