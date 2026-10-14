@@ -142,11 +142,15 @@ export async function applyDocumentUpdate(project:Project,request:DocumentUpdate
     for(const path of Object.keys(changes))if(!Object.hasOwn(request.expected,path))throw new NetworkError('invalid_update','Changed documents need expected fingerprints',[path]);
     const verify=async()=>{
       if(options.beforePublish)await options.beforePublish();
-      for(const doc of request.upserts)for(const ref of documentSources(doc)){
+      for(const doc of request.upserts){
+       const prior=before.knowledge.find(k=>documentPath(k)===documentPath(doc));
+       const refs='kind'in doc&&prior?doc.statements.filter(statement=>{const old=prior.statements.find(s=>s.id===statement.id);return !old||JSON.stringify(old)!==JSON.stringify(statement);}).flatMap(s=>s.evidence):documentSources(doc);
+       for(const ref of refs){
         const id=ref.project??own;const supplied=request.sources.find(s=>s.project===id&&s.path===ref.path&&'hash'in s);
         if(!supplied||!('hash'in supplied))throw new NetworkError('unverified_reference','Upsert source was not inspected',[ref.path]);
         const actual=id===own?{hash:await readLocalSource(project,ref.path,options)}:await options.sourceReader?.({...ref,project:id});
         if(!actual||!('hash'in actual)||actual.hash!==supplied.hash)throw new NetworkError('conflict','Inspected source changed',[ref.path]);
+       }
       }
     };
     return commitNetworkDocuments(project,request.expectedRevision,changes,{...options,beforePublish:verify});

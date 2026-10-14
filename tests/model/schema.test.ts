@@ -67,7 +67,7 @@ describe('Feature YAML contract', () => {
       registerHooks({ resolve(specifier, context, next) {
         try { return next(specifier, context); }
         catch (error) {
-          if (error.code === 'ERR_MODULE_NOT_FOUND' && specifier.startsWith('./') && specifier.endsWith('.js')) {
+          if (error.code === 'ERR_MODULE_NOT_FOUND' && (specifier.startsWith('./') || specifier.startsWith('../')) && specifier.endsWith('.js')) {
             return next(specifier.slice(0, -3) + '.ts', context);
           }
           throw error;
@@ -81,7 +81,7 @@ describe('Feature YAML contract', () => {
       encoding: 'utf8', input: minimalFeatureYaml + extra,
     });
     expect(result.error).toBeUndefined();
-    expect(result.status).toBe(0);
+    expect(result.status, result.stderr).toBe(0);
     expect(result.stderr).toBe('');
     expect(JSON.parse(result.stdout)).toMatchObject({ code: 'invalid_schema', paths: ['backup.yaml'] });
     expect(result.stdout).not.toContain('PRIVATE_TEST_SENTINEL');
