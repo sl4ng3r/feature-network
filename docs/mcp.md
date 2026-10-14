@@ -68,3 +68,39 @@ Bootstrap `records` lists unresolved and excluded paths/reasons without source c
 Storage rejects special entries before opening and uses POSIX nonblocking/no-follow reads plus handle-level regular-file validation. Normal file writes are flushed on all platforms. Parent-directory fsync runs on POSIX and errors propagate. Windows skips the unsupported directory flush, providing weaker directory-entry power-loss durability; journal/CAS recovery and regular-file flushes remain. Real Windows CI results are still required before claiming that platform verified.
 
 For a mutating bootstrap call, a long individual record may require a larger status budget. The preflighted successful receipt then retains `runRevision`, exact `recordsOmitted`, `nextRecordCursor`, scope counts and explicit omitted fields; `recordsRequireLargerBudget:true` never acknowledges the unresolved file. Read status with that cursor at a larger budget.
+
+## Connected schema-2 memory
+
+Schema-1 inputs/results above remain supported. Schema 2 is an explicit opt-in via the reviewed local `upgrade` CLI; plugin updates never migrate a project. Exactly the same five tools serve both versions. Local connection configuration is separate from MCP inputs: no tool accepts a filesystem root, callback, registry edit or host installation. Project selectors use persistent UUIDs; plain feature IDs mean the active project.
+
+`network_context` accepts `scope: active|connected`, `projects`, qualified `features: [{project,feature}]`, `knowledge: [{project,knowledge}]`, `knowledgeTypes`, and `freshness: last_known|returned_features`. Start with summaries (default); fetch `detail: full` for selected rows. Rows distinguish `kind: feature|knowledge`, `project`, `localId` and the qualified index key `id`. Knowledge statements separately name idea, requirement or observation, origin and evidence. Use the qualified `features` selector rather than copying an index key into plain `ids`.
+
+Context hints default to `last_known`, without source reads; unchanged session snapshots may be reused. Impact defaults to fresh snapshots across selected registered projects and source checks only for returned features. Source owners can be other explicitly connected projects, including owners outside the selected network snapshots. `projectsExamined` counts network snapshots, while `sourceValidationScope` identifies the source-check scope. A missing/denied project or source remains unresolved/open. Neither snapshot validity nor matching bytes proves complete business coverage. Default project cap is 8, explicit cap 32; feature visits default to 1,000, explicit cap 10,000. Limits and unexamined projects/count uncertainty are visible. Impact requires direct origins, defaults to direction both and depth 2. Consumers' snapshots are refreshed too, so newly added incoming relationships are considered.
+
+Connected cursors additionally bind the local register revision, participating project revisions and selections. Continue using only `cursor`; a changed participant or register invalidates continuation. Complete MCP JSON remains within the requested UTF-8 budget, including its fixed short text wrapper. Existing UTF-16 fragment reconstruction applies to connected rows and their `document` payloads as well.
+
+Schema-2 `network_update` uses the explicit `kind: memory` input:
+
+```json
+{
+  "kind": "memory",
+  "targetProject": "11111111-1111-4111-8111-111111111111",
+  "expectedRevision": "<complete target network SHA-256>",
+  "expected": {"network-spec/knowledge/roles.yaml": null},
+  "upserts": ["<complete schema-2 knowledge or feature document>"],
+  "deletes": [],
+  "sources": [],
+  "purpose": {"mode":"unspecified","explicitReadOnly":false,"basis":"conversation"},
+  "reason": "User explicitly discussed a common role model"
+}
+```
+
+The example placeholders are explanatory, not executable inputs. Copy complete network tokens and only the changed paths' fingerprints from `projects[uuid]` context metadata. A new document has `null`. Complete strict schema-2 document objects belong in upserts. Preserve existing statements/manual key points and use explicit supersession/retraction; unlisted documents are never deletions. No-op/date-only proposals create no maintenance record. Learning must be enabled in the actual local register, or the purpose must be explicit init/sync; read-only purposes override it. A conversation needs no artificial code reference and cannot confirm source review. `basis: analysis|development|explicit_sync` may supply actually inspected qualified `{project,path,hash}` observations. Changed source-backed documents require those observations. Product code is never edited by this tool.
+
+An optional `review` block contains outcome, reason and optional supporting document fingerprints/revisions. A mapped change can infer its changed source-backed target documents; explicit cross-project support uses `documentFingerprints: {uuid: {path: hash}}` and `revisions: {uuid: revision}`. A review-only request uses empty expected/upserts/deletes plus explicit documentFingerprints/revisions and sources; it confirms inspected unchanged code without inventing a YAML edit. Unmapped sources require `no_semantic_change`. Conversation-only documents cannot receive a source review. A receipt with `review: open` means no semantic confirmation was recorded.
+
+Writes require at least 900 response bytes, checked before publication. Each call updates one target; no global transaction is claimed. Receipts contain `operationId`, `operationRevision`, `targetRevision`, publication state and review state. To resume, resupply the identical original update/purpose/review with the operation ID and freshly observed operation token. Already-published intended bytes are recognized without reapplying; manual divergence conflicts. Partial failures expose safe operation tokens and `publication: applied|unconfirmed`; never infer confirmation from target presence. `network_check({maintenance:{operationId}})` reads progress plus its current CAS revision. Omit operationId for paginated progress (`limit`, `cursor`); readers never recover pending journals. These records contain digests/revisions/phase IDs rather than prompt/source bodies.
+
+`network_check` defaults to last-known metadata and recorded-review counts without source reads. `mode: full` checks fresh snapshots, capped feature-source state and safe unmapped Git changes. It returns explicit omitted counts, diagnostics, partial coverage and unresolved states. A result too large for the complete response is rejected; narrow project/visit limits or raise budget. It does no semantic review or recovery. A legacy `sessionId` is accepted for compatibility but does not turn connected checks into a reliable host-turn proof.
+
+Schema-2 initialization is explicit `kind: memory`, `initialize: {id,name}`, purpose mode init, an unchanged empty network revision, null feature expectations and inspected real local sources. It requires a real first feature; a knowledge-only conversation cannot create a placeholder marker. It adds neither connections nor automatic learning. Bootstrap remains active-project-only, preserving all knowledge bytes and the full network revision while mapping only actual features and local code slices. Foreign-only feature sources do not become local inventory paths.

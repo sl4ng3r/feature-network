@@ -13,6 +13,18 @@ import { checkNetwork, queryFreshness } from '../freshness/check.js';
 import { confirmReferences, inspectChange, isIgnoredChange, type ReviewObservation } from '../freshness/references.js';
 import { bootstrap, type BootstrapResult, type BootstrapRequest } from '../bootstrap/state.js';
 import { toolSchemas, type ToolName } from './tools.js';
+import { connectedToolSchemas,handleConnectedTool,initializeConnected,maintenanceFailure } from './connected.js';
+import { MaintenanceError } from '../memory/maintenance.js';
+import { projectSchema } from '../project/schema-version.js';
+import { readConnections } from '../project/connections.js';
+import { withWorkMeter,type WorkMeter } from '../diagnostics/work.js';
+function discoverySchema(name: ToolName): Tool['inputSchema'] {
+ const legacy=z.toJSONSchema(toolSchemas[name],{io:'input',unrepresentable:'any'});
+ if(name==='network_bootstrap')return clean<Tool['inputSchema']>({...legacy,type:'object'});
+ const next=z.toJSONSchema(connectedToolSchemas[name],{io:'input',unrepresentable:'any'});
+ const descriptions=name==='network_update'?Object.fromEntries(Object.entries((legacy as {properties?:Record<string,{description?:string}>}).properties??{}).filter(([,v])=>v.description).map(([k,v])=>[k,{description:v.description}])):{};
+ return clean<Tool['inputSchema']>({type:'object',anyOf:[legacy,next],properties:descriptions});
+}
 // Parsed Zod optionals include undefined in their TypeScript type; JSON inputs cannot.
 const clean = <T>(value: unknown): T => JSON.parse(JSON.stringify(value)) as T;
 const bytes = (value: unknown) => Buffer.byteLength(JSON.stringify(value), 'utf8');
@@ -178,9 +190,9 @@ function bootstrapReceipt(value: BootstrapResult | null, budget: number): CallTo
   return response;
 }
 /** One immutable project binding per process; no root is accepted in tool arguments. */
-export function createServer(project: Project, installedRoot = dirname(dirname(fileURLToPath(import.meta.url)))): Server {
+export function createServer(project: Project, installedRoot = dirname(dirname(fileURLToPath(import.meta.url))), internal: {meter?:WorkMeter} = {}): Server {
   const bound = Object.freeze({ ...project });
-  const options: StorageOptions = { excludedReferenceRoots: [installedRoot] };
+  const options = { excludedReferenceRoots: [installedRoot], ...(internal.meter?{meter:internal.meter}:{}) };
   let previousIndex: NetworkIndex | undefined;
   const server = new Server({ name: 'feature-network', version: '0.1.0' }, { capabilities: { tools: {} } });
   server.onerror = () => { process.stderr.write('FeatureNetwork: protocol_error.\n'); };
@@ -189,12 +201,20 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
       : name === 'network_update' ? 'Use two guarded writes: mapped upserts with verifiedReferences, updated decision and observations omitted; then unmapped test observations with empty upserts/verifiedReferences and no_semantic_change at a fresh returned revision. Explicit observations replaces the implicit verifiedReferences review list: nonempty, including every verified path/hash. Copy exact structured response tokens and actual source SHA-256 output; never truncate or reconstruct. For invalid_input inspect schemas/tokens; for invalid_decision repair observation composition, never bypass guards.'
       : name === 'network_context' ? 'Bounded feature context. JSON fragments use UTF-16 offsets; concatenate in offset order then JSON.parse. Named sections carry sectionIndex/sectionCount.'
       : name === 'network_check' ? 'Read-only last_known summary or fresh technical check. Does not perform semantic review.' : 'Use network_context first to resolve direct origin IDs, then query those roots, not all candidate dependents. Each origin is a zero-length seed path. When children point to parents, incoming finds dependents; use explicit direction both normally, depth 2. Explain evidenced and hypothetical paths; bounded revision-bound continuation with cursor only.',
-    inputSchema: clean<Tool['inputSchema']>({ ...z.toJSONSchema(schema, { io: 'input', unrepresentable: 'any' }), type: 'object' }), annotations: { readOnlyHint: name !== 'network_update' && name !== 'network_bootstrap', destructiveHint: name === 'network_update', idempotentHint: name !== 'network_update' && name !== 'network_bootstrap', openWorldHint: false } })) }));
-  server.setRequestHandler('tools/call', async request => {
+    inputSchema: discoverySchema(name as ToolName), annotations: { readOnlyHint: name !== 'network_update' && name !== 'network_bootstrap', destructiveHint: name === 'network_update', idempotentHint: name !== 'network_update' && name !== 'network_bootstrap', openWorldHint: false } })) }));
+  server.setRequestHandler('tools/call', request => withWorkMeter(internal.meter,async () => {
     try {
       const name = request.params.name;
       if (!Object.hasOwn(toolSchemas, name)) throw new NetworkError('unknown_tool', 'Unknown tool');
-      const parsed = toolSchemas[name as ToolName].safeParse(request.params.arguments ?? {});
+      const raw=request.params.arguments??{};
+      let version:1|2|null=null;try{version=await projectSchema(bound);}catch{/* Legacy readers retain invalid-marker diagnostics. */}
+      if(name!=='network_bootstrap'&&(version===2||(version===null&&object(raw).kind==='memory'))){
+        const schema=connectedToolSchemas[name as keyof typeof connectedToolSchemas];
+        if(!schema.safeParse(raw).success)throw new NetworkError('invalid_input','Invalid versioned tool input');
+        const response=version===null?await initializeConnected(bound,raw,options):await handleConnectedTool(name as ToolName,raw,await readConnections(bound),options);
+        return server.projectCallToolResult(response,undefined);
+      }
+      const parsed = toolSchemas[name as ToolName].safeParse(raw);
       if (!parsed.success) throw new NetworkError('invalid_input', 'Invalid tool input');
       let response: CallToolResult; let budget = 12000;
       switch (name as ToolName) {
@@ -270,7 +290,7 @@ export function createServer(project: Project, installedRoot = dirname(dirname(f
       const projected = server.projectCallToolResult(response!, undefined);
       if (bytes(projected) > budget) throw new NetworkError('response_too_large', 'Tool result exceeds requested response budget');
       return projected;
-    } catch (error) { return server.projectCallToolResult(failure(error), undefined); }
-  });
+    } catch (error) { return server.projectCallToolResult(error instanceof MaintenanceError?maintenanceFailure(error):failure(error), undefined); }
+  }));
   return server;
 }
