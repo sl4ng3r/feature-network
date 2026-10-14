@@ -8,7 +8,7 @@ Maßgeblicher Entwurf: `docs/superpowers/specs/2026-10-09-featurenetwork-v1-desi
 
 ## Arbeitsregeln
 
-Erweiterungsentwurf für projektübergreifendes Gedächtnis und Lernen aus Gesprächen/Analysen: `docs/superpowers/specs/2026-10-14-connected-project-memory-design.md`, Plan: `docs/superpowers/plans/2026-10-14-connected-project-memory.md`. Plan und Effizienzergänzung sind zur direkten Umsetzung mit unabhängigem Abschlussreview freigegeben. Umsetzung im isolierten Branch `codex/connected-project-memory`: versionierte Schema-2-Dokumente, sicherer Dokumentspeicher und explizites Upgrade sind implementiert und gezielt geprüft; Verbundabfragen und Lernmodus folgen in weiteren Planaufgaben. Keine reale Projektinstallation oder Host-Live-Abnahme ableiten.
+Erweiterungsentwurf für projektübergreifendes Gedächtnis und Lernen aus Gesprächen/Analysen: `docs/superpowers/specs/2026-10-14-connected-project-memory-design.md`, Plan: `docs/superpowers/plans/2026-10-14-connected-project-memory.md`. Plan und Effizienzergänzung sind umgesetzt: Schema 2, sichere lokale Verbindungen mit getrennten Lese-/Schreibrechten, gestufte Verbundabfragen, quellengebundene Reviews und wiederaufnehmbare Gedächtnispflege. Ein unabhängiges Abschlussreview und eine TDD-Korrekturrunde wurden durchgeführt; Befunde, Messgrenzen und Prüfungen: `docs/validation/reports/connected-memory-2026-10-15.md`. Schema 1 bleibt unterstützt. Reale Projektinstallation und native Host-/Modellabnahme stehen weiterhin aus.
 
 - Superpowers nur verwenden, wenn der Nutzer es in der laufenden Session ausdrücklich erwähnt oder einen Pluginbefehl auswählt; keine automatische Aktivierung.
 - Vorschläge kritisch bewerten; Tatsachen, Annahmen und noch ausstehende Live-Nachweise trennen.
