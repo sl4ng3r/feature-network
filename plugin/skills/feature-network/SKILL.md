@@ -1,6 +1,6 @@
 ---
 name: feature-network
-description: Use when developing or fixing code in a project with FeatureNetwork memory, including changes affecting related features, tests, or persistent data.
+description: Use when developing, inspecting code, or discussing project decisions and requirements in a project with FeatureNetwork memory.
 disable-model-invocation: false
 user-invocable: true
 ---
@@ -8,6 +8,18 @@ user-invocable: true
 # FeatureNetwork during development
 
 Keep project memory grounded in the code inspected by the current host agent. FeatureNetwork is independent of Superpowers; a user's Superpowers opt-in rule does not disable this skill. Use the existing five MCP tools and the host's normal source-reading, diff, and testing tools. The MCP process already binds its project; tool inputs have no root argument or model API.
+
+## Schema 2: connected learning
+
+Use this flow when context rows have `project` and `kind`. The numbered development flow and legacy write examples below apply to schema 1. They do not restrict schema-2 conversation learning when its actual local register enables it. Explicit status/show/impact/check and requests to only inspect remain read-only in both versions. Continue the original authorized coding/testing task; memory permissions do not withdraw it.
+
+- Read short `network_context` summaries first. Hints are last_known and need no source scan. Select relevant `features:[{project,feature}]` or `knowledge:[{project,knowledge}]` for full detail; these use local IDs, not qualified row keys. Use `freshness:"returned_features"` to refresh selected network/source state before a write. Connected scope is explicit; impact defaults to registered projects, fresh consumer snapshots, direction both and depth 2. Resolve direct roots first. Report omitted/unreachable projects and hypotheses.
+- Reuse analysis already needed for the task. A conversation can add an idea or explicit user requirement without a code diff or fake feature/source. An inference remains an inference; an observation from source review needs inspected evidence. Preserve manual points and prior statements. Contradictions and supersession remain explicit. Never archive raw prompts, secrets, or every passing remark.
+- Group meaningful changes into one `kind:"memory"` update per target project. Supply complete schema-2 upserts, explicit path deletes, exact target `expectedRevision`, and `expected` fingerprints for only changed paths (new paths null). Use `purpose:{mode:"unspecified",explicitReadOnly:false,basis:"conversation"}` for discussions, basis analysis/development for inspected code, or mode sync for explicit synchronization. Actual learning configuration and target rights still govern the write. No semantic delta means no update or cosmetic date change.
+- Conversation uses sources `[]` and no review. Code-backed changes use inspected qualified `sources:[{project,path,hash}]`. Optional `review:{outcome:"updated",reason:...}` confirms changed source-backed documents; unchanged code uses empty upserts/deletes/expected and explicit review `documentFingerprints:{uuid:{path:hash}}`, `revisions:{uuid:revision}`, outcome no_semantic_change and inspected sources. Unmapped sources use that outcome too. A missing source uses state missing, no invented hash. Source-backed reviews cannot be fabricated from conversation or matching bytes alone.
+- Keep complete update/purpose/review intent until its receipt. `review:"open"` remains open. After interruption, read `network_check({maintenance:{operationId}})` and resupply the identical original update with operationId and current expectedOperationRevision. Manual divergence requires replanning, never blind overwrite. No cross-project atomicity is promised. Read-only checks never finish journals. Finish with focused findings and partial coverage; no forced continuation for conversation alone.
+
+## Schema 1: existing development flow
 
 1. **Context:** Query `network_context` by the user's description or actual changed paths. Read returned summaries before selecting full details. Treat `coverage: partial`, gaps, integrity problems and omissions as visible limits. A missing network is a gap: continue the authorized development task and offer the explicit `feature-network-init` entry when useful. Whole-project initialization belongs only to an explicit request.
 2. **Impact:** Use `network_context` summaries to resolve the directly changed feature roots, then query their IDs with explicit direction, for example `network_impact({ids:["user-profile"],direction:"both",depth:2})`. Do not include all candidate dependents as origins: each selected origin has a zero-length seed path, which can hide the relationship paths you want to inspect. When dependent children point to parents, `incoming` finds dependents; normally use `both` and depth 2. Multiple directly changed roots are valid; explain their scope. Distinguish evidenced paths from hypotheses and depth limits. Verify necessary source and tests yourself; matching hashes or relationships alone do not prove semantic correctness.

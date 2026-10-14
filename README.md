@@ -1,6 +1,6 @@
 # FeatureNetwork
 
-Local feature memory for coding agents. Git-versioned YAML describes features, code references and evidenced or hypothetical relations. Five project-bound STDIO-MCP tools supply bounded context, impact queries, updates, freshness checks and resumable initialization. The running agent performs semantic analysis; FeatureNetwork calls no model API, cloud or telemetry service.
+Local feature and decision memory for coding agents. Git-versioned YAML describes features, code references, ideas, user requirements and evidenced or hypothetical relations across explicitly connected local repositories. Five project-bound STDIO-MCP tools supply bounded context, impact queries, updates, freshness checks and resumable initialization. The running agent performs semantic analysis; FeatureNetwork calls no model API, cloud or telemetry service.
 
 **Prerequisite: Node.js 24 LTS, installed separately.** The prebuilt `codex-plugin/` (Codex compatibility) and `plugin/` (Copilot portable) directories bundle their JavaScript dependencies and run offline without `npm`, TypeScript or `node_modules`. Docker Compose and Deploy Cockpit are intentionally outside this plugin's scope. License: MIT; bundled dependency notices accompany the artifact.
 
@@ -32,6 +32,14 @@ Codex Mac app, Copilot CLI and the standalone [GitHub Copilot App](https://githu
 | `feature-network-sync` | Review selected code and update feature memory with reasons |
 
 The seventh skill, `feature-network`, supports everyday development. Explicit read commands never authorize synchronization. Native Codex `/feature-net` menu discovery and real command routing remain live checks.
+
+## Connect local projects and learn during work
+
+Schema 2 adds persistent project UUIDs and readable `network-spec/knowledge/*.yaml` documents. A reviewed local upgrade preserves existing features and manual points. Configure reachable checkouts and independent source-read/memory-write rights with the separate reviewed connections CLI. Learning is disabled without that configuration; updating/installing the plugin grants no roots or learning permission. See [upgrade and connection setup](docs/installation.md#reviewed-schema-2-upgrade).
+
+With learning enabled, the active agent can retain meaningful discussion decisions and reuse analysis already needed for a coding task, even without a code diff. Ideas, requirements and source-backed observations keep distinct provenance. There is no background model or raw prompt archive. Context starts with bounded last-known summaries; impact refreshes registered consumer snapshots and checks sources only for returned features. Full write validation remains a separate measured cost. Identical findings cause no cosmetic rewrite. Each project update is guarded independently and can be resumed after interruption; it is not a global transaction. See [MCP contracts](docs/mcp.md#connected-schema-2-memory).
+
+Automated core, SDK-process and package evidence is separate from actual model/host acceptance. Connected learning in native Codex Desktop, Copilot CLI and Copilot App remains pending live validation; no token savings or agent success claim follows from scripted tests.
 
 ## Data and updates
 

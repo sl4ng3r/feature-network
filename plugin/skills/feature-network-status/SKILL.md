@@ -7,6 +7,8 @@ user-invocable: true
 
 # Show saved memory status
 
+In schema 2, summary returns project revisions/integrity and saved review counts with basis last_known, without source reads. It does not claim fresh source state. An optional connected scope must remain within registered UUIDs and visible limits. Maintenance progress is readable through network_check maintenance, including after an interrupted publication; reading does not recover or confirm it.
+
 For this explicit read-only command, call `network_check` with `mode:"summary"`. Explain its `last_known` basis: saved review and reference state is not a fresh source or semantic inspection. Present available status, partial coverage, open decisions, integrity limits and omitted counts. A current technical baseline alone does not establish a completed semantic review; missing decision cache leaves review open.
 
 If initialization progress is relevant, `network_bootstrap` with `action:"status"` may show saved progress, also `last_known`; it does not refresh the inventory. Respect bounded projections and disclose omissions rather than presenting a complete inventory.

@@ -56,3 +56,11 @@ Payload examples and retrieval/version bounds are in `tests/adapters/fixtures/RE
 - [smol-toml 1.9.0 release](https://github.com/squirrelchat/smol-toml/releases/tag/v1.9.0), pinned and bundled for safe TOML validation, including its parser hardening.
 
 `npm test -- tests/adapters tests/commands tests/freshness` validates contracts, safe temporary fixtures and real bundled processes. These tests do not install or accept any host integration.
+
+## Schema-2 learning boundaries
+
+Schema-2 session hints disclose the actual local learning mode and registered-project count with a last-known basis. They contain no full graph, knowledge text, raw prompt or local root. The active skill interprets conversation and reuses task analysis; the hook classifies only explicit commands and stores bounded technical evidence. Installation/setup never creates a connection registry or enables learning. The separate reviewed connections CLI is the configuration writer.
+
+Codex captures only current Git dirty/untracked source fingerprints (at most 100 safe paths), bound to actual host session/turn IDs, a generated Core UUID, branch/head and register revision. It avoids hashing all clean referenced sources at prompt entry. Stop compares current/committed source changes with that baseline, excluding generated/plugin/sensitive paths and old unchanged backlog, then checks only affected feature reviews. Branch changes, missing Git, excessive scope, revoked bindings, pending recovery and unavailable evidence fail open without forced analysis. Concurrent Stop calls use one CAS receipt; at most one continuation is emitted and the host recursion flag remains independent. A source-free conversation cannot cause it. Product-work authorization remains the original user's task, separate from additional memory maintenance.
+
+Copilot receives a short schema-2 session hint only; prompt output remains unused and Stop has no invented turn ID. Both hosts finish conversation/no-code analysis learning through the active skill and the same five MCP tools. Scripted hook/process/package tests do not establish actual model invocation, native menus, host trust or Copilot App behavior. Those live matrix entries remain pending.

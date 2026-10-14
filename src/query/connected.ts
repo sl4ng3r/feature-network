@@ -36,6 +36,7 @@ async function query(binding:ConnectionBinding,input:ConnectedContextRequest|Con
   const state=connectedState(input,kind);const p=state.parameters,maxProjects=p.maxProjects??8,maxVisitedFeatures=p.maxVisitedFeatures??1000;
   if(kind==='impact'&&!p.features?.length&&!p.ids?.length&&!p.paths?.length&&!p.query?.trim())throw new NetworkError('invalid_query','Impact needs direct origins');
   await assertConnection(binding,binding.activeId,'read_memory');
+  const freshSnapshots=kind==='impact'||!!state.cursor||p.freshness==='returned_features';
   const selected=projectSelection(binding,p,kind),chosen=selected.slice(0,maxProjects);const unexamined:{project:ProjectId;reason:string}[]=selected.slice(maxProjects).map(project=>({project,reason:'project_limit'}));
   const key=JSON.stringify([binding.active.root,binding.revision,[...(options.excludedReferenceRoots??[])].sort(),chosen]);
   let session=sessions.get(key);if(!session){if(sessions.size>=32)sessions.delete(sessions.keys().next().value!);session={snapshots:new Map()};sessions.set(key,session);}
@@ -43,7 +44,7 @@ async function query(binding:ConnectionBinding,input:ConnectedContextRequest|Con
   for(const id of chosen){
    try{
     const project=await assertConnection(binding,id,'read_memory');
-    const saved=session.snapshots.get(id);const snapshot=kind==='impact'||state.cursor||!saved?await readProjectSnapshot(project,{...options,sourceMode:'none'}):saved;
+    const saved=session.snapshots.get(id);const snapshot=freshSnapshots||!saved?await readProjectSnapshot(project,{...options,sourceMode:'none'}):saved;
     if(['pending_recovery','not_initialized'].includes(snapshot.integrity))throw new NetworkError(snapshot.integrity,'Project snapshot not available');
     snapshots.set(id,snapshot);
    }catch(error){if(id===binding.activeId||error instanceof NetworkError&&error.code==='connection_changed')throw error;unexamined.push({project:id,reason:error instanceof NetworkError?error.code:'project_unavailable'});}
@@ -58,7 +59,7 @@ async function query(binding:ConnectionBinding,input:ConnectedContextRequest|Con
    rows=traversed.rows.map(r=>({...row(index.entries.get(r.id)!,p.detail),origin:r.origin,status:r.status,path:r.path}));featuresLimited ||= traversed.workLimited;depthExtra={depth:p.depth??2,depthLimited:traversed.depthLimited};
   }else{rows=ranked.keys.map(k=>row(index.entries.get(k)!,p.detail));for(const r of rows)if(r.kind==='feature')countWork('visitedFeatures');}
   const sourceFreshnessBasis=p.freshness??(kind==='impact'?'returned_features':'last_known');
-  const frame:ConnectedFrame={revision:index.revision,registerRevision:binding.revision,revisions:index.revisions,coverage:'partial',integrity:index.diagnostics.some(d=>d.severity==='error')?'invalid':'valid',incomplete:unexamined.length>0||featuresLimited||index.diagnostics.some(d=>d.severity==='error'||d.code==='external_target_unresolved'),projectsExamined:[...snapshots.keys()],projectsUnexamined:unexamined,projects:Object.fromEntries([...snapshots].map(([id,s])=>[id,{name:s.meta?.schema===2?s.meta.project.name:id,revision:s.revision,fingerprints:{}}])),basis:kind==='impact'||state.cursor?'fresh_snapshots':'last_known',sourceFreshnessBasis,sourceValidationScope:sourceFreshnessBasis==='returned_features'?'returned_features':'none',limits:{maxProjects,maxVisitedFeatures,projectsLimited:unexamined.some(p=>p.reason==='project_limit'),featuresLimited},unexaminedMatchCount:unexamined.length||featuresLimited?null:0,selectedProjects:selected,...depthExtra};
+  const frame:ConnectedFrame={revision:index.revision,registerRevision:binding.revision,revisions:index.revisions,coverage:'partial',integrity:index.diagnostics.some(d=>d.severity==='error')?'invalid':'valid',incomplete:unexamined.length>0||featuresLimited||index.diagnostics.some(d=>d.severity==='error'||d.code==='external_target_unresolved'),projectsExamined:[...snapshots.keys()],projectsUnexamined:unexamined,projects:Object.fromEntries([...snapshots].map(([id,s])=>[id,{name:s.meta?.schema===2?s.meta.project.name:id,revision:s.revision,fingerprints:{}}])),basis:freshSnapshots?'fresh_snapshots':'last_known',sourceFreshnessBasis,sourceValidationScope:sourceFreshnessBasis==='returned_features'?'returned_features':'none',limits:{maxProjects,maxVisitedFeatures,projectsLimited:unexamined.some(p=>p.reason==='project_limit'),featuresLimited},unexaminedMatchCount:unexamined.length||featuresLimited?null:0,selectedProjects:selected,...depthExtra};
   const preliminary=paginateConnected(index,rows,p,kind,frame,state.cursor,undefined,options.responseReserveBytes);
   if(sourceFreshnessBasis==='last_known')return preliminary;
   if(!options.readFreshness)throw new NetworkError('freshness_unavailable','A current source check provider is required');

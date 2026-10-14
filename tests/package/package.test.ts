@@ -1,3 +1,4 @@
+import { projectV2 } from '../helpers/connected.js';
 import { afterEach, expect, test } from 'vitest';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import { Client } from '@modelcontextprotocol/client';
@@ -204,3 +205,5 @@ test('package_verifier_requires_shared_skill_source_fingerprint_before_release',
   for (const distribution of ['plugin', 'codex-plugin']) await writeFile(join(temp, distribution, 'dist/build-info.json'), JSON.stringify(info));
   await expect(exec(process.execPath, [join(root, 'scripts/verify-package.mjs')], { cwd: temp })).rejects.toThrow(/missing_build_source/);
 });
+
+test('copied_offline_package_understands_schema_two_without_enabling_learning',async()=>{const installed=await fixture(),p=await projectV2(roots,'Synthetic package project');const result=spawnSync(process.execPath,[join(installed.installed,'dist/hook.mjs'),'--host','codex'],{input:JSON.stringify({cwd:p.root,session_id:'package',hook_event_name:'SessionStart'}),encoding:'utf8',timeout:8000,env:{...process.env,HTTP_PROXY:'http://127.0.0.1:1',HTTPS_PROXY:'http://127.0.0.1:1'}});expect(result.status).toBe(0);expect(result.stderr).toBe('');expect(JSON.parse(result.stdout).hookSpecificOutput.additionalContext).toContain('learning disabled');expect((await readdir(p.project.runtimeDir).catch(()=>[]))).not.toContain('connections.yaml');const paths=await files(installed.installed);expect(paths.some(p=>p.startsWith('network-spec/')||p.startsWith('.feature-network/'))).toBe(false);});

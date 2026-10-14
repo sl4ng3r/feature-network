@@ -7,6 +7,8 @@ user-invocable: true
 
 # Reconcile selected memory with code
 
+For schema-2 rows (project/kind), use the general feature-network skill's connected learning flow instead of the legacy write shape below: kind memory, purpose mode sync/basis explicit_sync, qualified sources, exact target revisions and only changed path fingerprints. Refresh selected details with freshness returned_features, preserve knowledge/manual points, group changes per authorized target, and skip cosmetic no-ops. Review-only analysis has empty upserts/deletes/expected plus explicit document fingerprints/revisions; conversation cannot confirm sources. Read operation progress before identical-intent resumption after interruption. Bootstrap remains a separate explicit command.
+
 Use the current host agent and its normal source tools. Start with `network_check({mode:"full"})` and `network_context` to identify changed references and unknown change files. Narrow them by the user's description when supplied; sources with no trustworthy baseline stay uncertain and are analyzed only in the explicitly selected area. A missing network does not authorize whole-project bootstrap: report the gap and offer explicit `feature-network-init`. Do not absorb arbitrary backlog or rescan the whole repository.
 
 1. Resolve the area through context summaries and inspect stored full features. Use bounded `network_impact` where necessary to identify related assertions/tests. Continue context or impact with only `{cursor: result.nextCursor}` in the respective tool call: `nextCursor` is a response property, `cursor` the request property. Collect all named sections or concatenate JSON fragments by UTF-16 offset through `total` and parse before treating a feature as complete.

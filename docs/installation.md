@@ -78,9 +78,9 @@ Schemas and documentation checked on 2026-10-09:
 
 Contract tests, offline processes, checksum equality and schema validation do not prove semantic feature coverage, native menus, model instruction use or successful trust review. Three distinct host live checks remain required. The GitHub repository URL in metadata identifies the intended source; it does not claim publication has happened.
 
-## Reviewed schema-2 upgrade (staged connected-memory development)
+## Reviewed schema-2 upgrade
 
-Schema 1 remains supported. Schema 2 and the future connected-memory workflow require an explicit upgrade; installing an updated plugin never upgrades project data or grants access to another checkout. At this development stage the upgrade API is implemented; the complete connected MCP workflow has its own integration checks.
+Schema 1 remains supported. Existing schema-1 projects need an explicit upgrade for connected memory; installing an updated plugin never upgrades project data or grants access to another checkout. The connected core, MCP and package workflows have automated integration checks; actual native host acceptance remains separate.
 
 With Node 24, choose one stable UUID for the project and reuse it in both commands:
 
@@ -101,3 +101,7 @@ node plugin/dist/cli.mjs connections --project-root <root> --config-file <local-
 ```
 
 Only the active project's ignored `.feature-network/connections.yaml` is changed. Review the paths and rights; the receipt binds the candidate bytes, current registry and selected identities. Counterpart configuration, global settings and product files stay untouched. Replacing the registry or a selected identity invalidates outstanding access. This grants plugin-level scope only; host permissions still apply.
+
+After connection setup, the active skill can learn meaningful ideas/requirements from conversations and observations from code already inspected in the task. Source-backed reviews require actual inspected hashes; matching bytes alone is insufficient. Read-only commands stay read-only. Disabling learning through a new reviewed connections preview preserves existing knowledge and connections according to that explicit selection; it does not delete YAML or old receipts. Keep the registry local and ignored: absolute paths belong only there, never in shared memory, examples or release artifacts.
+
+Codex schema-2 hooks capture at most 100 existing changed source paths per bound turn; no whole-graph source scan is used for the baseline. Unknown/unavailable evidence or larger scope disables forced continuation. One matching turn and both recursion guards are required. Conversation-only learning runs in the active skill/MCP flow without a forced continuation; Copilot has no synthetic turn proof.

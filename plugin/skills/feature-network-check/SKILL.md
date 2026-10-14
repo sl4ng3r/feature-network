@@ -7,6 +7,8 @@ user-invocable: true
 
 # Check technical memory state
 
+For schema 2, full checks return fresh_snapshots, capped feature-source freshness and safe unmapped changes. Matching bytes do not imply recorded semantic review; review open remains explicit. Connected scope is optional, with UUID selections and visible omissions/limits. Reading maintenance operation progress is also read-only; neither mode recovers journals, adds connections nor learns from the current conversation.
+
 Call `network_check` with `mode:"full"`. This performs a fresh technical check, including recorded references, and is read-only. Source/hash inspection by that tool is not semantic code analysis by the host agent.
 
 Report integrity findings, changed or missing references, unknown/unmapped changes, open decisions and missing reason-cache entries. A deleted unmapped file remains a reported unknown change; check does not submit an absence observation or decide that its meaning is unchanged. Distinguish technical hash equality from semantic review: even current baselines do not close an absent or invalid decision. Present partial coverage and all visible limits.

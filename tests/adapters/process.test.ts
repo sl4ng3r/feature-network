@@ -1,3 +1,4 @@
+import { connectedFixture } from '../helpers/connected.js';
 import { parse } from 'smol-toml';
 import { describe, afterEach, expect, test } from 'vitest';
 import { spawn } from 'node:child_process';
@@ -97,3 +98,5 @@ test.skipIf(process.platform !== 'win32')('generated_copilot_powershell_hook_run
 });
 
 });
+
+test('real_schema_two_hook_processes_use_bound_source_proof_and_one_continuation',async()=>{const f=await connectedFixture(roots),base={cwd:f.active.root,session_id:'connected-process',turn_id:'one-turn'};const start=await run(hook,['--host','codex'],JSON.stringify({...base,hook_event_name:'UserPromptSubmit',prompt:'PRIVATE-PROMPT Add an access flag'}));expect(start.stderr).toBe('');expect(JSON.parse(start.stdout).hookSpecificOutput).toBeDefined();await writeFile(join(f.active.root,'src/source.ts'),'changed access');const outputs=await Promise.all(Array.from({length:3},()=>run(hook,['--host','codex'],JSON.stringify({...base,hook_event_name:'Stop',stop_hook_active:false}))));expect(outputs.filter(o=>JSON.parse(o.stdout).decision==='block')).toHaveLength(1);for(const o of outputs){expect(o.stderr).toBe('');expect(o.stdout).not.toContain('PRIVATE-PROMPT');expect(o.stdout).not.toContain(f.active.root);}},20000);

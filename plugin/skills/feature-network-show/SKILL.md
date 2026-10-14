@@ -7,6 +7,8 @@ user-invocable: true
 
 # Show project memory by description
 
+Schema 2 also returns knowledge rows. Distinguish ideas, explicit user requirements and source observations; show provenance and unresolved contradictions rather than treating them all as implemented code. Names are display labels; select rows with qualified features or knowledge references using their project UUID and local ID. Context defaults to last_known hints; request full detail only for the chosen items. Connected scope includes only explicitly registered projects and reports unavailable/limited scope.
+
 Use `network_context`; this explicit command reads stored memory. Natural-language interpretation and conversational selection belong to the host agent, while the core provides deterministic token/path/ID lookup. The user needs no feature ID or code symbol.
 
 Choose the display recipe matching the request:

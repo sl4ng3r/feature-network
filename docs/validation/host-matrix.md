@@ -85,3 +85,13 @@ The final reviewed runtime repair at `1b0c396` passed 444 tests across 37 files 
 Use `assessHost(host, version, evidence)` from `bench/comparison.ts` for supplied machine-readable checks. Each required live result must bind the exact host, observed version, named check, passed/failed status and non-null evidence hash. Contract results, other hosts/versions or missing hashes cannot pass. A conflicting matching failure dominates a matching pass. This validates record structure only, not the truth of an operator-supplied artifact. Provider/model/session/source bindings belong in the actual comparison records; versions unavailable from the host remain unknown, never inferred from a CLI or package schema.
 
 After authorization, store actual UI/session/config/runtime artifacts locally, then redact private paths/prompts before committing selected summaries. For sync repeat, compare actual YAML byte hashes and available write events; an identical hash alone does not prove no rewrite. For costs and task quality use the independent protocol in [benchmark protocol](benchmark-protocol.md); three fresh trials per condition per task are mandatory. There are currently no actual comparison reports. Do not replace missing runs with Task 8's synthetic answers or call this matrix full v1 acceptance.
+
+## Connected memory (schema 2)
+
+Core, in-memory SDK, separate STDIO/hook processes and copied offline-package tests cover schema-2 routing, learning defaults, explicit read-only commands, source-bound one-shot Codex continuation and Copilot's no-turn limitation. These are scripted contracts. Earlier native evidence is bound to its original revision and does not extend to connected learning. No real host/project was installed or restarted for this change.
+
+| Host | Connected conversations and no-code analysis | Cross-project task/impact | Native command/trust acceptance |
+| --- | --- | --- | --- |
+| Codex Mac app | pending live run | pending live run | pending for this revision |
+| Copilot CLI | pending live run | pending live run | pending for this revision |
+| Copilot App | pending live run | pending live run | pending for this revision |

@@ -7,6 +7,8 @@ user-invocable: true
 
 # Inspect stored impact paths
 
+Schema 2 accepts qualified direct origins as features [{project,feature}]; plain ids mean the active project. Default impact considers registered consumers with fresh snapshots and checks only returned features' sources. Conversation knowledge explains a decision but is not implementation evidence. Show projects examined/unexamined and work limits; a missing consumer or depth limit cannot establish no effect. Full detail stays selective.
+
 Resolve the user's description with `network_context` summaries to identify the direct feature roots of the requested change or topic, then query those root IDs. For example: `network_impact({ids:["user-profile"],direction:"both",depth:2})`. Do not include all candidate dependents as origins: every selected origin has a zero-length seed path, so selecting all affected features can hide dependency paths. A broad topic may have multiple direct roots; explain that scope without forcing one feature. Natural interpretation and selection belong to the host agent.
 
 When dependent children point to parents, `incoming` finds dependents; `outgoing` follows the dependencies of the selected roots. Normally use explicit direction `both`, depth 2 and the default 20-feature/12,000-byte budget. Present the selected area, affected features and directed relationship paths. Separate `evidenced` paths with their recorded sources from `hypothesis` paths. State the actual depth, `depthLimited`, omissions, integrity restrictions and `coverage:partial`; stored relationships do not prove complete impact or current semantic correctness.

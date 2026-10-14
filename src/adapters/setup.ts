@@ -138,7 +138,7 @@ async function createSetupPlan(host: SetupHost, project: string, existingConfig:
   const files = Object.freeze(internal.files.map(file => Object.freeze({ path: join(root, file.path), expectedHash: file.before === null ? null : digest(file.before), content: file.path === hookTarget ? formatted(additions) : mcpPreview })));
   const receipt = digest(JSON.stringify({ host, projectRoot: root, registration, pluginRoot, node, sources, readOnly: readOnly.map(file => ({ path: file.path, hash: file.before === null ? null : digest(file.before) })), files }));
   const plan: SetupPlan = Object.freeze({ host, projectRoot: root, registration, receipt, files,
-    note: 'Preview of additions only; unrelated values are preserved privately. Applying requires explicit approval of these exact targets. Host trust review remains required. Local paths must not be committed or released.' });
+    note: 'Preview of additions only; unrelated values are preserved privately. Applying requires explicit approval of these exact targets. Host trust review remains required. Learning and connected roots require the separate reviewed connections preview; setup grants neither. Local paths must not be committed or released.' });
   plans.set(plan, internal); return plan;
 }
 /** Parser diagnostics can contain secret source values: never expose those errors. */

@@ -7,6 +7,8 @@ user-invocable: true
 
 # Build or resume project memory
 
+Schema 2 uses the same active-project bootstrap protocol and preserves existing knowledge bytes. For schema-2 updates follow the general feature-network skill's connected learning flow. Explicit initialization uses kind memory, initialize {id,name}, mode init, null first-feature path expectations, an unchanged empty-network revision and actual qualified source hashes. It requires a real first feature; never initialize for a knowledge-only conversation. Installing/updating plugins does not upgrade schema 1 or enable learning. Reviewed CLI upgrade and connections remain separate actions.
+
 Start only for an explicit initialization request. A description match, missing marker or ordinary development task does not request whole-project analysis. Use the host agent's source tools and the five existing MCP tools; inputs have no project-root argument. Preserve existing features and manual key points. This command changes only network memory and local bootstrap progress, not product code, databases, host settings or Git commits.
 
 1. Call `network_bootstrap` with `action:"status"` to show saved progress as `last_known`, then `action:"start"` to refresh the inventory and obtain the active package. Repeat invocation resumes existing work; never delete features to restart. A checkout/branch change requiring reconciliation needs explicit `start` with `reconcile:true`. Corrupt or unavailable state is a visible limitation. `.env.example` stays excluded unless the caller supplies a concrete sanitized-example attestation bound to its current hash; filename or user convenience is not such an attestation.

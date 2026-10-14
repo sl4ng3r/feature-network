@@ -1,3 +1,5 @@
+import { projectSchema } from '../project/schema-version.js';
+import { handleConnectedCodex } from './connected.js';
 import { realpath } from 'node:fs/promises';
 import { z } from 'zod';
 import { bootstrap } from '../bootstrap/state.js';
@@ -34,6 +36,7 @@ export async function handleCodexEvent(payload: unknown, trusted: AdapterOptions
   try {
     const project = await discoverHookProject(event.cwd);
     if (!project) return event.hook_event_name === 'Stop' ? {} : context(event.hook_event_name, missing);
+    if(await projectSchema(project)===2)return await handleConnectedCodex(project,payload,{pluginRoot:await realpath(trusted.pluginRoot)});
     const options = { excludedReferenceRoots: [await realpath(trusted.pluginRoot)], allowRecovery: false };
     if (event.hook_event_name === 'SessionStart') {
       const check = await checkNetwork(project, 'summary', undefined, options);
